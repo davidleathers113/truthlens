@@ -1,0 +1,368 @@
+# TruthLens CI/CD Pipeline - 2025 Best Practices
+# Automated testing, security scanning, and Chrome Web Store deployment
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  CHROME_VERSION: 'stable'
+
+jobs:
+  # Security and Quality Checks
+  security-scan:
+    name: 🔒 Security & Quality Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      # ESLint Security Analysis
+      - name: Run ESLint Security Scan
+        run: |
+          npm run lint -- --format @microsoft/eslint-formatter-sarif --output-file eslint-security.sarif
+        continue-on-error: true
+      
+      # Dependency vulnerability scanning
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate --format=json > npm-audit.json
+        continue-on-error: true
+      
+      # CodeQL Analysis for SAST
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@012739e5082ff0c22ca6d6ab32e07c36df03c4a4 # v2.22.7
+        with:
+          languages: javascript
+          queries: security-extended
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@012739e5082ff0c22ca6d6ab32e07c36df03c4a4 # v2.22.7
+        with:
+          category: "/language:javascript"
+      
+      # Upload security results
+      - name: Upload ESLint results to GitHub Security
+        uses: github/codeql-action/upload-sarif@012739e5082ff0c22ca6d6ab32e07c36df03c4a4 # v2.22.7
+        if: always()
+        with:
+          sarif_file: eslint-security.sarif
+      
+      # Secret scanning with TruffleHog
+      - name: Run TruffleHog OSS
+        uses: trufflesecurity/trufflehog@3c7e6f3aea20e1a69eebe51c63de7e85b8d6a3c8 # v3.63.2
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Build and Test
+  build-test:
+    name: 🧪 Build & Test
+    runs-on: ubuntu-latest
+    needs: security-scan
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      # Install Chrome for testing
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@82b9ce628cc5595478a9ebadc480958a36457dc2 # v1.5.0
+        with:
+          chrome-version: ${{ env.CHROME_VERSION }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type checking
+        run: npm run type-check
+      
+      - name: Linting
+        run: npm run lint
+      
+      - name: Format check
+        run: npm run format:check
+      
+      # Unit Tests with coverage
+      - name: Run unit tests
+        run: npm run test:coverage
+      
+      # Integration Tests
+      - name: Run integration tests
+        run: npm test tests/integration
+      
+      # End-to-End Tests with Playwright
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+      
+      # Build for production
+      - name: Build extension
+        run: npm run build
+      
+      # Upload test results
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3.1.6
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+      
+      # Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        with:
+          name: extension-build-${{ matrix.node-version }}
+          path: dist/
+          retention-days: 7
+
+  # Performance Testing
+  performance-test:
+    name: ⚡ Performance Testing
+    runs-on: ubuntu-latest
+    needs: build-test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@82b9ce628cc5595478a9ebadc480958a36457dc2 # v1.5.0
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build extension
+        run: npm run build
+      
+      # Bundle size analysis
+      - name: Analyze bundle size
+        run: |
+          npm run build:analyze
+          node scripts/bundle-size-check.js
+      
+      # Performance benchmarks
+      - name: Run performance benchmarks
+        run: npm test tests/performance
+      
+      # Memory usage testing
+      - name: Memory usage test
+        run: node scripts/memory-test.js
+      
+      - name: Upload performance reports
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        with:
+          name: performance-reports
+          path: |
+            performance-report.json
+            bundle-analysis.json
+          retention-days: 30
+
+  # Extension Packaging
+  package:
+    name: 📦 Package Extension
+    runs-on: ubuntu-latest
+    needs: [build-test, performance-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+        with:
+          fetch-depth: 0  # Needed for version bump calculations
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      # Version management
+      - name: Determine version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=$(node -p "require('./package.json').version")-dev.$(git rev-parse --short HEAD)
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Determined version: $VERSION"
+      
+      # Update manifest version
+      - name: Update manifest version
+        run: |
+          node scripts/update-version.js ${{ steps.version.outputs.VERSION }}
+      
+      # Build and package
+      - name: Build and package extension
+        run: |
+          npm run build
+          npm run package
+        env:
+          BUILD_VERSION: ${{ steps.version.outputs.VERSION }}
+      
+      # Generate release notes
+      - name: Generate release notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          node scripts/generate-release-notes.js > RELEASE_NOTES.md
+      
+      # Upload packaged extension
+      - name: Upload extension package
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        with:
+          name: truthlens-extension-${{ steps.version.outputs.VERSION }}
+          path: |
+            dist/truthlens-*.zip
+            RELEASE_NOTES.md
+          retention-days: 90
+
+  # Chrome Web Store Deployment
+  deploy:
+    name: 🚀 Deploy to Chrome Web Store
+    runs-on: ubuntu-latest
+    needs: package
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      
+      - name: Download extension package
+        uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.7
+        with:
+          pattern: truthlens-extension-*
+          merge-multiple: true
+      
+      # Deploy to Chrome Web Store
+      - name: Deploy to Chrome Web Store
+        uses: PlasmoHQ/bpp@v3
+        with:
+          keys: ${{ secrets.WEBSTORE_KEYS }}
+          chrome-file: truthlens-*.zip
+          verbose: true
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      
+      # Partial rollout deployment
+      - name: Configure partial rollout
+        run: |
+          node scripts/configure-rollout.js --percentage=10
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+      
+      # Deployment notification
+      - name: Notify deployment status
+        if: always()
+        run: |
+          node scripts/notify-deployment.js \
+            --status=${{ job.status }} \
+            --version=${{ needs.package.outputs.version }} \
+            --build-url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          NOTIFICATION_WEBHOOK: ${{ secrets.DEPLOYMENT_WEBHOOK }}
+
+  # Pipeline Monitoring
+  monitor:
+    name: 📊 Pipeline Monitoring
+    runs-on: ubuntu-latest
+    needs: [security-scan, build-test, performance-test, package]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3.8.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      # Pipeline performance analytics
+      - name: Collect pipeline metrics
+        run: |
+          echo "Pipeline run: ${{ github.run_id }}" >> pipeline-metrics.json
+          echo "Duration: $(( $(date +%s) - ${{ github.event.head_commit.timestamp }} ))" >> pipeline-metrics.json
+          echo "Jobs status:" >> pipeline-metrics.json
+          echo "  Security: ${{ needs.security-scan.result }}" >> pipeline-metrics.json
+          echo "  Build: ${{ needs.build-test.result }}" >> pipeline-metrics.json
+          echo "  Performance: ${{ needs.performance-test.result }}" >> pipeline-metrics.json
+          echo "  Package: ${{ needs.package.result }}" >> pipeline-metrics.json
+      
+      # Health check and alerts
+      - name: Pipeline health check
+        run: |
+          node scripts/pipeline-health-check.js
+        env:
+          SECURITY_STATUS: ${{ needs.security-scan.result }}
+          BUILD_STATUS: ${{ needs.build-test.result }}
+          PERFORMANCE_STATUS: ${{ needs.performance-test.result }}
+          PACKAGE_STATUS: ${{ needs.package.result }}
+      
+      # Weekly pipeline report
+      - name: Generate weekly report
+        if: github.event_name == 'schedule'
+        run: |
+          node scripts/generate-pipeline-report.js --period=weekly
+      
+      - name: Upload monitoring data
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
+        with:
+          name: pipeline-monitoring
+          path: pipeline-metrics.json
+          retention-days: 30
+
+# Schedule weekly pipeline reports
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Every Sunday at midnight

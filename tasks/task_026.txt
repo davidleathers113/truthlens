@@ -1,0 +1,139 @@
+# Task ID: 26
+# Title: Create Twitter/X Content Extractor
+# Status: pending
+# Dependencies: 3, 4, 7
+# Priority: high
+# Description: Develop a specialized content extractor for Twitter/X that handles tweets, threads, and embedded content while adapting to UI changes and implementing rate-limiting mechanisms.
+# Details:
+Implement a Twitter/X-specific content extractor (src/content/extractors/twitterExtractor.ts) with the following components:
+
+1. Platform detection:
+   - Identify Twitter/X domains (twitter.com, x.com) and their subpages
+   - Detect Twitter/X embedded content on third-party sites
+
+2. Tweet content extraction:
+   - Extract tweet text, author information, timestamps, and engagement metrics
+   - Handle text formatting, hashtags, mentions, and emojis
+   - Extract media content (images, videos, GIFs) with proper attribution
+   - Capture quote tweets and their nested content
+
+3. Thread extraction:
+   - Identify thread relationships between tweets
+   - Extract full conversation context and reply chains
+   - Handle "Show more" buttons and dynamic content loading
+   - Preserve thread chronology and structure
+
+4. Dynamic content handling:
+   - Implement MutationObserver to detect dynamically loaded content
+   - Handle infinite scrolling and "Show more replies" expansions
+   - Detect and process newly rendered tweets during browsing
+   - Manage state for partially loaded threads
+
+5. UI change resilience:
+   - Use attribute-based selectors rather than class names when possible
+   - Implement fallback selector patterns for robustness
+   - Add periodic selector validation and automatic reporting of breaking changes
+   - Create a configuration file for easy selector updates (src/content/extractors/config/twitterSelectors.ts)
+
+6. Rate limiting and API-friendly patterns:
+   - Implement progressive loading with appropriate delays
+   - Add backoff mechanisms for failed extraction attempts
+   - Cache extracted content to minimize repeated processing
+   - Respect Twitter's robots.txt and terms of service
+
+7. Integration with existing infrastructure:
+   - Export TwitterExtractor class implementing the ContentExtractor interface
+   - Register the extractor with the platform detection system
+   - Add Twitter-specific types to shared type definitions
+   - Implement proper error handling and logging
+
+The implementation should prioritize resilience to UI changes while maintaining extraction accuracy and respecting platform limitations.
+
+# Test Strategy:
+1. Unit Testing:
+   - Create unit tests for selector patterns using Jest
+   - Mock Twitter/X DOM structures for testing extraction logic
+   - Test edge cases like deleted tweets, restricted content, and various media types
+   - Verify proper handling of rate limiting and backoff mechanisms
+
+2. Integration Testing:
+   - Test the extractor with the content script infrastructure
+   - Verify proper registration and activation based on URL patterns
+   - Test communication with the service worker for extracted content
+   - Validate proper type conformance with shared interfaces
+
+3. Manual Testing:
+   - Create a test matrix covering different Twitter/X page types:
+     * Home timeline
+     * User profiles
+     * Individual tweet pages
+     * Search results
+     * Trending topics
+     * Embedded tweets on third-party sites
+   - Test with various content types:
+     * Text-only tweets
+     * Tweets with images (single and multiple)
+     * Tweets with videos
+     * Tweets with polls
+     * Quote tweets and retweets
+     * Threads of varying lengths
+   - Test dynamic loading scenarios:
+     * Scrolling through long threads
+     * Expanding "Show more replies"
+     * New tweets appearing in timeline
+
+4. Regression Testing:
+   - Create snapshot tests of extracted content structure
+   - Implement automated UI tests with Playwright or Puppeteer
+   - Set up periodic validation tests to detect Twitter/X UI changes
+   - Document known UI patterns for future reference
+
+5. Performance Testing:
+   - Measure extraction time for various content types
+   - Monitor memory usage during extraction of large threads
+   - Test CPU utilization during continuous scrolling
+   - Verify rate limiting mechanisms prevent excessive requests
+
+# Subtasks:
+## 1. Implement Twitter/X Platform Detection [pending]
+### Dependencies: None
+### Description: Create the foundation for the Twitter extractor by implementing platform detection logic that identifies Twitter/X domains and embedded content.
+### Details:
+Create the TwitterExtractor class that implements ContentExtractor interface. Implement methods to detect Twitter/X domains (twitter.com, x.com) and their subpages. Add logic to identify Twitter/X embedded content on third-party sites. Create a registration mechanism for the extractor with the platform detection system.
+
+## 2. Create Twitter/X Selector Configuration System [pending]
+### Dependencies: 26.1
+### Description: Develop a configuration system for DOM selectors to make the extractor resilient to UI changes.
+### Details:
+Create src/content/extractors/config/twitterSelectors.ts to store all DOM selectors. Implement attribute-based selectors rather than class names when possible. Add fallback selector patterns for robustness. Design the configuration to be easily updatable when Twitter changes its UI. Include selectors for tweets, threads, media, and interactive elements.
+
+## 3. Implement Basic Tweet Content Extraction [pending]
+### Dependencies: 26.2
+### Description: Develop the core functionality to extract content from individual tweets.
+### Details:
+Implement methods to extract tweet text, author information, timestamps, and engagement metrics. Handle text formatting, hashtags, mentions, and emojis. Create parsers for different tweet components. Implement proper error handling for missing elements. Add logging for extraction failures.
+
+## 4. Add Media Content Extraction [pending]
+### Dependencies: 26.3
+### Description: Extend the extractor to handle images, videos, GIFs, and quote tweets.
+### Details:
+Implement methods to extract media content (images, videos, GIFs) with proper attribution. Create handlers for different media types. Add support for capturing quote tweets and their nested content. Implement proper media URL resolution and metadata extraction. Handle accessibility text for images.
+
+## 5. Implement Thread and Reply Extraction [pending]
+### Dependencies: 26.4
+### Description: Develop functionality to extract full Twitter threads and conversation context.
+### Details:
+Implement logic to identify thread relationships between tweets. Create methods to extract full conversation context and reply chains. Develop handlers for 'Show more' buttons and dynamic content loading. Implement mechanisms to preserve thread chronology and structure. Add support for detecting the original tweet in a thread.
+
+## 6. Add Dynamic Content Handling with MutationObserver [pending]
+### Dependencies: 26.5
+### Description: Implement mechanisms to handle dynamically loaded content and infinite scrolling.
+### Details:
+Implement MutationObserver to detect dynamically loaded content. Create handlers for infinite scrolling and 'Show more replies' expansions. Develop logic to detect and process newly rendered tweets during browsing. Implement state management for partially loaded threads. Add throttling mechanisms to prevent performance issues.
+
+## 7. Implement Rate Limiting and Caching Mechanisms [pending]
+### Dependencies: 26.6
+### Description: Add rate limiting, caching, and API-friendly patterns to ensure the extractor respects Twitter's terms of service.
+### Details:
+Implement progressive loading with appropriate delays. Add backoff mechanisms for failed extraction attempts. Create a caching system to minimize repeated processing of the same content. Ensure compliance with Twitter's robots.txt and terms of service. Implement configurable rate limits and extraction throttling. Add documentation on usage limitations.
+

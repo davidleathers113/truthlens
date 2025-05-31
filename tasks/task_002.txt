@@ -1,0 +1,26 @@
+# Task ID: 2
+# Title: Implement Service Worker Architecture
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Create the background service worker to handle AI processing, API calls, and data storage.
+# Details:
+Implement the background service worker (src/background/index.ts) with the following components:
+
+1. Message handling system for communication with content scripts and popup
+2. Chrome Built-in AI integration (Gemini Nano) for local content analysis
+3. Storage service integration for caching results
+4. Error handling and logging system
+
+The service worker should:
+- Initialize on extension installation/update
+- Register message listeners for content script requests
+- Implement the AI analysis service with Chrome Built-in AI
+- Handle storage operations for caching and settings
+
+Implement a fallback mechanism for environments where Chrome Built-in AI is not available, using traditional algorithms for basic content analysis.
+
+Use Chrome's persistent storage for caching with a 24-hour TTL by default (configurable in user settings).
+
+# Test Strategy:
+Unit test the service worker initialization, message handling, and storage operations. Mock Chrome Built-in AI API to test AI integration. Verify proper error handling by simulating various failure scenarios. Test cache invalidation logic with different TTL configurations.

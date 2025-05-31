@@ -1,0 +1,27 @@
+# Task ID: 5
+# Title: Implement Storage Service
+# Status: done
+# Dependencies: 2, 4
+# Priority: high
+# Description: Create a storage abstraction layer for managing extension data, settings, and caching.
+# Details:
+Implement a storage service (src/shared/storage/storageService.ts) with the following features:
+
+1. Chrome storage API abstraction with sync and local options
+2. Caching system for credibility scores with TTL support
+3. User settings management with defaults and validation
+4. Error handling and recovery mechanisms
+
+The storage service should provide these key methods:
+- `getCredibilityScore(url: string): Promise<CredibilityScore | null>`
+- `saveCredibilityScore(url: string, score: CredibilityScore): Promise<void>`
+- `getUserSettings(): Promise<UserSettings>`
+- `updateUserSettings(settings: Partial<UserSettings>): Promise<void>`
+- `clearCache(): Promise<void>`
+
+Implement a cache invalidation system based on TTL (default 24 hours) and storage quota management to prevent exceeding Chrome's storage limits.
+
+Use Chrome's sync storage for user settings to maintain preferences across devices, and local storage for caching credibility scores.
+
+# Test Strategy:
+Unit test all storage operations with mock Chrome storage API. Verify cache TTL functionality with time manipulation. Test storage quota management by simulating quota exceeded errors. Validate settings persistence and defaults.

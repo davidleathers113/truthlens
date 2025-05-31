@@ -1,0 +1,32 @@
+# Task ID: 9
+# Title: Develop Visual Indicator System
+# Status: done
+# Dependencies: 3, 4
+# Priority: high
+# Description: Create the visual indicator system for displaying credibility scores on web pages, optimized for 2025 Gen Z UX standards.
+# Details:
+Implement the visual indicator system (src/content/indicators/) with the following Gen Z-focused components and requirements:
+
+1. Base indicator component with bold color-coding and emoji traffic light system (🟢🟡🔴), using 32x32px indicators for compactness and clarity
+2. Visual-first, minimalist design with prominent emojis and minimal text, prioritizing visual cues over dense information
+3. Micro-interactions: fast, smooth animations and transitions (<200ms response) for all appearance, disappearance, and interaction states
+4. Progressive disclosure interface using a Level 1/2/3 interaction model:
+   - Level 1: Quick-glance indicator (emoji + color + score)
+   - Level 2: Tap/hover for summary details
+   - Level 3: Further tap/expand for in-depth information
+5. Positioning system with collision detection and smart placement, contextually adapting to platform and content
+6. Responsive, mobile-first design:
+   - Minimum 44x44px touch targets for all interactive elements
+   - Adjust size and position based on viewport dimensions
+   - Touch-friendly interactions and swipe gestures for indicator management
+   - Haptic feedback for important interactions
+7. Accessibility compliance with WCAG 2.1 AA:
+   - Proper color contrast ratios (≥3:1 for UI components and focus indicators)
+   - Screen reader support with ARIA attributes
+   - Keyboard navigation and focus management for all interactive elements
+   - Never hide focus indicators; ensure visible, high-contrast outlines for keyboard focus
+
+The system must be designed for an 8-second attention span: prioritize immediate, visually engaging feedback, minimize cognitive load, and avoid unnecessary complexity. All indicators should be visually prominent, use bold colors, and leverage emojis for instant recognition. Animations and transitions must be subtle, smooth, and complete within 200ms to maintain a sense of speed and responsiveness.
+
+# Test Strategy:
+Test indicator rendering and interaction on a variety of websites and platforms, with emphasis on mobile-first experience. Verify positioning logic and collision detection across different viewport sizes. Test all interaction behaviors (hover, tap, swipe, progressive disclosure). Validate accessibility with automated tools, screen readers, and manual keyboard navigation. Measure animation durations to ensure <200ms response. Confirm color contrast ratios meet WCAG 2.1 AA. Assess performance impact on page rendering.

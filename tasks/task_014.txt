@@ -1,0 +1,81 @@
+# Task ID: 14
+# Title: Create Detailed Analysis View
+# Status: pending
+# Dependencies: 9, 12
+# Priority: medium
+# Description: Develop the expanded analysis view for showing detailed credibility information.
+# Details:
+Implement the detailed analysis view (src/content/indicators/detailedView.ts) that appears on hover/tap:
+
+1. Expanded card interface with comprehensive information:
+   - Overall credibility score and confidence
+   - Score breakdown by factor (domain, content, fact-checks)
+   - Source information and background
+   - Bias analysis and political leaning (premium)
+   - Recommendations for verification
+
+2. Interactive elements:
+   - "Learn more" button for full analysis
+   - User feedback options (agree/disagree with score)
+   - Share button for sending analysis
+   - Settings shortcut for customization
+
+3. Progressive disclosure levels:
+   - Level 1: Basic score (always visible)
+   - Level 2: Summary analysis (hover/tap)
+   - Level 3: Comprehensive details (click/tap)
+
+Design the interface with responsive layouts for both desktop and mobile:
+- Desktop: Card expands on hover, full details on click
+- Mobile: Tap for summary, second tap for full details
+
+Implement smooth animations for expansion/collapse with configurable timing (default 300ms) and easing functions.
+
+Ensure the detailed view remains within viewport boundaries with smart positioning logic that adjusts based on available space.
+
+# Test Strategy:
+Test detailed view rendering on various websites. Verify responsive behavior on different devices. Test interaction patterns (hover, tap, click). Validate positioning logic with different viewport sizes and scroll positions. Test animation performance on low-end devices.
+
+# Subtasks:
+## 1. Create Basic Card Component Structure [pending]
+### Dependencies: None
+### Description: Implement the foundational card component structure for the detailed analysis view with responsive layouts for desktop and mobile.
+### Details:
+Create the base DetailedAnalysisView component in src/content/indicators/detailedView.ts with: 1) Container element with proper positioning logic, 2) Responsive layout structure that adapts to desktop/mobile, 3) Basic state management for the three disclosure levels, 4) Animation framework for expand/collapse with configurable timing and easing.
+
+## 2. Implement Core Credibility Information Display [pending]
+### Dependencies: 14.1
+### Description: Build the primary information section showing overall credibility score, confidence level, and factor breakdown.
+### Details:
+Extend the DetailedAnalysisView component to display: 1) Overall credibility score with visual indicator, 2) Confidence level representation, 3) Score breakdown by factors (domain, content, fact-checks) with appropriate visualization, 4) Implement progressive disclosure logic to show appropriate information at each level.
+
+## 3. Add Source Information and Background Section [pending]
+### Dependencies: 14.2
+### Description: Create the section displaying source information, background details, and domain analysis.
+### Details:
+Implement the source information section with: 1) Domain details and reputation indicators, 2) Publication background and history summary, 3) Ownership information when available, 4) Visual design that clearly separates this section from the score breakdown.
+
+## 4. Develop Bias Analysis and Political Leaning Features [pending]
+### Dependencies: 14.2
+### Description: Implement the premium bias analysis section showing political leaning and content bias indicators.
+### Details:
+Create the bias analysis component with: 1) Political leaning visualization (left-right spectrum), 2) Content bias indicators with explanations, 3) Premium feature flagging and upsell prompts for non-premium users, 4) Clear visual distinction for premium content.
+
+## 5. Implement Interactive Elements and User Actions [pending]
+### Dependencies: 14.1
+### Description: Add all interactive buttons and user feedback mechanisms to the detailed view.
+### Details:
+Implement the following interactive elements: 1) "Learn more" button linking to full analysis page, 2) User feedback options (agree/disagree with score) with submission handling, 3) Share button with social sharing functionality, 4) Settings shortcut for customization, 5) Event handlers for all user interactions.
+
+## 6. Create Verification Recommendations Section [pending]
+### Dependencies: 14.2
+### Description: Develop the recommendations section providing actionable verification steps for users.
+### Details:
+Implement the recommendations component with: 1) Contextual verification suggestions based on content type, 2) Links to fact-checking resources when available, 3) General media literacy tips, 4) Conditional display logic based on content credibility score.
+
+## 7. Implement Animation and Transition Effects [pending]
+### Dependencies: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6
+### Description: Finalize smooth animations for expansion/collapse and transitions between disclosure levels.
+### Details:
+Implement animation and transition effects: 1) Smooth expansion/collapse animations with configurable timing (default 300ms), 2) Easing functions for natural motion, 3) Transitions between the three disclosure levels, 4) Performance optimization to ensure smooth animations even on lower-end devices, 5) Accessibility considerations including respecting reduced motion preferences.
+

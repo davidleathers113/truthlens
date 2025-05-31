@@ -1,0 +1,81 @@
+# Task ID: 7
+# Title: Create Generic Content Extractor
+# Status: pending
+# Dependencies: 3, 4
+# Priority: medium
+# Description: Develop a generic content extraction system for standard web pages and articles.
+# Details:
+Implement a generic content extractor (src/content/extractors/genericExtractor.ts) for standard web pages:
+
+1. Main content identification using readability algorithms
+2. Metadata extraction (title, author, publication date)
+3. Link and citation analysis
+4. Image and media content detection
+
+The generic extractor should:
+- Use a modified Readability algorithm (similar to Firefox's Reader View)
+- Extract the main article content while filtering out navigation, ads, etc.
+- Identify key metadata including title, author, publication date
+- Analyze outbound links and citations for credibility signals
+- Handle paywalled content gracefully
+
+Implement content cleaning to remove irrelevant elements before analysis:
+- Strip advertisements and promotional content
+- Remove navigation elements and sidebars
+- Normalize text formatting and encoding
+- Handle special characters and HTML entities
+
+Optimize for performance with a maximum processing time of 500ms for typical pages.
+
+# Test Strategy:
+Test extraction on various news sites and blogs. Verify metadata extraction accuracy. Measure extraction performance on different page sizes. Test handling of paywalled content. Validate content cleaning with heavily formatted pages.
+
+# Subtasks:
+## 1. Implement DOM Parsing and Initial Structure [pending]
+### Dependencies: None
+### Description: Create the foundation for the generic extractor by implementing DOM parsing functionality and setting up the basic structure of the extractor class.
+### Details:
+Create the genericExtractor.ts file with a class structure that includes methods for parsing HTML into a DOM structure. Implement utility functions for traversing and manipulating the DOM. Set up the basic interface that defines the extractor's input and output types. Use a robust HTML parser like 'jsdom' or 'cheerio' for DOM manipulation.
+
+## 2. Implement Readability Algorithm for Main Content Extraction [pending]
+### Dependencies: None
+### Description: Adapt and implement a modified Readability algorithm to identify and extract the main content from web pages.
+### Details:
+Implement content scoring based on element characteristics (text length, link density, etc.). Create methods to identify and extract the main article content while filtering out navigation, ads, and other non-content elements. Adapt the Firefox Reader View algorithm, focusing on paragraph density and content-to-markup ratio. Include fallback mechanisms for when the primary algorithm fails to identify content.
+
+## 3. Develop Content Cleaning and Normalization [pending]
+### Dependencies: None
+### Description: Implement functionality to clean and normalize extracted content by removing irrelevant elements and standardizing text formatting.
+### Details:
+Create methods to strip advertisements, promotional content, navigation elements, and sidebars from the extracted content. Implement text normalization to handle special characters, HTML entities, and inconsistent formatting. Add functionality to merge adjacent text nodes and normalize whitespace. Ensure proper handling of different text encodings.
+
+## 4. Implement Metadata Extraction [pending]
+### Dependencies: None
+### Description: Create functionality to extract key metadata including title, author, and publication date from web pages.
+### Details:
+Implement methods to extract metadata from standard HTML meta tags, Open Graph tags, JSON-LD, and other common metadata formats. Create fallback mechanisms for extracting metadata from the page content when structured metadata is unavailable. Develop heuristics for identifying publication dates in various formats. Implement author extraction from bylines and author-specific markup.
+
+## 5. Develop Link and Citation Analysis [pending]
+### Dependencies: None
+### Description: Implement functionality to analyze outbound links and citations within the content for credibility signals.
+### Details:
+Create methods to identify and extract all links within the main content. Implement classification of links (e.g., citations, related content, advertisements). Develop analysis of link density and distribution within the content. Add functionality to extract citation information and assess credibility based on link targets.
+
+## 6. Implement Image and Media Content Detection [pending]
+### Dependencies: None
+### Description: Create functionality to identify and extract images and other media content relevant to the main article.
+### Details:
+Implement methods to identify images within the main content area. Create heuristics for determining which images are relevant to the content (vs. decorative or promotional). Add support for extracting image captions and alt text. Implement detection of other media types (videos, audio, etc.) within the content. Ensure proper handling of lazy-loaded images and responsive image sets.
+
+## 7. Implement Paywall Detection and Handling [pending]
+### Dependencies: None
+### Description: Develop functionality to detect and gracefully handle paywalled content.
+### Details:
+Create methods to detect common paywall implementations based on content structure, keywords, and user interaction requirements. Implement strategies for extracting available content from paywalled pages. Add functionality to identify and extract preview content when full content is not accessible. Develop clear signaling in the extraction output when content is limited due to paywalls.
+
+## 8. Optimize Performance and Implement Error Handling [pending]
+### Dependencies: 7.7
+### Description: Optimize the extractor for performance and implement comprehensive error handling to ensure robustness.
+### Details:
+Profile and optimize the extraction process to meet the 500ms maximum processing time requirement. Implement timeout mechanisms for long-running operations. Add comprehensive error handling throughout the extraction pipeline. Create fallback extraction strategies for when primary methods fail. Implement logging for extraction failures and performance metrics. Add configuration options to trade off between extraction quality and performance.
+

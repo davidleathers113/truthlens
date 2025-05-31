@@ -1,0 +1,36 @@
+[
+  {
+    "name": "Background Script",
+    "path": "dist/background.js",
+    "limit": "2 MB",
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Content Script",
+    "path": "dist/content.js", 
+    "limit": "1 MB",
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Popup Script",
+    "path": "dist/popup.js",
+    "limit": "500 KB",
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Options Script",
+    "path": "dist/options.js",
+    "limit": "500 KB", 
+    "webpack": false,
+    "gzip": true
+  },
+  {
+    "name": "Total Extension",
+    "path": "dist/**/*.{js,css,json,html}",
+    "limit": "5 MB",
+    "webpack": false
+  }
+]

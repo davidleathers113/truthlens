@@ -1,0 +1,29 @@
+# Task ID: 6
+# Title: Develop Chrome Built-in AI Integration
+# Status: done
+# Dependencies: 2, 4
+# Priority: high
+# Description: Integrate with Chrome's Built-in AI (Gemini Nano) for local content analysis.
+# Details:
+Implement the AI service (src/background/ai/aiService.ts) to integrate with Chrome Built-in AI:
+
+1. Initialize and configure Gemini Nano model for content analysis
+2. Create prompt templates for credibility assessment
+3. Implement result parsing and scoring normalization
+4. Develop fallback mechanisms for environments without AI support
+
+The AI service should provide these key methods:
+- `analyzeContent(content: ContentAnalysis): Promise<CredibilityScore>`
+- `detectBias(content: ContentAnalysis): Promise<BiasAnalysis>`
+- `isAIAvailable(): Promise<boolean>`
+
+Optimize prompts for credibility analysis with specific criteria:
+- Source reputation and authority assessment
+- Content quality and factual accuracy indicators
+- Bias detection and neutrality evaluation
+- Citation and evidence presence
+
+Implement a fallback system using traditional heuristics (keyword analysis, source checking) when Chrome Built-in AI is unavailable.
+
+# Test Strategy:
+Test AI integration with sample content across various credibility levels. Validate scoring consistency with known reliable/unreliable sources. Measure performance and response times. Test fallback mechanism by disabling AI access. Verify prompt effectiveness with different content types.

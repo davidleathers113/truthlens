@@ -1,0 +1,31 @@
+# Task ID: 4
+# Title: Create Shared Type Definitions and Utilities
+# Status: done
+# Dependencies: 1
+# Priority: medium
+# Description: Define TypeScript interfaces, types, and utility functions shared across the extension.
+# Details:
+Create a shared types and utilities module (src/shared/) with the following components:
+
+1. TypeScript interfaces for all data structures:
+   - `CredibilityScore` interface with score, confidence, and factors
+   - `ContentAnalysis` interface with extracted content and metadata
+   - `UserSettings` interface for configuration options
+   - `PlatformInfo` interface for website-specific data
+
+2. Utility functions:
+   - URL parsing and normalization
+   - Domain extraction and validation
+   - Date/time formatting and calculations
+   - Error handling and logging
+
+3. Constants and enumerations:
+   - Supported platforms list
+   - Credibility score thresholds (green/yellow/red)
+   - Default settings values
+   - Error message templates
+
+Ensure all types use strict TypeScript configurations with proper nullability handling and readonly properties where appropriate.
+
+# Test Strategy:
+Unit test all utility functions with various inputs including edge cases. Verify type definitions with sample data. Test constants for correctness and completeness.

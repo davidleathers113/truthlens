@@ -1,0 +1,84 @@
+# Task ID: 15
+# Title: Implement Premium Feature Management
+# Status: pending
+# Dependencies: 5, 10, 11
+# Priority: medium
+# Description: Create the system for managing premium features and subscription status.
+# Details:
+Develop the premium feature management system:
+
+1. Subscription status verification:
+   - Local storage of subscription status
+   - Periodic validation with backend (if implemented)
+   - Grace period handling for offline usage
+
+2. Feature gating logic:
+   - Free tier limitations (50 daily checks, top 5,000 domains)
+   - Premium feature access control
+   - Upgrade prompts and conversion funnel
+
+3. Usage tracking:
+   - Daily usage counter for free tier limits
+   - Reset mechanism at midnight UTC
+   - Remaining checks indicator
+
+Implement the free tier limitations:
+- 50 credibility checks per day counter
+- Access to only top 5,000 domains in the database
+- Basic visual indicators only (no detailed analysis)
+- No historical tracking or exports
+
+Create smart upgrade prompts that appear:
+- When approaching daily limit (80% used)
+- When attempting to access premium features
+- When analyzing domains outside the free database
+- Periodically for engaged users (max once per week)
+
+Design the upgrade flow with clear value proposition and seamless transition to premium features after upgrade.
+
+# Test Strategy:
+Test free tier limitations with usage counters. Verify reset mechanism at midnight UTC. Test upgrade prompts with different trigger conditions. Validate feature access control for free vs premium users. Test offline grace period for subscription verification.
+
+# Subtasks:
+## 1. Implement Subscription Status Storage and Validation [pending]
+### Dependencies: None
+### Description: Create the system for storing subscription status locally and validating it with the backend periodically.
+### Details:
+Implement a subscription status manager class that handles: 1) Local storage of subscription status using browser storage, 2) Periodic validation with backend using a configurable interval (default: daily), 3) Grace period handling for offline usage (7 days), 4) Subscription state model with statuses like 'active', 'grace_period', 'expired', 'free_tier'.
+
+## 2. Develop Free Tier Usage Tracking System [pending]
+### Dependencies: 15.1
+### Description: Create a system to track and limit daily usage for free tier users, including counters and reset mechanisms.
+### Details:
+Build a usage tracker that: 1) Maintains a daily counter for credibility checks, 2) Implements reset logic at midnight UTC, 3) Persists counter in local storage, 4) Provides methods to increment/check/reset counter, 5) Includes helper functions to determine if user has reached 80% and 100% of daily limit.
+
+## 3. Implement Feature Gating Logic [pending]
+### Dependencies: 15.1, 15.2
+### Description: Create the core logic to control access to premium features based on subscription status.
+### Details:
+Develop a feature gate service that: 1) Defines all premium vs. free features in a configuration object, 2) Provides methods to check if specific features are available based on subscription status, 3) Implements domain access control logic (top 5,000 domains for free tier), 4) Handles feature-specific limitations like detailed analysis views for premium only.
+
+## 4. Create UI Components for Subscription Status and Usage Display [pending]
+### Dependencies: 15.2, 15.3
+### Description: Develop UI components to show subscription status, remaining daily checks, and premium feature indicators.
+### Details:
+Build reusable UI components for: 1) Subscription status badge/indicator, 2) Daily usage counter showing remaining checks, 3) Visual indicators for premium-only features, 4) Progress bar for approaching daily limit, 5) Ensure components update reactively when status or usage changes.
+
+## 5. Implement Smart Upgrade Prompts [pending]
+### Dependencies: 15.2, 15.3, 15.4
+### Description: Create contextual upgrade prompts that appear at strategic moments to encourage conversion.
+### Details:
+Develop an upgrade prompt system that: 1) Shows prompts when approaching daily limit (80% used), 2) Displays when attempting to access premium features, 3) Appears when analyzing domains outside free database, 4) Implements frequency capping (max once per week for engaged users), 5) Stores prompt display history in local storage, 6) Creates visually appealing modal/banner designs with clear value propositions.
+
+## 6. Build Upgrade Flow and Payment Integration [pending]
+### Dependencies: 15.5
+### Description: Create the seamless upgrade process from free to premium, including payment integration.
+### Details:
+Implement the upgrade flow: 1) Design upgrade page with clear feature comparison, 2) Integrate with payment processor API, 3) Handle successful payment events, 4) Update local subscription status after successful payment, 5) Create confirmation and welcome experience for new premium users, 6) Implement error handling for failed payments.
+
+## 7. Implement Subscription Lifecycle Management [pending]
+### Dependencies: 15.1, 15.6
+### Description: Handle subscription lifecycle events like renewals, cancellations, and expirations.
+### Details:
+Create subscription lifecycle handlers: 1) Implement webhook endpoints for subscription events from payment provider, 2) Handle renewal success/failure events, 3) Manage cancellation and downgrade flows, 4) Create grace period notifications, 5) Implement win-back flows for expired subscriptions, 6) Ensure data retention policies are followed for downgraded accounts.
+

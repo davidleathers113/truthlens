@@ -1,0 +1,131 @@
+# Task ID: 32
+# Title: Create Instagram Content Extractor
+# Status: pending
+# Dependencies: 3, 4, 7
+# Priority: high
+# Description: Develop a specialized content extractor for Instagram that can extract posts, stories, and reels with a focus on captions, hashtags, and embedded links while respecting platform rate limits and privacy policies.
+# Details:
+Implement an Instagram-specific content extractor (src/content/extractors/instagramExtractor.ts) with the following components:
+
+1. Post Content Extraction:
+   - Extract post captions, hashtags, and user mentions
+   - Identify and extract embedded links in captions
+   - Capture post metadata (timestamp, location, etc.)
+   - Handle multi-image carousel posts
+
+2. Stories Extraction:
+   - Implement detection for ephemeral story content
+   - Extract text overlays, hashtags, and mentions
+   - Capture embedded links and interactive elements
+   - Handle story expiration and availability states
+
+3. Reels Extraction:
+   - Extract video captions and metadata
+   - Identify trending audio and hashtag challenges
+   - Capture engagement metrics when available
+   - Handle Reels-specific interactive elements
+
+4. Dynamic Content Handling:
+   - Implement scroll detection for infinite loading feeds
+   - Create mutation observers for dynamically loaded content
+   - Handle lazy-loaded images and videos
+   - Manage state for partially loaded content
+
+5. Mobile Interface Support:
+   - Detect and adapt to Instagram's mobile web interface
+   - Handle responsive layout changes
+   - Support touch-based interaction patterns
+   - Maintain compatibility with Instagram's PWA features
+
+6. Rate Limiting and Compliance:
+   - Implement exponential backoff for content requests
+   - Add delay between extraction operations
+   - Respect Instagram's robots.txt and Terms of Service
+   - Include user privacy protections (no extraction of private accounts)
+   - Add proper user-agent identification
+
+7. Integration with Generic Extractor:
+   - Extend the generic extractor base class
+   - Override platform-specific methods
+   - Implement Instagram-specific content detection
+   - Add specialized metadata parsing
+
+The extractor should be implemented as a class that extends the base extractor interface defined in the shared types. It should communicate with the content script infrastructure to register itself for Instagram domains and handle the extraction process when Instagram content is detected.
+
+# Test Strategy:
+1. Unit Testing:
+   - Create unit tests for each extraction component (posts, stories, reels)
+   - Mock Instagram DOM structures for testing extraction logic
+   - Test rate limiting and backoff mechanisms
+   - Verify proper handling of different content states (loading, error, empty)
+
+2. Integration Testing:
+   - Test the extractor with the content script infrastructure
+   - Verify proper registration for Instagram domains
+   - Test communication with the service worker
+   - Ensure extracted data matches the shared type definitions
+
+3. Manual Testing:
+   - Create test accounts with various content types
+   - Test on different Instagram layouts (desktop, mobile web)
+   - Verify extraction of:
+     * Public posts with various content types (text, images, videos)
+     * Stories with different interactive elements
+     * Reels with captions and hashtags
+     * Posts with embedded links and mentions
+   - Test with different network conditions (fast, slow, intermittent)
+
+4. Compliance Testing:
+   - Verify rate limiting mechanisms prevent excessive requests
+   - Test respect for private accounts and restricted content
+   - Ensure proper handling of Instagram's robots.txt directives
+   - Verify the extractor follows Instagram's Terms of Service
+
+5. Performance Testing:
+   - Measure memory usage during extraction of large feeds
+   - Test CPU utilization during continuous scrolling
+   - Verify the extractor doesn't impact page performance
+   - Test with various device capabilities (high-end, low-end)
+
+6. Regression Testing:
+   - Create a suite of Instagram content snapshots
+   - Automate comparison of extraction results against known good outputs
+   - Test against previous Instagram interface versions when possible
+
+# Subtasks:
+## 1. Create Instagram Extractor Base Class [pending]
+### Dependencies: None
+### Description: Implement the base Instagram extractor class that extends the generic extractor and sets up the foundation for Instagram-specific extraction
+### Details:
+Create src/content/extractors/instagramExtractor.ts file that extends the base extractor interface. Implement constructor, initialization logic, and domain registration for Instagram. Set up authentication detection and basic page structure recognition. Include utility methods for handling Instagram's DOM structure and implement the required interface methods.
+
+## 2. Implement Post Content Extraction [pending]
+### Dependencies: 32.1
+### Description: Develop functionality to extract Instagram posts including captions, hashtags, user mentions, embedded links, and metadata
+### Details:
+Create methods to identify and parse post elements in the DOM. Extract post captions, hashtags, and user mentions using regex patterns. Implement link extraction from captions. Capture post metadata including timestamp, location, and engagement metrics. Handle multi-image carousel posts by detecting navigation elements and extracting all images/videos. Implement scroll detection for posts in feeds.
+
+## 3. Implement Stories and Reels Extraction [pending]
+### Dependencies: 32.1
+### Description: Add support for extracting Instagram Stories and Reels content including text overlays, hashtags, mentions, and video metadata
+### Details:
+Develop detection methods for Stories and Reels content types. For Stories, extract text overlays, hashtags, mentions, and handle ephemeral content states. For Reels, extract video captions, trending audio information, and Reels-specific interactive elements. Implement methods to capture engagement metrics when available. Create handlers for the unique UI components of Stories and Reels.
+
+## 4. Develop Dynamic Content Handling [pending]
+### Dependencies: 32.2, 32.3
+### Description: Implement mechanisms to handle Instagram's dynamically loaded content and infinite scrolling
+### Details:
+Create mutation observers to detect and process dynamically loaded content. Implement infinite scroll detection and handling for feeds. Add support for lazy-loaded images and videos by monitoring network requests or DOM changes. Develop state management for partially loaded content to prevent duplicate extraction. Handle Instagram's AJAX-based page transitions.
+
+## 5. Add Mobile Interface and Responsive Support [pending]
+### Dependencies: 32.4
+### Description: Ensure the extractor works across Instagram's desktop and mobile interfaces with responsive layout handling
+### Details:
+Implement detection for Instagram's mobile web interface. Create adaptive selectors that work across different viewport sizes. Support touch-based interaction patterns for content navigation. Maintain compatibility with Instagram's PWA features. Add viewport size detection to adjust extraction strategies accordingly. Handle differences in DOM structure between mobile and desktop interfaces.
+
+## 6. Implement Rate Limiting and Compliance Features [pending]
+### Dependencies: 32.5
+### Description: Add safeguards to ensure the extractor respects Instagram's rate limits, terms of service, and user privacy
+### Details:
+Implement exponential backoff for content requests to avoid rate limiting. Add configurable delays between extraction operations. Add checks for robots.txt compliance. Implement detection and skipping of private accounts. Add proper user-agent identification. Create logging for rate limit encounters. Implement graceful error handling for blocked requests. Add compliance documentation in code comments.
+

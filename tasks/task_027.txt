@@ -1,0 +1,174 @@
+# Task ID: 27
+# Title: Implement TikTok Content Extractor
+# Status: pending
+# Dependencies: 3, 4, 7
+# Priority: high
+# Description: Create a specialized content extractor for TikTok that captures video descriptions, hashtags, and comments while respecting platform policies and implementing rate limiting.
+# Details:
+Implement a TikTok-specific content extractor (src/content/extractors/tiktokExtractor.ts) with the following components:
+
+1. TikTok platform detection:
+   - Identify TikTok URLs and page structures
+   - Handle both desktop and mobile versions of TikTok
+   - Support for dynamically loaded content
+
+2. Content extraction functionality:
+   - Video metadata (title, creator, upload date, view count)
+   - Video description text with sentiment analysis hooks
+   - Hashtag collection and categorization
+   - Comment extraction with threading support
+   - Engagement metrics (likes, shares, comments count)
+
+3. Rate limiting and policy compliance:
+   - Implement progressive loading to avoid triggering anti-scraping measures
+   - Add configurable delay between extraction operations
+   - Include user-agent verification to ensure legitimate access
+   - Respect robots.txt and TikTok's Terms of Service
+   - Add proper attribution and source linking
+
+4. Mobile optimization:
+   - Responsive extraction that works across device types
+   - Touch-friendly UI elements for mobile users
+   - Efficient DOM traversal to minimize performance impact
+
+5. Integration with existing infrastructure:
+   - Export a standard ContentExtractor interface implementation
+   - Register with the platform detection system
+   - Implement communication with the service worker
+   - Utilize shared type definitions for consistent data structures
+
+Code structure example:
+```typescript
+import { ContentExtractor, ExtractedContent, TikTokContent } from '../../shared/types';
+import { sanitizeText, extractHashtags } from '../../shared/utils';
+
+export class TikTokExtractor implements ContentExtractor {
+  private static readonly SELECTORS = {
+    VIDEO_DESCRIPTION: '.tiktok-video-desc',
+    HASHTAGS: '.tiktok-tag',
+    COMMENTS: '.comment-item',
+    CREATOR: '.creator-username',
+    // Additional selectors
+  };
+
+  public canExtract(url: string): boolean {
+    return url.includes('tiktok.com');
+  }
+
+  public async extract(): Promise<ExtractedContent> {
+    // Implementation of extraction logic
+    const tiktokContent: TikTokContent = {
+      description: this.extractDescription(),
+      hashtags: this.extractHashtags(),
+      comments: await this.extractCommentsWithRateLimit(),
+      creator: this.extractCreator(),
+      // Additional fields
+    };
+
+    return {
+      platform: 'tiktok',
+      content: tiktokContent,
+      metadata: this.extractMetadata(),
+    };
+  }
+
+  private extractDescription(): string {
+    // Implementation
+  }
+
+  private extractHashtags(): string[] {
+    // Implementation
+  }
+
+  private async extractCommentsWithRateLimit(): Promise<Comment[]> {
+    // Implementation with rate limiting
+  }
+
+  // Additional helper methods
+}
+```
+
+Implementation considerations:
+- TikTok's dynamic content loading requires monitoring DOM changes
+- Comments may be paginated and require scroll-to-load functionality
+- Mobile interface differs significantly from desktop version
+- Rate limiting should be adaptive based on TikTok's response times
+- Consider implementing a cache to avoid re-extracting recently viewed content
+
+# Test Strategy:
+Testing for the TikTok Content Extractor should include:
+
+1. Unit tests:
+   - Create Jest tests for each extraction method
+   - Mock DOM elements using JSDOM
+   - Verify correct parsing of video descriptions, hashtags, and comments
+   - Test rate limiting functionality with different timing configurations
+   - Validate proper error handling for missing elements
+
+2. Integration tests:
+   - Test the extractor with the content script infrastructure
+   - Verify proper registration with the platform detection system
+   - Ensure correct data flow to the service worker
+   - Test compatibility with the shared type system
+
+3. End-to-end tests:
+   - Create Puppeteer or Playwright tests with real TikTok pages
+   - Test on both desktop and mobile viewports
+   - Verify extraction works with dynamically loaded content
+   - Test performance impact on page loading and scrolling
+
+4. Policy compliance tests:
+   - Verify rate limiting prevents excessive requests
+   - Confirm proper handling of robots.txt directives
+   - Test user-agent verification
+   - Ensure attribution is correctly included
+
+5. Manual testing checklist:
+   - Test on at least 5 different types of TikTok videos (viral, new, different content categories)
+   - Verify extraction works on mobile devices
+   - Test with videos that have large comment threads
+   - Confirm extraction works with different languages and character sets
+   - Verify the extractor handles TikTok UI updates gracefully
+
+6. Performance benchmarks:
+   - Measure extraction time for different video types
+   - Monitor memory usage during extraction
+   - Test CPU utilization during scrolling and dynamic loading
+
+# Subtasks:
+## 1. Implement TikTok URL detection and platform identification [pending]
+### Dependencies: None
+### Description: Create the foundation for the TikTok extractor by implementing URL detection logic and platform identification for both desktop and mobile versions.
+### Details:
+Create the TikTokExtractor class that implements ContentExtractor interface. Implement the canExtract method to identify TikTok URLs using regex patterns that match tiktok.com domains and their variations. Add detection for both desktop and mobile versions by analyzing URL structure and DOM elements. Include a method to determine if the current page is a video page, profile page, or other TikTok page type.
+
+## 2. Implement basic metadata and description extraction [pending]
+### Dependencies: 27.1
+### Description: Extract core video metadata including title, creator information, upload date, view count, and video description text.
+### Details:
+Define selectors for key metadata elements in the SELECTORS object. Implement extractDescription(), extractCreator(), and extractMetadata() methods to pull information from the TikTok DOM. Add sanitization of extracted text using shared utility functions. Implement sentiment analysis hooks in the description extraction to prepare for later sentiment analysis. Handle differences between mobile and desktop DOM structures.
+
+## 3. Implement hashtag extraction and categorization [pending]
+### Dependencies: 27.2
+### Description: Extract hashtags from TikTok videos and implement categorization logic to organize them.
+### Details:
+Implement extractHashtags() method to identify and extract hashtags from video descriptions and dedicated hashtag sections. Create a categorization system that groups hashtags by popularity, relevance, or topic. Handle TikTok-specific hashtag formats and challenges. Implement proper error handling for cases where hashtags might be missing or malformed. Use the shared extractHashtags utility but extend it with TikTok-specific logic.
+
+## 4. Implement comment extraction with threading and pagination [pending]
+### Dependencies: 27.2
+### Description: Create a robust comment extraction system that handles threaded comments, pagination, and dynamically loaded content.
+### Details:
+Implement extractCommentsWithRateLimit() method that handles TikTok's comment loading system. Create a scroll-to-load mechanism to trigger pagination of comments. Implement comment threading to maintain parent-child relationships between comments and replies. Add detection for 'load more comments' buttons and handle their activation. Implement proper DOM mutation observation to detect when new comments are loaded. Structure comment data to include author, text, timestamp, and engagement metrics.
+
+## 5. Implement rate limiting and policy compliance mechanisms [pending]
+### Dependencies: 27.3, 27.4
+### Description: Add sophisticated rate limiting, progressive loading, and policy compliance features to avoid triggering anti-scraping measures.
+### Details:
+Implement configurable delays between extraction operations using setTimeout or requestAnimationFrame. Create an adaptive rate limiting system that adjusts timing based on TikTok's response patterns. Add user-agent verification to ensure legitimate access. Implement robots.txt checking and respect TikTok's Terms of Service limitations. Add proper attribution and source linking to extracted content. Create a caching mechanism to avoid re-extracting recently viewed content. Implement progressive loading of content to mimic natural user behavior.
+
+## 6. Integrate with existing infrastructure and optimize for mobile [pending]
+### Dependencies: 27.5
+### Description: Finalize the extractor by integrating it with the platform detection system, service worker, and optimizing for mobile devices.
+### Details:
+Register the TikTokExtractor with the platform detection system in the main application. Implement communication with the service worker for background extraction capabilities. Optimize DOM traversal for mobile performance by using efficient selectors and minimizing reflows. Add responsive extraction logic that adapts to different screen sizes and device capabilities. Implement touch-friendly UI elements for mobile extraction controls. Complete the extract() method to return properly formatted ExtractedContent objects that conform to shared type definitions. Add comprehensive error handling and logging.
+

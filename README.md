@@ -55,7 +55,7 @@ truthlens/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/truthlens.git
+git clone https://github.com/davidleathers113/truthlens.git
 cd truthlens
 
 # Install dependencies

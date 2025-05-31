@@ -74,21 +74,21 @@ class SecurityService {
     try {
       // Initialize encryption keys
       await this.initializeEncryption();
-      
+
       // Set up CSP violation reporting
       this.setupCSPReporting();
-      
+
       // Initialize privacy compliance monitoring
       await this.initializePrivacyCompliance();
-      
+
       // Set up security event logging
       this.initializeSecurityLogging();
-      
+
       // Schedule security maintenance tasks
       this.scheduleSecurityMaintenance();
-      
+
       logger.info('Security service initialized with 2025 compliance features');
-      
+
     } catch (error) {
       const securityError = errorHandler.createError(
         'security',
@@ -117,23 +117,23 @@ class SecurityService {
         false, // Non-extractable for security
         ['encrypt', 'decrypt']
       );
-      
+
       this.encryptionKeys.set('master', masterKey);
-      
+
       // Generate key for sensitive user data
       const userDataKey = await crypto.subtle.generateKey(
         {
-          name: 'AES-GCM', 
+          name: 'AES-GCM',
           length: 256
         },
         false,
         ['encrypt', 'decrypt']
       );
-      
+
       this.encryptionKeys.set('userData', userDataKey);
-      
+
       logger.info('Encryption keys initialized');
-      
+
     } catch (error) {
       throw new Error(`Encryption initialization failed: ${(error as Error).message}`);
     }
@@ -143,7 +143,7 @@ class SecurityService {
    * Encrypt sensitive data using AES-GCM
    */
   public async encryptData<T>(
-    data: T, 
+    data: T,
     keyId: string = 'master'
   ): Promise<EncryptionResult<string>> {
     try {
@@ -159,10 +159,10 @@ class SecurityService {
       // Convert data to ArrayBuffer
       const dataString = JSON.stringify(data);
       const dataBuffer = new TextEncoder().encode(dataString);
-      
+
       // Generate random IV
       const iv = crypto.getRandomValues(new Uint8Array(12));
-      
+
       // Encrypt data
       const encryptedData = await crypto.subtle.encrypt(
         {
@@ -172,19 +172,19 @@ class SecurityService {
         key,
         dataBuffer
       );
-      
+
       // Combine IV and encrypted data
       const combined = new Uint8Array(iv.length + encryptedData.byteLength);
       combined.set(iv);
       combined.set(new Uint8Array(encryptedData), iv.length);
-      
+
       // Convert to base64
       const base64 = btoa(String.fromCharCode(...combined));
-      
+
       this.logSecurityEvent('data_encrypted', { keyId, dataSize: dataString.length });
-      
+
       return { success: true, data: base64, keyId };
-      
+
     } catch (error) {
       logger.error('Data encryption failed', { keyId }, error as Error);
       return { success: false, error: (error as Error).message };
@@ -195,7 +195,7 @@ class SecurityService {
    * Decrypt sensitive data using AES-GCM
    */
   public async decryptData<T>(
-    encryptedData: string, 
+    encryptedData: string,
     keyId: string = 'master'
   ): Promise<EncryptionResult<T>> {
     try {
@@ -212,11 +212,11 @@ class SecurityService {
       const combined = new Uint8Array(
         atob(encryptedData).split('').map(char => char.charCodeAt(0))
       );
-      
+
       // Extract IV and encrypted data
       const iv = combined.slice(0, 12);
       const data = combined.slice(12);
-      
+
       // Decrypt data
       const decryptedBuffer = await crypto.subtle.decrypt(
         {
@@ -226,15 +226,15 @@ class SecurityService {
         key,
         data
       );
-      
+
       // Convert back to original data
       const decryptedString = new TextDecoder().decode(decryptedBuffer);
       const decryptedData = JSON.parse(decryptedString);
-      
+
       this.logSecurityEvent('data_decrypted', { keyId });
-      
+
       return { success: true, data: decryptedData };
-      
+
     } catch (error) {
       logger.error('Data decryption failed', { keyId }, error as Error);
       return { success: false, error: (error as Error).message };
@@ -270,12 +270,12 @@ class SecurityService {
   private async handleCSPViolation(violation: CSPViolation): Promise<void> {
     try {
       logger.warn('CSP violation detected', violation);
-      
+
       this.logSecurityEvent('csp_violation', violation);
-      
+
       // Store violation for compliance reporting
       await storageService.storeSecurityEvent('csp_violation', violation);
-      
+
       // Create security error for severe violations
       if (violation['violated-directive'].includes('script-src')) {
         const securityError = errorHandler.createError(
@@ -289,7 +289,7 @@ class SecurityService {
         );
         await errorHandler.handleError(securityError);
       }
-      
+
     } catch (error) {
       logger.error('Failed to handle CSP violation', {}, error as Error);
     }
@@ -302,15 +302,15 @@ class SecurityService {
     try {
       // Initialize privacy metrics tracking
       await this.initializePrivacyMetrics();
-      
+
       // Set up automated compliance checks
       this.scheduleComplianceChecks();
-      
+
       // Initialize consent management
       await this.initializeConsentManagement();
-      
+
       logger.info('Privacy compliance monitoring initialized');
-      
+
     } catch (error) {
       throw new Error(`Privacy compliance initialization failed: ${(error as Error).message}`);
     }
@@ -329,7 +329,7 @@ class SecurityService {
       privacyViolations: 0,
       timestamp: Date.now()
     };
-    
+
     await storageService.storePrivacyMetrics(initialMetrics);
   }
 
@@ -341,7 +341,7 @@ class SecurityService {
     chrome.alarms.create('privacy-compliance-check', {
       periodInMinutes: 60 // Check compliance every hour
     });
-    
+
     chrome.alarms.onAlarm.addListener((alarm) => {
       if (alarm.name === 'privacy-compliance-check') {
         this.performComplianceCheck();
@@ -356,18 +356,18 @@ class SecurityService {
     try {
       // Check data retention policies
       await this.checkDataRetention();
-      
+
       // Validate consent status
       await this.validateConsentStatus();
-      
+
       // Check AI processing compliance
       await this.checkAIProcessingCompliance();
-      
+
       // Generate compliance report
       await this.generateComplianceReport();
-      
+
       this.logSecurityEvent('compliance_check_completed', { timestamp: Date.now() });
-      
+
     } catch (error) {
       logger.error('Compliance check failed', {}, error as Error);
     }
@@ -379,10 +379,10 @@ class SecurityService {
   private async checkDataRetention(): Promise<void> {
     const settings = await storageService.getSettings();
     const retentionPeriod = settings.privacy.cacheDuration * 60 * 60 * 1000; // Convert to ms
-    
+
     // Clean up expired data
     await storageService.cleanupExpiredData(retentionPeriod);
-    
+
     logger.debug('Data retention check completed', { retentionPeriodHours: settings.privacy.cacheDuration });
   }
 
@@ -391,10 +391,10 @@ class SecurityService {
    */
   private async validateConsentStatus(): Promise<void> {
     const consentData = await storageService.getConsentData();
-    
+
     if (!consentData || Date.now() - consentData.consentTimestamp > (365 * 24 * 60 * 60 * 1000)) {
       // Consent is older than 1 year, needs renewal
-      this.logSecurityEvent('consent_renewal_required', { 
+      this.logSecurityEvent('consent_renewal_required', {
         lastConsent: consentData?.consentTimestamp,
         currentTime: Date.now()
       });
@@ -406,12 +406,12 @@ class SecurityService {
    */
   private async checkAIProcessingCompliance(): Promise<void> {
     const aiMetrics = await storageService.getAIProcessingMetrics();
-    
+
     // Check for bias assessment requirements
     if (aiMetrics.totalProcessingEvents > 1000) {
       const lastBiasAssessment = await storageService.getLastBiasAssessment();
       const assessmentAge = Date.now() - (lastBiasAssessment?.timestamp || 0);
-      
+
       if (assessmentAge > (30 * 24 * 60 * 60 * 1000)) { // 30 days
         this.logSecurityEvent('bias_assessment_required', {
           processingEvents: aiMetrics.totalProcessingEvents,
@@ -432,7 +432,7 @@ class SecurityService {
       securityPosture: await this.assessSecurityPosture(),
       recommendations: await this.generateComplianceRecommendations()
     };
-    
+
     await storageService.storeComplianceReport(report);
     logger.info('Compliance report generated', { reportId: report.timestamp });
   }
@@ -443,18 +443,19 @@ class SecurityService {
   private async initializeConsentManagement(): Promise<void> {
     // Check if consent exists
     const existingConsent = await storageService.getConsentData();
-    
+
     if (!existingConsent) {
       // Initialize with minimal consent for privacy-first approach
       const initialConsent = {
         analyticsConsent: false,
         performanceConsent: false,
         abTestingConsent: false,
+        aiProcessingConsent: false,
         consentTimestamp: Date.now(),
         consentVersion: '2025.1',
         userAgent: navigator.userAgent
       };
-      
+
       await storageService.storeConsentData(initialConsent);
       this.logSecurityEvent('consent_initialized', initialConsent);
     }
@@ -468,7 +469,7 @@ class SecurityService {
     chrome.alarms.create('security-log-cleanup', {
       periodInMinutes: 1440 // Daily cleanup
     });
-    
+
     chrome.alarms.onAlarm.addListener((alarm) => {
       if (alarm.name === 'security-log-cleanup') {
         this.cleanupSecurityLogs();
@@ -485,14 +486,14 @@ class SecurityService {
       timestamp: Date.now(),
       metadata
     };
-    
+
     this.securityEventLog.push(securityEvent);
-    
+
     // Limit log size to prevent memory issues
     if (this.securityEventLog.length > 1000) {
       this.securityEventLog = this.securityEventLog.slice(-500);
     }
-    
+
     // Store persistent security events
     storageService.storeSecurityEvent(event, metadata);
   }
@@ -503,14 +504,14 @@ class SecurityService {
   private async cleanupSecurityLogs(): Promise<void> {
     const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     const cutoff = Date.now() - maxAge;
-    
+
     this.securityEventLog = this.securityEventLog.filter(
       event => event.timestamp > cutoff
     );
-    
+
     await storageService.cleanupSecurityEvents(cutoff);
-    
-    logger.debug('Security logs cleaned up', { 
+
+    logger.debug('Security logs cleaned up', {
       cutoffDate: new Date(cutoff).toISOString(),
       remainingEvents: this.securityEventLog.length
     });
@@ -523,7 +524,7 @@ class SecurityService {
     chrome.alarms.create('security-maintenance', {
       periodInMinutes: 60 // Hourly maintenance
     });
-    
+
     chrome.alarms.onAlarm.addListener((alarm) => {
       if (alarm.name === 'security-maintenance') {
         this.performSecurityMaintenance();
@@ -538,15 +539,15 @@ class SecurityService {
     try {
       // Rotate encryption keys if needed
       await this.rotateEncryptionKeys();
-      
+
       // Clean up expired sessions
       await this.cleanupExpiredSessions();
-      
+
       // Validate security configuration
       await this.validateSecurityConfig();
-      
+
       this.logSecurityEvent('security_maintenance_completed', { timestamp: Date.now() });
-      
+
     } catch (error) {
       logger.error('Security maintenance failed', {}, error as Error);
     }
@@ -583,7 +584,7 @@ class SecurityService {
   private async assessGDPRCompliance(): Promise<any> {
     return {
       consentManagement: true,
-      dataMinimization: true, 
+      dataMinimization: true,
       dataRetention: true,
       userRights: true,
       score: 95
@@ -619,11 +620,11 @@ class SecurityService {
   }
 
   // Public API methods
-  
+
   /**
    * Get current security status
    */
-  public getSecurityStatus(): { 
+  public getSecurityStatus(): {
     config: SecurityConfig;
     encryptionActive: boolean;
     eventsLogged: number;
@@ -641,7 +642,7 @@ class SecurityService {
   public async updateConfig(newConfig: Partial<SecurityConfig>): Promise<void> {
     this.config = { ...this.config, ...newConfig };
     this.logSecurityEvent('config_updated', newConfig);
-    
+
     // Reinitialize if needed
     if (newConfig.encryptionEnabled !== undefined && !newConfig.encryptionEnabled) {
       this.encryptionKeys.clear();
@@ -657,9 +658,9 @@ class SecurityService {
       config: this.config,
       exportTimestamp: Date.now()
     };
-    
+
     this.logSecurityEvent('logs_exported', { eventCount: this.securityEventLog.length });
-    
+
     return JSON.stringify(logs, null, 2);
   }
 }

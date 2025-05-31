@@ -4,12 +4,23 @@
  */
 
 import { CredibilityScore, ContentAnalysis } from '@shared/types';
-import { BaseIndicator, IndicatorConfig, IndicatorPosition } from './BaseIndicator';
+import { BaseIndicator, IndicatorConfig } from './BaseIndicator';
 import { ProgressiveDisclosureManager, DisclosureConfig } from './ProgressiveDisclosureManager';
 import { PositionManager, PositionConstraints } from './PositionManager';
 import { AccessibilityManager, AccessibilityConfig } from './AccessibilityManager';
 import { MobileGestureManager, GestureConfig } from './MobileGestureManager';
 import { IndicatorStyles } from './IndicatorStyles';
+
+// Augment HTMLElementEventMap for gesture events (2025 TypeScript best practices)
+declare global {
+  interface HTMLElementEventMap {
+    'truthlens:gesture-swipe': CustomEvent<{ direction: 'left' | 'right' | 'up' | 'down'; distance: number; velocity: number }>;
+    'truthlens:gesture-long-press': CustomEvent<{ duration: number; position: { x: number; y: number } }>;
+    'truthlens:gesture-double-tap': CustomEvent<{ position: { x: number; y: number }; interval: number }>;
+    'truthlens:reposition-needed': CustomEvent<{ reason: string }>;
+    'truthlens:expand-disclosure': CustomEvent<{ level: number }>;
+  }
+}
 
 export interface EnhancedIndicatorConfig {
   indicator: Partial<IndicatorConfig>;
@@ -35,10 +46,10 @@ export interface IndicatorInstance {
 export class EnhancedIndicatorManager {
   private config: EnhancedIndicatorConfig;
   private indicators: Map<string, IndicatorInstance> = new Map();
-  private positionManager: PositionManager;
-  private accessibilityManager: AccessibilityManager;
-  private gestureManager: MobileGestureManager;
-  private styles: IndicatorStyles;
+  private positionManager!: PositionManager;
+  private accessibilityManager!: AccessibilityManager;
+  private gestureManager!: MobileGestureManager;
+  private styles!: IndicatorStyles;
   private isInitialized: boolean = false;
   private analyticsQueue: any[] = [];
 
@@ -156,7 +167,7 @@ export class EnhancedIndicatorManager {
   }
 
   public showIndicator(
-    content: ContentAnalysis, 
+    content: ContentAnalysis,
     credibility: CredibilityScore,
     targetElement?: Element
   ): string {
@@ -253,10 +264,10 @@ export class EnhancedIndicatorManager {
 
       return indicatorId;
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('EnhancedIndicatorManager: Failed to show indicator', error);
       this.trackEvent('indicator_error', {
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         content: content.url
       });
       return '';
@@ -333,7 +344,7 @@ export class EnhancedIndicatorManager {
 
   public hideAllIndicators(): void {
     const indicatorIds = Array.from(this.indicators.keys());
-    
+
     for (const id of indicatorIds) {
       this.hideIndicator(id);
     }
@@ -414,13 +425,13 @@ export class EnhancedIndicatorManager {
     }
   }
 
-  private handleSwipeGesture(instance: IndicatorInstance, gestureEvent: any): void {
-    const { direction } = gestureEvent;
+  private handleSwipeGesture(instance: IndicatorInstance, gestureData: { direction: 'left' | 'right' | 'up' | 'down'; distance: number; velocity: number }): void {
+    const { direction } = gestureData;
 
     this.trackEvent('gesture_swipe', {
       indicatorId: instance.id,
       direction,
-      velocity: gestureEvent.velocity
+      velocity: gestureData.velocity
     });
 
     // Provide haptic feedback based on action result
@@ -433,7 +444,7 @@ export class EnhancedIndicatorManager {
     }
   }
 
-  private handleLongPressGesture(instance: IndicatorInstance, gestureEvent: any): void {
+  private handleLongPressGesture(instance: IndicatorInstance, _gestureData: { duration: number; position: { x: number; y: number } }): void {
     this.trackEvent('gesture_long_press', {
       indicatorId: instance.id
     });
@@ -443,7 +454,7 @@ export class EnhancedIndicatorManager {
     this.accessibilityManager.announce('Long press detected. Quick actions available.');
   }
 
-  private handleDoubleTapGesture(instance: IndicatorInstance, gestureEvent: any): void {
+  private handleDoubleTapGesture(instance: IndicatorInstance, _gestureData: { position: { x: number; y: number }; interval: number }): void {
     this.trackEvent('gesture_double_tap', {
       indicatorId: instance.id
     });
@@ -547,7 +558,7 @@ export class EnhancedIndicatorManager {
     this.destroy();
   }
 
-  private handleThemeChange(e: MediaQueryListEvent): void {
+  private handleThemeChange(_e: MediaQueryListEvent): void {
     if (this.config.theme === 'auto') {
       this.styles.updateTheme('auto');
     }
@@ -556,7 +567,7 @@ export class EnhancedIndicatorManager {
   private handleReducedMotionChange(e: MediaQueryListEvent): void {
     // Update animation settings based on reduced motion preference
     const newDuration = e.matches ? 1 : 150;
-    
+
     this.config.indicator.animationDuration = newDuration;
     this.config.disclosure.animationDuration = newDuration;
   }
@@ -589,32 +600,32 @@ export class EnhancedIndicatorManager {
       bubbles: true,
       cancelable: false
     });
-    
+
     document.dispatchEvent(event);
   }
 
   private getEnabledFeatures(): string[] {
     const features = [];
-    
+
     if (this.config.accessibility.enableKeyboardNavigation) features.push('keyboard-navigation');
     if (this.config.accessibility.enableScreenReaderSupport) features.push('screen-reader');
     if (this.config.gesture.enableSwipeGestures) features.push('swipe-gestures');
     if (this.config.gesture.enableHapticFeedback) features.push('haptic-feedback');
     if (this.config.positioning.avoidCollisions) features.push('collision-detection');
     if (this.config.disclosure.mobileOptimized) features.push('mobile-optimized');
-    
+
     return features;
   }
 
   // Public configuration methods
   public updateConfig(newConfig: Partial<EnhancedIndicatorConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Apply configuration changes
     if (newConfig.theme) {
       this.styles.updateTheme(newConfig.theme);
     }
-    
+
     if (newConfig.gesture) {
       this.gestureManager.setGestureConfig(newConfig.gesture);
     }
@@ -646,13 +657,13 @@ export class EnhancedIndicatorManager {
     const indicators = Array.from(this.indicators.values());
     const visible = indicators.filter(i => i.isVisible);
     const now = Date.now();
-    
+
     return {
       totalIndicators: indicators.length,
       visibleIndicators: visible.length,
       oldestIndicator: indicators.length > 0 ? Math.min(...indicators.map(i => i.createdAt)) : null,
-      averageDisplayTime: indicators.length > 0 
-        ? indicators.reduce((sum, i) => sum + (now - i.createdAt), 0) / indicators.length 
+      averageDisplayTime: indicators.length > 0
+        ? indicators.reduce((sum, i) => sum + (now - i.createdAt), 0) / indicators.length
         : 0
     };
   }

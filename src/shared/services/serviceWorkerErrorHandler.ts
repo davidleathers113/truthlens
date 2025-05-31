@@ -3,6 +3,14 @@
  * Addresses Chrome 139+ requirements for service worker lifecycle management
  */
 
+// 2025 TypeScript best practice: Declare Service Worker types for Manifest V3
+declare interface ExtendableEvent extends Event {
+  waitUntil(promise: Promise<any>): void;
+}
+
+// 2025 TypeScript best practice: Declare global functions for Service Worker context
+declare const importScripts: (...urls: string[]) => void;
+
 import { errorHandler } from './errorHandler';
 import { logger } from './logger';
 import { TruthLensError } from '../types/error';
@@ -38,7 +46,7 @@ class ServiceWorkerErrorHandler {
     this.registerSuspendHandler();
 
     this.isInitialized = true;
-    
+
     // Use chrome.alarms instead of setTimeout for persistence
     chrome.alarms.create('error-handler-heartbeat', { periodInMinutes: 1 });
   }
@@ -47,8 +55,8 @@ class ServiceWorkerErrorHandler {
     // Service worker install handler - top level registration
     self.addEventListener('install', (event) => {
       logger.info('Service worker installing');
-      
-      event.waitUntil(
+
+      (event as ExtendableEvent).waitUntil(
         this.handleInstallation().catch(error => {
           const installError = errorHandler.createError(
             'runtime',
@@ -71,8 +79,8 @@ class ServiceWorkerErrorHandler {
     // Service worker activate handler - top level registration
     self.addEventListener('activate', (event) => {
       logger.info('Service worker activating');
-      
-      event.waitUntil(
+
+      (event as ExtendableEvent).waitUntil(
         this.handleActivation().catch(error => {
           const activateError = errorHandler.createError(
             'runtime',
@@ -108,11 +116,11 @@ class ServiceWorkerErrorHandler {
               cause: error
             }
           );
-          
+
           errorHandler.handleError(messageError);
           sendResponse({ error: 'Message handling failed', errorId: messageError.id });
         });
-      
+
       // Return true for async response (Manifest V3 requirement)
       return true;
     });
@@ -189,7 +197,7 @@ class ServiceWorkerErrorHandler {
   private async handleInstallation(): Promise<void> {
     // Perform installation tasks
     logger.info('Service worker installation completed');
-    
+
     // Set up error cleanup alarm
     chrome.alarms.create('error-cleanup', { periodInMinutes: 60 });
   }
@@ -197,14 +205,14 @@ class ServiceWorkerErrorHandler {
   private async handleActivation(): Promise<void> {
     // Perform activation tasks
     logger.info('Service worker activation completed');
-    
+
     // Clean up old caches if needed
     await this.cleanupOldData();
   }
 
   private async handleMessage(
-    message: any, 
-    sender: chrome.runtime.MessageSender, 
+    message: any,
+    _sender: chrome.runtime.MessageSender,
     sendResponse: Function
   ): Promise<void> {
     try {
@@ -213,16 +221,16 @@ class ServiceWorkerErrorHandler {
           await this.handleErrorReport(message);
           sendResponse({ success: true });
           break;
-          
+
         case 'HEALTH_CHECK':
           sendResponse({ status: 'healthy', timestamp: Date.now() });
           break;
-          
+
         case 'GET_ERROR_STATS':
           const stats = errorHandler.getErrorStats();
           sendResponse({ stats });
           break;
-          
+
         default:
           logger.debug('Unknown message type', { type: message.type });
           sendResponse({ error: 'Unknown message type' });
@@ -234,13 +242,13 @@ class ServiceWorkerErrorHandler {
 
   private async handleErrorReport(message: any): Promise<void> {
     const error: TruthLensError = message.error;
-    
+
     // Process cross-context error report
-    logger.info('Processing cross-context error report', { 
+    logger.info('Processing cross-context error report', {
       errorId: error.id,
-      fromContext: message.fromContext 
+      fromContext: message.fromContext
     });
-    
+
     await errorHandler.handleError(error);
   }
 
@@ -256,15 +264,15 @@ class ServiceWorkerErrorHandler {
     try {
       // Cleanup old error logs and data
       logger.info('Performing scheduled error cleanup');
-      
+
       // Clean up old storage data
       await this.cleanupOldData();
-      
+
       // Force garbage collection if available
       if ((globalThis as any).gc) {
         (globalThis as any).gc();
       }
-      
+
     } catch (error) {
       logger.error('Cleanup failed', {}, error as Error);
     }

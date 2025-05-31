@@ -3,7 +3,7 @@
  * 2025 Best Practices with proper cleanup and compression
  */
 
-import { PerformanceMeasurement, PerformanceReport } from './types';
+import { PerformanceMeasurement } from './types';
 
 interface StorageConfig {
   maxEntries: number;
@@ -44,18 +44,18 @@ export class PerformanceStorage {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Create measurements store
-        const store = db.createObjectStore(this.STORE_NAME, { 
+        const store = db.createObjectStore(this.STORE_NAME, {
           keyPath: 'id',
-          autoIncrement: false 
+          autoIncrement: false
         });
-        
+
         // Create indexes for efficient querying
         store.createIndex('timestamp', 'timestamp', { unique: false });
         store.createIndex('type', 'type', { unique: false });
         store.createIndex('context_url', 'context.url', { unique: false });
-        
+
         console.log('[PerformanceStorage] Database structure created');
       };
     });
@@ -64,7 +64,7 @@ export class PerformanceStorage {
   private setupCleanupSchedule(): void {
     // Run cleanup every hour
     const cleanupInterval = 60 * 60 * 1000; // 1 hour
-    
+
     this.cleanupTimer = window.setInterval(() => {
       this.performCleanup();
     }, cleanupInterval);
@@ -83,12 +83,12 @@ export class PerformanceStorage {
 
       // Calculate cutoff time for retention
       const cutoffTime = Date.now() - (this.config.retentionDays * 24 * 60 * 60 * 1000);
-      
+
       // Get old entries
       const oldEntriesRequest = index.openCursor(IDBKeyRange.upperBound(cutoffTime));
-      
+
       let deletedCount = 0;
-      
+
       oldEntriesRequest.onsuccess = (event) => {
         const cursor = (event.target as IDBRequest).result;
         if (cursor) {
@@ -122,22 +122,22 @@ export class PerformanceStorage {
     try {
       const transaction = this.db.transaction([this.STORE_NAME], 'readwrite');
       const store = transaction.objectStore(this.STORE_NAME);
-      
+
       // Count total entries
       const countRequest = store.count();
-      
+
       await new Promise<void>((resolve, reject) => {
         countRequest.onsuccess = async () => {
           const totalCount = countRequest.result;
-          
+
           if (totalCount > this.config.maxEntries) {
             const excessCount = totalCount - this.config.maxEntries;
-            
+
             // Delete oldest entries
             const index = store.index('timestamp');
             const cursor = index.openCursor();
             let deletedCount = 0;
-            
+
             cursor.onsuccess = (event) => {
               const cursorResult = (event.target as IDBRequest).result;
               if (cursorResult && deletedCount < excessCount) {
@@ -164,15 +164,15 @@ export class PerformanceStorage {
     }
 
     try {
-      const storedMeasurement: StoredMeasurement = this.config.compressionEnabled 
+      const storedMeasurement: StoredMeasurement = this.config.compressionEnabled
         ? this.compressMeasurement(measurement)
         : measurement;
 
       const transaction = this.db.transaction([this.STORE_NAME], 'readwrite');
       const store = transaction.objectStore(this.STORE_NAME);
-      
+
       const request = store.add(storedMeasurement);
-      
+
       await new Promise<void>((resolve, reject) => {
         request.onsuccess = () => resolve();
         request.onerror = () => {
@@ -210,7 +210,7 @@ export class PerformanceStorage {
 
   private compressMetadata(metadata: Record<string, any>): Record<string, any> {
     const compressed: Record<string, any> = {};
-    
+
     Object.entries(metadata).forEach(([key, value]) => {
       if (typeof value === 'string' && value.length > 100) {
         compressed[key] = value.substring(0, 100) + '...';
@@ -241,9 +241,9 @@ export class PerformanceStorage {
     try {
       const transaction = this.db.transaction([this.STORE_NAME], 'readonly');
       const store = transaction.objectStore(this.STORE_NAME);
-      
+
       let request: IDBRequest;
-      
+
       if (filters.type) {
         const index = store.index('type');
         request = index.getAll(filters.type);
@@ -258,10 +258,10 @@ export class PerformanceStorage {
       return new Promise((resolve, reject) => {
         request.onsuccess = () => {
           let results: PerformanceMeasurement[] = request.result || [];
-          
+
           // Decompress if necessary
-          results = results.map(measurement => 
-            (measurement as StoredMeasurement).compressed 
+          results = results.map(measurement =>
+            (measurement as StoredMeasurement).compressed
               ? this.decompressMeasurement(measurement as StoredMeasurement)
               : measurement
           );
@@ -282,7 +282,7 @@ export class PerformanceStorage {
 
           resolve(results);
         };
-        
+
         request.onerror = () => {
           console.error('[PerformanceStorage] Failed to retrieve measurements:', request.error);
           reject(request.error);
@@ -320,21 +320,21 @@ export class PerformanceStorage {
   }> {
     const endTime = Date.now();
     const startTime = endTime - timeRange;
-    
+
     const measurements = await this.getMeasurements({ startTime, endTime });
-    
+
     const responseTimeMeasurements = measurements.filter(m => m.type === 'responseTime');
     const memoryMeasurements = measurements.filter(m => m.type === 'memoryUsage');
-    
+
     return {
       totalMeasurements: measurements.length,
-      averageResponseTime: responseTimeMeasurements.length > 0 
-        ? responseTimeMeasurements.reduce((sum, m) => sum + m.value, 0) / responseTimeMeasurements.length 
+      averageResponseTime: responseTimeMeasurements.length > 0
+        ? responseTimeMeasurements.reduce((sum, m) => sum + m.value, 0) / responseTimeMeasurements.length
         : 0,
       averageMemoryUsage: memoryMeasurements.length > 0
         ? memoryMeasurements.reduce((sum, m) => sum + m.value, 0) / memoryMeasurements.length
         : 0,
-      alertsTriggered: measurements.filter(m => 
+      alertsTriggered: measurements.filter(m =>
         m.metadata?.alertLevel === 'warning' || m.metadata?.alertLevel === 'critical'
       ).length
     };
@@ -342,17 +342,17 @@ export class PerformanceStorage {
 
   public async exportData(format: 'json' | 'csv' = 'json'): Promise<string> {
     const measurements = await this.getMeasurements();
-    
+
     if (format === 'csv') {
       return this.convertToCSV(measurements);
     }
-    
+
     return JSON.stringify(measurements, null, 2);
   }
 
   private convertToCSV(measurements: PerformanceMeasurement[]): string {
     if (measurements.length === 0) return '';
-    
+
     const headers = ['id', 'type', 'value', 'timestamp', 'url', 'userAgent', 'viewport_width', 'viewport_height'];
     const rows = measurements.map(m => [
       m.id,
@@ -364,7 +364,7 @@ export class PerformanceStorage {
       m.context.viewport.width.toString(),
       m.context.viewport.height.toString()
     ]);
-    
+
     return [headers, ...rows].map(row => row.join(',')).join('\n');
   }
 
@@ -374,7 +374,7 @@ export class PerformanceStorage {
     try {
       const transaction = this.db.transaction([this.STORE_NAME], 'readwrite');
       const store = transaction.objectStore(this.STORE_NAME);
-      
+
       await new Promise<void>((resolve, reject) => {
         const request = store.clear();
         request.onsuccess = () => {

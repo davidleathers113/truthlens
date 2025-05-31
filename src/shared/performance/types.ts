@@ -7,19 +7,19 @@
 export interface PerformanceMetrics {
   // Extension-specific metrics (PRD requirements)
   responseTime: number[]; // <1 second requirement
-  pageLoadImpact: number[]; // <500ms requirement  
+  pageLoadImpact: number[]; // <500ms requirement
   memoryUsage: number[]; // <50MB requirement
   cpuUtilization: number[];
-  
+
   // Web Vitals (2025 standards)
   lcp: number[]; // Largest Contentful Paint <2.5s
   inp: number[]; // Interaction to Next Paint <200ms (replaced FID in 2024)
   cls: number[]; // Cumulative Layout Shift <0.1
-  
+
   // Service Worker metrics (Manifest V3)
   serviceWorkerStartTime: number[];
   serviceWorkerLifetime: number[];
-  
+
   // IndexedDB performance
   dbQueryTime: number[];
   dbMemoryUsage: number[];
@@ -33,12 +33,12 @@ export interface PerformanceThresholds {
   pageLoadImpact: { warning: 400; critical: 500 }; // PRD: <500ms
   memoryUsage: { warning: 40000000; critical: 50000000 }; // PRD: <50MB
   cpuUtilization: { warning: 60; critical: 80 }; // Percentage
-  
+
   // 2025 Web Vitals standards
   lcp: { warning: 2000; critical: 2500 }; // 2.5s threshold
   inp: { warning: 150; critical: 200 }; // 200ms threshold
   cls: { warning: 0.08; critical: 0.1 }; // 0.1 threshold
-  
+
   serviceWorkerStartTime: { warning: 100; critical: 200 };
   serviceWorkerLifetime: { warning: 30000; critical: 60000 };
   dbQueryTime: { warning: 50; critical: 100 };
@@ -189,4 +189,21 @@ export interface ExtensionContext {
   tabId?: number;
   frameId?: number;
   url?: string;
+}
+
+// Stub classes for missing performance components (2025 TypeScript best practices)
+export declare class PerformanceMonitor {
+  constructor(context: ExtensionContext, config?: any);
+}
+
+export declare class PerformanceDashboard {
+  constructor(config?: any);
+}
+
+export declare class ServiceWorkerIntegration {
+  constructor(config?: any);
+}
+
+export declare class ContentScriptIntegration {
+  constructor(config?: any);
 }

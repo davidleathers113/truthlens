@@ -5,7 +5,6 @@
 
 import { logger } from './logger';
 import { storageService } from '../storage/storageService';
-import { securityService } from './securityService';
 import { securityTesting } from './securityTesting';
 
 export interface ComplianceDocument {
@@ -196,7 +195,7 @@ class ComplianceDocumentationGenerator {
     const validUntil = timestamp + (90 * 24 * 60 * 60 * 1000); // 3 months validity
 
     const testResults = await securityTesting.getLatestTestResults();
-    
+
     const content: ComplianceDocumentContent = {
       title: 'Security Audit Report - TruthLens Extension',
       summary: 'Comprehensive security assessment including vulnerability scanning, penetration testing results, and compliance verification.',
@@ -225,19 +224,20 @@ class ComplianceDocumentationGenerator {
   private async generateDPIASections(): Promise<ComplianceSection[]> {
     const userSettings = await storageService.getSettings();
     const privacyMetrics = await storageService.getPrivacyMetrics();
-    const aiMetrics = await storageService.getAIProcessingMetrics();
+    // 2025 TypeScript best practice: Remove unused variables entirely rather than suppress
+    // const aiMetrics = await storageService.getAIProcessingMetrics(); // Removed - not used in current implementation
 
     return [
       {
         id: 'overview',
         title: '1. Overview of Processing Activity',
         content: `TruthLens is a Chrome extension that provides real-time credibility analysis of web content using AI-powered assessment. The extension processes:
-        
+
         • URL and content metadata for credibility analysis
         • User settings and preferences (stored locally)
         • Anonymous usage statistics (with consent)
         • AI processing metrics for compliance monitoring
-        
+
         Processing is designed with privacy-by-design principles, utilizing local AI processing wherever technically feasible.`,
         evidence: [
           {
@@ -252,12 +252,12 @@ class ComplianceDocumentationGenerator {
         id: 'necessity',
         title: '2. Necessity and Proportionality',
         content: `Data processing is strictly limited to the extension's core functionality:
-        
+
         • Credibility analysis requires content metadata (not full content)
         • Settings storage enables user preferences
         • Usage metrics (optional) improve service quality
         • All processing follows data minimization principles
-        
+
         No personal identifying information is collected or processed unless explicitly required for user-requested features.`,
         evidence: [
           {
@@ -272,16 +272,16 @@ class ComplianceDocumentationGenerator {
         id: 'risks',
         title: '3. Risk Assessment',
         content: `Risk analysis for data processing activities:
-        
+
         **Low Risk:**
         • Settings storage (encrypted, local)
         • Anonymous usage metrics
         • Local AI processing
-        
+
         **Medium Risk:**
         • URL metadata processing (mitigated by anonymization)
         • Cross-browser sync of settings (encrypted)
-        
+
         **Risk Mitigation:**
         • End-to-end encryption for sensitive data
         • Local-first processing architecture
@@ -300,14 +300,14 @@ class ComplianceDocumentationGenerator {
         id: 'measures',
         title: '4. Mitigation Measures',
         content: `Comprehensive technical and organizational measures:
-        
+
         **Technical Measures:**
         • AES-256-GCM encryption for sensitive data
         • Content Security Policy implementation
         • Local AI processing preference
         • Automated data retention management
         • Secure session management
-        
+
         **Organizational Measures:**
         • Privacy-by-design development process
         • Regular compliance monitoring
@@ -327,13 +327,13 @@ class ComplianceDocumentationGenerator {
         id: 'monitoring',
         title: '5. Ongoing Monitoring',
         content: `Continuous monitoring and review processes:
-        
+
         • Automated compliance checks (hourly)
         • Security testing (monthly)
         • DPIA review (annually)
         • User consent renewal (annually)
         • Privacy metrics tracking
-        
+
         Current Status:
         • Data processed: ${privacyMetrics?.dataProcessed || 0} events
         • User consents: ${privacyMetrics?.userConsents || 0}
@@ -382,23 +382,23 @@ class ComplianceDocumentationGenerator {
         id: 'ai_system_classification',
         title: '1. AI System Classification',
         content: `TruthLens AI system classification under EU AI Act:
-        
+
         **System Type:** Limited Risk AI System
         **Risk Category:** Content Analysis and Recommendation
         **Deployment Context:** Browser Extension for Information Assessment
-        
+
         The system provides credibility scores for web content but does not make automated decisions with legal or similarly significant effects on individuals.`
       },
       {
         id: 'bias_assessment',
         title: '2. Bias Assessment and Mitigation',
         content: `Bias assessment and mitigation measures:
-        
+
         **Assessment Frequency:** Monthly (EU AI Act requirement)
         **Last Assessment:** ${biasAssessment ? new Date(biasAssessment.timestamp).toLocaleDateString() : 'Pending'}
         **Processing Events:** ${aiMetrics.totalProcessingEvents}
         **Local Processing:** ${aiMetrics.localProcessingEvents} (${Math.round((aiMetrics.localProcessingEvents / Math.max(aiMetrics.totalProcessingEvents, 1)) * 100)}%)
-        
+
         **Mitigation Strategies:**
         • Diverse training data sources
         • Regular bias testing across content types
@@ -417,7 +417,7 @@ class ComplianceDocumentationGenerator {
         id: 'transparency',
         title: '3. Transparency and Explainability',
         content: `Transparency measures implemented:
-        
+
         • Clear explanation of credibility scoring
         • Source attribution for assessments
         • User control over AI processing
@@ -428,7 +428,7 @@ class ComplianceDocumentationGenerator {
         id: 'human_oversight',
         title: '4. Human Oversight',
         content: `Human oversight mechanisms:
-        
+
         • User can override AI assessments
         • Manual review processes for edge cases
         • Regular human evaluation of AI outputs
@@ -441,7 +441,7 @@ class ComplianceDocumentationGenerator {
   // AI Assessment Appendices
   private async generateAIAssessmentAppendices(): Promise<ComplianceAppendix[]> {
     const aiMetrics = await storageService.getAIProcessingMetrics();
-    
+
     return [
       {
         id: 'technical_specs',
@@ -464,23 +464,24 @@ class ComplianceDocumentationGenerator {
 
   // Privacy Policy Sections
   private async generatePrivacyPolicySections(): Promise<ComplianceSection[]> {
-    const userSettings = await storageService.getSettings();
+    // 2025 TypeScript best practice: Remove unused variables entirely rather than suppress
+    // const userSettings = await storageService.getSettings(); // Removed - not used in current implementation
 
     return [
       {
         id: 'data_collection',
         title: '1. Data Collection',
         content: `TruthLens collects minimal data necessary for functionality:
-        
+
         **Always Collected:**
         • Extension settings and preferences
         • Content URLs for credibility analysis (processed locally)
-        
+
         **Collected with Consent:**
         • Anonymous usage statistics
         • Performance metrics
         • Feature usage analytics
-        
+
         **Never Collected:**
         • Personal identifying information
         • Full page content
@@ -491,49 +492,49 @@ class ComplianceDocumentationGenerator {
         id: 'data_use',
         title: '2. Data Use',
         content: `Data is used exclusively for:
-        
+
         • Providing credibility analysis
         • Maintaining user preferences
         • Improving service quality (with consent)
         • Ensuring security and compliance
-        
+
         Data is never used for advertising, profiling, or commercial purposes beyond the core service.`
       },
       {
         id: 'data_sharing',
         title: '3. Data Sharing',
         content: `TruthLens follows a strict no-sharing policy:
-        
+
         • No data sharing with third parties
         • No data sales or commercial transfers
         • Local processing preference
         • Encrypted cross-device sync only
-        
+
         Limited data processing may occur through Chrome's built-in AI APIs, subject to Google's privacy policies.`
       },
       {
         id: 'user_rights',
         title: '4. Your Rights',
         content: `You have comprehensive privacy rights:
-        
+
         • **Access:** Export all your data
-        • **Rectification:** Modify settings and preferences  
+        • **Rectification:** Modify settings and preferences
         • **Erasure:** Delete all data ("right to be forgotten")
         • **Portability:** Download data in standard format
         • **Objection:** Opt out of any optional processing
         • **Consent withdrawal:** Change consent at any time
-        
+
         Exercise these rights through the extension's privacy settings.`
       },
       {
         id: 'contact',
         title: '5. Contact Information',
         content: `For privacy questions or rights requests:
-        
+
         **Data Controller:** TruthLens Team
         **Privacy Officer:** privacy@truthlens.app
         **Supervisory Authority:** Your local data protection authority
-        
+
         Response time: 30 days maximum (GDPR requirement)`
       }
     ];
@@ -546,13 +547,13 @@ class ComplianceDocumentationGenerator {
         id: 'executive_summary',
         title: '1. Executive Summary',
         content: `Security audit results:
-        
+
         **Overall Status:** ${testResults?.overallStatus || 'Unknown'}
         **Tests Conducted:** ${testResults?.summary.total || 0}
         **Tests Passed:** ${testResults?.summary.passed || 0}
         **Issues Found:** ${testResults?.summary.failed || 0}
         **Warnings:** ${testResults?.summary.warnings || 0}
-        
+
         All critical security measures are in place and functioning properly.`
       },
       {
@@ -575,9 +576,9 @@ class ComplianceDocumentationGenerator {
   private async storeComplianceDocument(document: ComplianceDocument): Promise<void> {
     const key = `compliance_doc_${document.type}_${document.generatedAt}`;
     await chrome.storage.local.set({ [key]: document });
-    
+
     // Update compliance metrics
-    await storageService.updatePrivacyMetrics({ 
+    await storageService.updatePrivacyMetrics({
       dataProcessed: 1 // Document generation counts as data processing
     });
   }
@@ -622,7 +623,7 @@ class ComplianceDocumentationGenerator {
     const thirtyDays = 30 * 24 * 60 * 60 * 1000;
 
     const expired = allDocs.filter(doc => doc.validUntil < now);
-    const expiringSoon = allDocs.filter(doc => 
+    const expiringSoon = allDocs.filter(doc =>
       doc.validUntil > now && doc.validUntil < (now + thirtyDays)
     );
 
@@ -634,7 +635,7 @@ class ComplianceDocumentationGenerator {
    */
   public async generateAllDocuments(): Promise<ComplianceDocument[]> {
     logger.info('Generating all compliance documents');
-    
+
     const documents = await Promise.all([
       this.generateDPIA(),
       this.generatePIA(),
@@ -643,8 +644,8 @@ class ComplianceDocumentationGenerator {
       this.generateSecurityAudit()
     ]);
 
-    logger.info('All compliance documents generated', { 
-      count: documents.length 
+    logger.info('All compliance documents generated', {
+      count: documents.length
     });
 
     return documents;
@@ -655,7 +656,7 @@ class ComplianceDocumentationGenerator {
    */
   public async exportDocumentation(type?: ComplianceDocument['type']): Promise<string> {
     const docs = await this.getComplianceDocuments(type);
-    
+
     const exportData = {
       generatedAt: new Date().toISOString(),
       documentCount: docs.length,

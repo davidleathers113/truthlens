@@ -28,14 +28,14 @@ export async function initializeErrorHandlingSystem(
     errorHandler?: Partial<import('../types/error').ErrorHandlerConfig>;
     logger?: Partial<import('../types/error').LogConfig>;
     offline?: Partial<import('./offlineHandler').default>;
-    integration?: Partial<import('./errorIntegration').default>;
+    integration?: Partial<{enableGlobalErrorBoundary: boolean; enableUnhandledRejectionHandler: boolean; enableChromeErrorHandler: boolean; enablePerformanceMonitoring: boolean; enableUserFeedback: boolean; debugMode: boolean;}>;
   }
 ) {
   const { createErrorIntegration } = await import('./errorIntegration');
-  
+
   const integration = createErrorIntegration(context, config?.integration);
   await integration.initialize();
-  
+
   return integration;
 }
 
@@ -49,10 +49,10 @@ export const setupErrorHandling = {
     },
     logger: {
       level: 'info',
-      destinations: { storage: true, console: false }
+      destinations: { storage: true, console: false, remote: false, export: false }
     }
   }),
-  
+
   contentScript: () => initializeErrorHandlingSystem('content', {
     errorHandler: {
       enableReporting: false, // Privacy-first for content scripts
@@ -61,10 +61,10 @@ export const setupErrorHandling = {
     },
     logger: {
       level: 'warn',
-      destinations: { storage: true, console: false }
+      destinations: { storage: true, console: false, remote: false, export: false }
     }
   }),
-  
+
   popup: () => initializeErrorHandlingSystem('popup', {
     errorHandler: {
       enableReporting: false,
@@ -72,22 +72,24 @@ export const setupErrorHandling = {
     },
     logger: {
       level: 'info',
-      destinations: { storage: true, console: true }
+      destinations: { storage: true, console: true, remote: false, export: false }
     }
   }),
-  
+
   options: () => initializeErrorHandlingSystem('options', {
     errorHandler: {
       enableReporting: true,
       enableRecovery: true,
       debugConfig: {
         enableDebugPanel: true,
-        enableConsoleOutput: true
+        enableConsoleOutput: true,
+        verboseLogging: true,
+        enablePerformanceTracking: true
       }
     },
     logger: {
       level: 'debug',
-      destinations: { storage: true, console: true, export: true }
+      destinations: { storage: true, console: true, remote: false, export: true }
     }
   })
 };

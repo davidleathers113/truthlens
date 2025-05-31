@@ -11,7 +11,7 @@ export interface BiasAssessmentResult {
   assessmentId: string;
   timestamp: number;
   version: string;
-  
+
   // EU AI Act Article 10 Requirements
   dataQualityAssessment: {
     representativeness: number; // 0-100 score
@@ -20,7 +20,7 @@ export interface BiasAssessmentResult {
     relevance: number; // 0-100 score
     biasIndicators: BiasIndicator[];
   };
-  
+
   // Bias Analysis Results
   biasDetection: {
     demographicBias: BiasMetric;
@@ -29,14 +29,14 @@ export interface BiasAssessmentResult {
     temporalBias: BiasMetric;
     geographicBias: BiasMetric;
   };
-  
+
   // Mitigation Measures
   mitigationMeasures: {
     implemented: string[];
     recommended: string[];
     effectiveness: number; // 0-100 score
   };
-  
+
   // Risk Assessment
   riskAssessment: {
     overallRiskLevel: 'minimal' | 'limited' | 'high' | 'unacceptable';
@@ -44,7 +44,7 @@ export interface BiasAssessmentResult {
     potentialDiscrimination: boolean;
     riskFactors: string[];
   };
-  
+
   // Compliance Status
   compliance: {
     euAiActCompliant: boolean;
@@ -52,7 +52,7 @@ export interface BiasAssessmentResult {
     issues: string[];
     recommendations: string[];
   };
-  
+
   // Next Assessment
   nextAssessmentDue: number;
   validUntil: number;
@@ -143,7 +143,7 @@ class BiasAssessmentService {
     try {
       const lastAssessment = await this.getLatestAssessment();
       const now = Date.now();
-      
+
       if (!lastAssessment) {
         logger.info('No previous bias assessment found, scheduling initial assessment');
         this.performAutomatedAssessment();
@@ -151,7 +151,7 @@ class BiasAssessmentService {
       }
 
       const daysSinceLastAssessment = (now - lastAssessment.timestamp) / (24 * 60 * 60 * 1000);
-      
+
       if (daysSinceLastAssessment >= this.ASSESSMENT_INTERVAL_DAYS) {
         logger.info('Bias assessment overdue, triggering automated assessment', {
           daysSince: Math.round(daysSinceLastAssessment)
@@ -184,14 +184,14 @@ class BiasAssessmentService {
 
       // Generate unique assessment ID
       const assessmentId = `bias_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Collect data samples for analysis
       const dataSamples = await this.collectDataSamples();
-      
+
       if (dataSamples.length < this.MIN_SAMPLES_FOR_ASSESSMENT) {
-        logger.warn('Insufficient data for bias assessment', { 
-          samples: dataSamples.length, 
-          required: this.MIN_SAMPLES_FOR_ASSESSMENT 
+        logger.warn('Insufficient data for bias assessment', {
+          samples: dataSamples.length,
+          required: this.MIN_SAMPLES_FOR_ASSESSMENT
         });
       }
 
@@ -246,20 +246,20 @@ class BiasAssessmentService {
   private async collectDataSamples(): Promise<DataSample[]> {
     try {
       // Get recent AI processing data
-      const aiMetrics = await storageService.getAIProcessingMetrics();
+      await storageService.getAIProcessingMetrics();
       const recentAnalyses = await storageService.getRecentCredibilityAnalyses(1000);
 
       const samples: DataSample[] = recentAnalyses.map(analysis => ({
-        url: analysis.url,
-        domain: new URL(analysis.url).hostname,
-        contentType: analysis.contentType || 'unknown',
-        credibilityScore: analysis.credibilityScore,
+        url: 'unknown', // CredibilityScore doesn't contain URL
+        domain: 'unknown', // Extract from URL if available elsewhere
+        contentType: 'unknown', // Not available in CredibilityScore
+        credibilityScore: analysis.score,
         timestamp: analysis.timestamp,
-        userDemographics: analysis.userDemographics,
-        metadata: analysis.metadata || {}
+        userDemographics: undefined, // Not available in CredibilityScore
+        metadata: { source: analysis.source, reasoning: analysis.reasoning }
       }));
 
-      logger.debug('Collected data samples for bias analysis', { 
+      logger.debug('Collected data samples for bias analysis', {
         totalSamples: samples.length,
         timeRange: samples.length > 0 ? {
           oldest: new Date(Math.min(...samples.map(s => s.timestamp))).toISOString(),
@@ -284,7 +284,7 @@ class BiasAssessmentService {
     // Assess representativeness
     const domainDistribution = this.calculateDistribution(samples, 'domain');
     const representativeness = this.assessRepresentativeness(domainDistribution);
-    
+
     if (representativeness < 70) {
       biasIndicators.push({
         type: 'source',
@@ -298,7 +298,7 @@ class BiasAssessmentService {
 
     // Assess completeness
     const completeness = this.assessCompleteness(samples);
-    
+
     if (completeness < 80) {
       biasIndicators.push({
         type: 'content',
@@ -312,7 +312,7 @@ class BiasAssessmentService {
 
     // Assess accuracy (based on consistency)
     const accuracy = this.assessAccuracy(samples);
-    
+
     // Assess relevance
     const relevance = this.assessRelevance(samples);
 
@@ -343,13 +343,13 @@ class BiasAssessmentService {
    */
   private async detectDemographicBias(samples: DataSample[]): Promise<BiasMetric> {
     const indicators: BiasIndicator[] = [];
-    
+
     // Group by demographics where available
     const demographicGroups = this.groupByDemographics(samples);
-    
+
     // Calculate score differences between groups
     const biasScore = this.calculateGroupBiasScore(demographicGroups, 'demographic');
-    
+
     if (biasScore > this.BIAS_THRESHOLDS.demographic) {
       indicators.push({
         type: 'demographic',
@@ -374,10 +374,10 @@ class BiasAssessmentService {
    */
   private async detectContentTypeBias(samples: DataSample[]): Promise<BiasMetric> {
     const indicators: BiasIndicator[] = [];
-    
+
     const contentTypeGroups = this.groupByContentType(samples);
     const biasScore = this.calculateGroupBiasScore(contentTypeGroups, 'contentType');
-    
+
     if (biasScore > this.BIAS_THRESHOLDS.contentType) {
       indicators.push({
         type: 'content',
@@ -402,10 +402,10 @@ class BiasAssessmentService {
    */
   private async detectSourceBias(samples: DataSample[]): Promise<BiasMetric> {
     const indicators: BiasIndicator[] = [];
-    
+
     const sourceGroups = this.groupBySource(samples);
     const biasScore = this.calculateGroupBiasScore(sourceGroups, 'source');
-    
+
     if (biasScore > this.BIAS_THRESHOLDS.source) {
       indicators.push({
         type: 'source',
@@ -430,10 +430,10 @@ class BiasAssessmentService {
    */
   private async detectTemporalBias(samples: DataSample[]): Promise<BiasMetric> {
     const indicators: BiasIndicator[] = [];
-    
+
     const temporalGroups = this.groupByTimeWindows(samples);
     const biasScore = this.calculateTemporalDrift(temporalGroups);
-    
+
     if (biasScore > this.BIAS_THRESHOLDS.temporal) {
       indicators.push({
         type: 'temporal',
@@ -458,10 +458,10 @@ class BiasAssessmentService {
    */
   private async detectGeographicBias(samples: DataSample[]): Promise<BiasMetric> {
     const indicators: BiasIndicator[] = [];
-    
+
     const geographicGroups = this.groupByGeography(samples);
     const biasScore = this.calculateGroupBiasScore(geographicGroups, 'geographic');
-    
+
     if (biasScore > this.BIAS_THRESHOLDS.geographic) {
       indicators.push({
         type: 'geographic',
@@ -483,27 +483,27 @@ class BiasAssessmentService {
 
   // Helper methods for bias calculations
 
-  private calculateDistribution<T>(samples: DataSample[], field: keyof DataSample): Record<string, number> {
+  private calculateDistribution(samples: DataSample[], field: keyof DataSample): Record<string, number> {
     const distribution: Record<string, number> = {};
-    
+
     samples.forEach(sample => {
       const value = String(sample[field] || 'unknown');
       distribution[value] = (distribution[value] || 0) + 1;
     });
-    
+
     return distribution;
   }
 
   private assessRepresentativeness(distribution: Record<string, number>): number {
     const values = Object.values(distribution);
     const total = values.reduce((sum, count) => sum + count, 0);
-    
+
     // Calculate entropy as a measure of representativeness
     const entropy = values.reduce((ent, count) => {
       const probability = count / total;
       return ent - (probability * Math.log2(probability || 1));
     }, 0);
-    
+
     // Normalize to 0-100 scale
     const maxEntropy = Math.log2(values.length);
     return maxEntropy > 0 ? (entropy / maxEntropy) * 100 : 0;
@@ -511,10 +511,10 @@ class BiasAssessmentService {
 
   private assessCompleteness(samples: DataSample[]): number {
     if (samples.length === 0) return 0;
-    
+
     const requiredFields = ['url', 'domain', 'contentType', 'credibilityScore', 'timestamp'];
     let completenessScore = 0;
-    
+
     samples.forEach(sample => {
       let fieldCount = 0;
       requiredFields.forEach(field => {
@@ -524,11 +524,11 @@ class BiasAssessmentService {
       });
       completenessScore += (fieldCount / requiredFields.length);
     });
-    
+
     return (completenessScore / samples.length) * 100;
   }
 
-  private assessAccuracy(samples: DataSample[]): number {
+  private assessAccuracy(_samples: DataSample[]): number {
     // For now, assume accuracy based on consistency of scores for similar content
     // In a real implementation, this would compare against ground truth data
     return 85; // Placeholder
@@ -538,110 +538,110 @@ class BiasAssessmentService {
     // Assess relevance based on content type distribution and recency
     const now = Date.now();
     const recentSamples = samples.filter(s => (now - s.timestamp) < (7 * 24 * 60 * 60 * 1000)); // Last 7 days
-    
+
     const relevanceScore = recentSamples.length / samples.length;
     return Math.min(100, relevanceScore * 100);
   }
 
   private groupByDemographics(samples: DataSample[]): Record<string, DataSample[]> {
     const groups: Record<string, DataSample[]> = {};
-    
+
     samples.forEach(sample => {
       const demographics = sample.userDemographics;
       const key = demographics ? `${demographics.region || 'unknown'}_${demographics.language || 'unknown'}` : 'unknown';
-      
+
       if (!groups[key]) groups[key] = [];
       groups[key].push(sample);
     });
-    
+
     return groups;
   }
 
   private groupByContentType(samples: DataSample[]): Record<string, DataSample[]> {
     const groups: Record<string, DataSample[]> = {};
-    
+
     samples.forEach(sample => {
       const contentType = sample.contentType || 'unknown';
       if (!groups[contentType]) groups[contentType] = [];
       groups[contentType].push(sample);
     });
-    
+
     return groups;
   }
 
   private groupBySource(samples: DataSample[]): Record<string, DataSample[]> {
     const groups: Record<string, DataSample[]> = {};
-    
+
     samples.forEach(sample => {
       const domain = sample.domain;
       if (!groups[domain]) groups[domain] = [];
       groups[domain].push(sample);
     });
-    
+
     return groups;
   }
 
   private groupByTimeWindows(samples: DataSample[]): Record<string, DataSample[]> {
     const groups: Record<string, DataSample[]> = {};
     const dayMs = 24 * 60 * 60 * 1000;
-    
+
     samples.forEach(sample => {
       const dayKey = Math.floor(sample.timestamp / dayMs).toString();
       if (!groups[dayKey]) groups[dayKey] = [];
       groups[dayKey].push(sample);
     });
-    
+
     return groups;
   }
 
   private groupByGeography(samples: DataSample[]): Record<string, DataSample[]> {
     const groups: Record<string, DataSample[]> = {};
-    
+
     samples.forEach(sample => {
       const region = sample.userDemographics?.region || 'unknown';
       if (!groups[region]) groups[region] = [];
       groups[region].push(sample);
     });
-    
+
     return groups;
   }
 
-  private calculateGroupBiasScore(groups: Record<string, DataSample[]>, type: string): number {
+  private calculateGroupBiasScore(groups: Record<string, DataSample[]>, _type: string): number {
     const groupAverages: number[] = [];
-    
+
     Object.values(groups).forEach(groupSamples => {
       if (groupSamples.length > 0) {
         const average = groupSamples.reduce((sum, sample) => sum + sample.credibilityScore, 0) / groupSamples.length;
         groupAverages.push(average);
       }
     });
-    
+
     if (groupAverages.length < 2) return 0;
-    
+
     const max = Math.max(...groupAverages);
     const min = Math.min(...groupAverages);
-    
+
     return Math.abs(max - min) / 100; // Normalize to 0-1 scale
   }
 
   private calculateTemporalDrift(timeGroups: Record<string, DataSample[]>): number {
     const timeKeys = Object.keys(timeGroups).sort();
     if (timeKeys.length < 2) return 0;
-    
+
     const averages: number[] = timeKeys.map(key => {
       const samples = timeGroups[key];
       return samples.reduce((sum, sample) => sum + sample.credibilityScore, 0) / samples.length;
     });
-    
+
     // Calculate linear regression to detect drift
     const n = averages.length;
     const sumX = timeKeys.reduce((sum, _, i) => sum + i, 0);
     const sumY = averages.reduce((sum, avg) => sum + avg, 0);
     const sumXY = averages.reduce((sum, avg, i) => sum + (i * avg), 0);
     const sumXX = timeKeys.reduce((sum, _, i) => sum + (i * i), 0);
-    
+
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-    
+
     return Math.abs(slope) / 100; // Normalize slope
   }
 
@@ -654,7 +654,7 @@ class BiasAssessmentService {
       temporal: 100,
       geographic: 60
     };
-    
+
     const min = minSamples[biasType as keyof typeof minSamples] || 50;
     return Math.min(100, (sampleSize / min) * 100);
   }
@@ -662,17 +662,17 @@ class BiasAssessmentService {
   private async calculateBiasTrends(biasType: string): Promise<{ improving: boolean; direction: number }> {
     // Compare with previous assessments to calculate trends
     const previousAssessments = await this.getPreviousAssessments(3);
-    
+
     if (previousAssessments.length < 2) {
       return { improving: true, direction: 0 };
     }
-    
+
     // Simple trend calculation based on recent assessments
     const scores = previousAssessments.map(assessment => {
       const biasMetric = assessment.biasDetection[biasType as keyof typeof assessment.biasDetection] as BiasMetric;
       return biasMetric.score;
     });
-    
+
     const trend = scores[0] - scores[scores.length - 1]; // Recent - oldest
     return {
       improving: trend > 0,
@@ -688,9 +688,9 @@ class BiasAssessmentService {
       'Local AI processing preference',
       'Transparent scoring methodology'
     ];
-    
+
     const recommended: string[] = [];
-    
+
     // Generate recommendations based on detected biases
     Object.entries(biasDetection).forEach(([type, metric]) => {
       if (metric.score < 70) {
@@ -718,11 +718,11 @@ class BiasAssessmentService {
         }
       }
     });
-    
+
     // Calculate effectiveness of current measures
     const overallBiasScore = Object.values(biasDetection).reduce((sum, metric) => sum + metric.score, 0) / Object.keys(biasDetection).length;
     const effectiveness = Math.min(100, overallBiasScore);
-    
+
     return {
       implemented,
       recommended: [...new Set(recommended)], // Remove duplicates
@@ -734,10 +734,10 @@ class BiasAssessmentService {
     const biasScores = Object.values(biasDetection).map(metric => metric.score);
     const minScore = Math.min(...biasScores);
     const avgScore = biasScores.reduce((sum, score) => sum + score, 0) / biasScores.length;
-    
+
     // Determine overall risk level based on EU AI Act classification
     let overallRiskLevel: 'minimal' | 'limited' | 'high' | 'unacceptable';
-    
+
     if (minScore < 30) {
       overallRiskLevel = 'unacceptable';
     } else if (minScore < 50 || avgScore < 60) {
@@ -747,18 +747,18 @@ class BiasAssessmentService {
     } else {
       overallRiskLevel = 'minimal';
     }
-    
+
     // Assess impact on fundamental rights
-    const impactOnFundamentalRights = minScore < 50 || Object.values(biasDetection).some(metric => 
+    const impactOnFundamentalRights = minScore < 50 || Object.values(biasDetection).some(metric =>
       metric.indicators.some(indicator => indicator.severity === 'high' || indicator.severity === 'critical')
     );
-    
+
     // Assess potential for discrimination
-    const potentialDiscrimination = biasDetection.demographicBias.score < 70 || 
+    const potentialDiscrimination = biasDetection.demographicBias.score < 70 ||
                                   biasDetection.geographicBias.score < 70;
-    
+
     const riskFactors: string[] = [];
-    
+
     if (biasDetection.demographicBias.score < 70) {
       riskFactors.push('Demographic bias detected');
     }
@@ -774,7 +774,7 @@ class BiasAssessmentService {
     if (biasDetection.geographicBias.score < 70) {
       riskFactors.push('Geographic bias detected');
     }
-    
+
     return {
       overallRiskLevel,
       impactOnFundamentalRights,
@@ -785,20 +785,20 @@ class BiasAssessmentService {
 
   private async assessCompliance(
     riskAssessment: BiasAssessmentResult['riskAssessment'],
-    biasDetection: BiasAssessmentResult['biasDetection']
+    _biasDetection: BiasAssessmentResult['biasDetection']
   ): Promise<BiasAssessmentResult['compliance']> {
     const issues: string[] = [];
     const recommendations: string[] = [];
-    
+
     // EU AI Act compliance check
     let euAiActCompliant = true;
-    
+
     if (riskAssessment.overallRiskLevel === 'unacceptable') {
       euAiActCompliant = false;
       issues.push('AI system classified as unacceptable risk under EU AI Act');
       recommendations.push('Immediate system review and bias mitigation required');
     }
-    
+
     if (riskAssessment.overallRiskLevel === 'high') {
       if (riskAssessment.impactOnFundamentalRights) {
         issues.push('High-risk AI system may impact fundamental rights');
@@ -806,21 +806,21 @@ class BiasAssessmentService {
         recommendations.push('Enhanced transparency and explainability required');
       }
     }
-    
+
     if (riskAssessment.potentialDiscrimination) {
       issues.push('Potential discrimination detected in AI outputs');
       recommendations.push('Implement bias mitigation measures immediately');
     }
-    
+
     // GDPR compliance check
-    const gdprCompliant = !riskAssessment.impactOnFundamentalRights && 
+    const gdprCompliant = !riskAssessment.impactOnFundamentalRights &&
                          !riskAssessment.potentialDiscrimination;
-    
+
     if (!gdprCompliant) {
       issues.push('GDPR compliance at risk due to bias issues');
       recommendations.push('Review data processing lawfulness under GDPR');
     }
-    
+
     // Check assessment frequency compliance
     const lastAssessment = await this.getLatestAssessment();
     if (lastAssessment) {
@@ -830,7 +830,7 @@ class BiasAssessmentService {
         recommendations.push('Maintain monthly bias assessment schedule');
       }
     }
-    
+
     return {
       euAiActCompliant,
       gdprCompliant,
@@ -845,13 +845,13 @@ class BiasAssessmentService {
   private async storeAssessmentResult(result: BiasAssessmentResult): Promise<void> {
     try {
       const key = `bias_assessment_${result.timestamp}`;
-      
+
       // Encrypt sensitive assessment data
       const encryptedResult = await securityService.encryptData(result, 'userData');
-      
+
       if (encryptedResult.success) {
         await chrome.storage.local.set({ [key]: encryptedResult.data });
-        
+
         // Store summary for quick access
         await chrome.storage.local.set({
           latest_bias_assessment: {
@@ -862,14 +862,14 @@ class BiasAssessmentService {
             nextDue: result.nextAssessmentDue
           }
         });
-        
-        logger.info('Bias assessment result stored securely', { 
-          assessmentId: result.assessmentId 
+
+        logger.info('Bias assessment result stored securely', {
+          assessmentId: result.assessmentId
         });
       } else {
         throw new Error('Failed to encrypt assessment result');
       }
-      
+
     } catch (error) {
       logger.error('Failed to store bias assessment result', {}, error as Error);
       throw error;
@@ -882,28 +882,28 @@ class BiasAssessmentService {
   public async getLatestAssessment(): Promise<BiasAssessmentResult | null> {
     try {
       const result = await chrome.storage.local.get('latest_bias_assessment');
-      
+
       if (!result.latest_bias_assessment) {
         return null;
       }
-      
+
       const summary = result.latest_bias_assessment;
       const key = `bias_assessment_${summary.timestamp}`;
       const assessmentData = await chrome.storage.local.get(key);
-      
+
       if (!assessmentData[key]) {
         return null;
       }
-      
+
       // Decrypt the full assessment data
       const decryptedResult = await securityService.decryptData(assessmentData[key], 'userData');
-      
+
       if (decryptedResult.success) {
         return decryptedResult.data as BiasAssessmentResult;
       }
-      
+
       return null;
-      
+
     } catch (error) {
       logger.error('Failed to get latest bias assessment', {}, error as Error);
       return null;
@@ -924,9 +924,9 @@ class BiasAssessmentService {
           return timestampB - timestampA; // Most recent first
         })
         .slice(0, count);
-      
+
       const assessments: BiasAssessmentResult[] = [];
-      
+
       for (const key of assessmentKeys) {
         try {
           const decryptedResult = await securityService.decryptData(items[key], 'userData');
@@ -937,9 +937,9 @@ class BiasAssessmentService {
           logger.warn('Failed to decrypt assessment result', { key });
         }
       }
-      
+
       return assessments;
-      
+
     } catch (error) {
       logger.error('Failed to get previous assessments', {}, error as Error);
       return [];
@@ -952,11 +952,11 @@ class BiasAssessmentService {
   public async generateAssessmentReport(): Promise<string> {
     try {
       const latest = await this.getLatestAssessment();
-      
+
       if (!latest) {
         return 'No bias assessment available. Run assessment first.';
       }
-      
+
       const report = {
         title: 'AI Bias Assessment Report - EU AI Act Compliance',
         assessmentId: latest.assessmentId,
@@ -973,9 +973,9 @@ class BiasAssessmentService {
         compliance: latest.compliance,
         recommendations: latest.mitigationMeasures.recommended
       };
-      
+
       return JSON.stringify(report, null, 2);
-      
+
     } catch (error) {
       logger.error('Failed to generate assessment report', {}, error as Error);
       throw error;
@@ -987,9 +987,9 @@ class BiasAssessmentService {
    */
   public async isAssessmentDue(): Promise<boolean> {
     const latest = await this.getLatestAssessment();
-    
+
     if (!latest) return true;
-    
+
     const daysSince = (Date.now() - latest.timestamp) / (24 * 60 * 60 * 1000);
     return daysSince >= this.ASSESSMENT_INTERVAL_DAYS;
   }

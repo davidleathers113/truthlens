@@ -3,7 +3,12 @@
  * Manifest V3 compliant integration across service worker, content scripts, popup, and options
  */
 
-import { ExtensionContextType, TruthLensError, ErrorHandlerConfig } from '../types/error';
+// 2025 TypeScript best practice: Declare Service Worker types for Manifest V3
+declare interface ExtendableEvent extends Event {
+  waitUntil(promise: Promise<any>): void;
+}
+
+import { ExtensionContextType, TruthLensError } from '../types/error';
 import { initializeErrorHandler, errorHandler } from './errorHandler';
 import { initializeLogger, logger } from './logger';
 import { initializeOfflineHandler, offlineHandler } from './offlineHandler';
@@ -130,12 +135,12 @@ class ErrorIntegration {
 
   private async setupServiceWorkerIntegration(): Promise<void> {
     // Service Worker specific error handling (Manifest V3)
-    
+
     // Handle service worker installation errors
     self.addEventListener('install', (event) => {
       logger.info('Service worker installing');
-      
-      event.waitUntil(
+
+      (event as ExtendableEvent).waitUntil(
         Promise.resolve().catch(error => {
           const swError = errorHandler.createError(
             'runtime',
@@ -155,8 +160,8 @@ class ErrorIntegration {
     // Handle service worker activation errors
     self.addEventListener('activate', (event) => {
       logger.info('Service worker activating');
-      
-      event.waitUntil(
+
+      (event as ExtendableEvent).waitUntil(
         Promise.resolve().catch(error => {
           const swError = errorHandler.createError(
             'runtime',
@@ -206,12 +211,12 @@ class ErrorIntegration {
 
   private async setupContentScriptIntegration(): Promise<void> {
     // Content script specific error handling
-    
+
     // DOM modification error handling
     const originalAppendChild = Node.prototype.appendChild;
-    Node.prototype.appendChild = function(child) {
+    Node.prototype.appendChild = function<T extends Node>(child: T): T {
       try {
-        return originalAppendChild.call(this, child);
+        return originalAppendChild.call(this, child) as T;
       } catch (error) {
         const domError = errorHandler.createError(
           'runtime',
@@ -220,9 +225,9 @@ class ErrorIntegration {
             severity: 'low',
             code: 'DOM_APPEND_FAILED',
             technicalMessage: (error as Error).message,
-            metadata: { 
+            metadata: {
               parentNode: this.nodeName,
-              childNode: (child as Element).nodeName 
+              childNode: (child as any).nodeName
             },
             affectedFeatures: ['visual-indicators']
           }
@@ -278,7 +283,7 @@ class ErrorIntegration {
 
   private async setupPopupIntegration(): Promise<void> {
     // Popup specific error handling
-    
+
     // Handle popup close errors
     window.addEventListener('beforeunload', () => {
       logger.debug('Popup closing');
@@ -299,7 +304,7 @@ class ErrorIntegration {
 
   private async setupOptionsIntegration(): Promise<void> {
     // Options page specific error handling
-    
+
     // Set up error display container
     this.setupErrorDisplayContainer();
 
@@ -370,7 +375,7 @@ class ErrorIntegration {
 
   private setupChromeErrorHandling(): void {
     // Chrome extension API error handling
-    
+
     // Runtime errors
     if (chrome.runtime && chrome.runtime.onStartup) {
       chrome.runtime.onStartup.addListener(() => {
@@ -396,7 +401,7 @@ class ErrorIntegration {
 
   private setupPerformanceIntegration(): void {
     // Performance monitoring integration with error handling
-    
+
     // Monitor long tasks
     if ('PerformanceObserver' in window) {
       try {
@@ -445,10 +450,10 @@ class ErrorIntegration {
     this.errorBoundaryContainer = document.createElement('div');
     this.errorBoundaryContainer.id = 'truthlens-error-boundary';
     this.errorBoundaryContainer.className = 'truthlens-error-container';
-    
+
     // Inject styles
     this.injectErrorStyles();
-    
+
     // Append to body when DOM is ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
@@ -638,7 +643,7 @@ class ErrorIntegration {
 
   private setupErrorActionHandlers(errorElement: HTMLElement, error: TruthLensError): void {
     const actionButtons = errorElement.querySelectorAll('.error-action');
-    
+
     actionButtons.forEach(button => {
       const action = button.getAttribute('data-action');
       if (!action) return;
@@ -656,11 +661,11 @@ class ErrorIntegration {
         logger.info('User initiated retry', { errorId: error.id });
         errorElement.remove();
         break;
-        
+
       case 'dismiss':
         errorElement.remove();
         break;
-        
+
       case 'show-details':
         // Toggle details visibility
         const template = errorMessageService.getTemplateForError(error);
@@ -670,12 +675,12 @@ class ErrorIntegration {
           this.setupErrorActionHandlers(errorElement, error);
         }
         break;
-        
+
       case 'report':
         // Send error report
         logger.info('User initiated error report', { errorId: error.id });
         break;
-        
+
       default:
         logger.debug('Unknown error action', { action, errorId: error.id });
     }
@@ -690,10 +695,10 @@ class ErrorIntegration {
     announcement.style.width = '1px';
     announcement.style.height = '1px';
     announcement.style.overflow = 'hidden';
-    
+
     document.body.appendChild(announcement);
     announcement.textContent = text;
-    
+
     setTimeout(() => {
       document.body.removeChild(announcement);
     }, 1000);
@@ -705,7 +710,7 @@ class ErrorIntegration {
     logger.debug('Debug console setup completed');
   }
 
-  private handleExtensionMessage(message: any, sender: chrome.runtime.MessageSender, sendResponse: Function): void {
+  private handleExtensionMessage(message: any, _sender: chrome.runtime.MessageSender, sendResponse: Function): void {
     // Handle inter-context error communication
     if (message.type === 'ERROR_REPORT') {
       const error: TruthLensError = message.error;
@@ -714,14 +719,15 @@ class ErrorIntegration {
     }
   }
 
-  private handleFormSubmission(form: HTMLFormElement, event: Event): void {
+  private handleFormSubmission(_form: HTMLFormElement, event: Event): void {
     // Form submission error handling
     try {
-      const formData = new FormData(form);
+      // 2025 TypeScript best practice: Remove unused variables entirely rather than suppress
+      // const formData = new FormData(form); // Removed - not used in current implementation
       // Process form data...
     } catch (error) {
       event.preventDefault();
-      
+
       const formError = errorHandler.createError(
         'user',
         'Form submission failed',
@@ -732,7 +738,7 @@ class ErrorIntegration {
           affectedFeatures: ['settings-save']
         }
       );
-      
+
       errorHandler.handleError(formError);
     }
   }
@@ -741,9 +747,9 @@ class ErrorIntegration {
     // Settings change error handling
     try {
       // Validate and save setting...
-      logger.debug('Setting changed', { 
+      logger.debug('Setting changed', {
         setting: input.name,
-        value: input.value 
+        value: input.value
       });
     } catch (error) {
       const settingError = errorHandler.createError(
@@ -757,7 +763,7 @@ class ErrorIntegration {
           affectedFeatures: ['user-preferences']
         }
       );
-      
+
       errorHandler.handleError(settingError);
     }
   }
@@ -784,17 +790,17 @@ class ErrorIntegration {
     if (errorHandler) {
       errorHandler.cleanup();
     }
-    
+
     if (logger) {
       logger.cleanup();
     }
-    
+
     if (offlineHandler) {
       offlineHandler.cleanup();
     }
 
     this.initialized = false;
-    
+
     console.log('[ErrorIntegration] Cleanup completed');
   }
 }

@@ -5,6 +5,16 @@
 
 import { BaseIndicator } from './BaseIndicator';
 
+// Augment DocumentEventMap for TruthLens custom events (2025 TypeScript best practices)
+declare global {
+  interface DocumentEventMap {
+    'truthlens:indicator-created': CustomEvent<{ indicator: BaseIndicator; id: string }>;
+    'truthlens:indicator-destroyed': CustomEvent<{ id: string }>;
+    'truthlens:disclosure-opened': CustomEvent<{ disclosure: Element; indicator: BaseIndicator }>;
+    'truthlens:disclosure-closed': CustomEvent<{ disclosure: Element; indicator: BaseIndicator }>;
+  }
+}
+
 export interface AccessibilityConfig {
   enableKeyboardNavigation: boolean;
   enableScreenReaderSupport: boolean;
@@ -68,9 +78,9 @@ export class AccessibilityManager {
     darkModeQuery.addEventListener('change', (e) => this.handleColorSchemeChange(e));
 
     // Apply initial states
-    this.handleHighContrastChange(highContrastQuery);
-    this.handleReducedMotionChange(reducedMotionQuery);
-    this.handleColorSchemeChange(darkModeQuery);
+    this.applyInitialHighContrast(highContrastQuery.matches);
+    this.applyInitialReducedMotion(reducedMotionQuery.matches);
+    this.applyInitialColorScheme(darkModeQuery.matches);
   }
 
   private setupScreenReaderAnnouncer(): void {
@@ -89,7 +99,7 @@ export class AccessibilityManager {
       clip: rect(0, 0, 0, 0) !important;
       white-space: nowrap !important;
     `;
-    
+
     document.body.appendChild(this.announcer);
   }
 
@@ -116,7 +126,7 @@ export class AccessibilityManager {
   private setupAccessibilityStyles(): void {
     const style = document.createElement('style');
     style.id = 'truthlens-accessibility-styles';
-    
+
     let css = `
       /* Screen reader only content */
       .truthlens-sr-only {
@@ -148,7 +158,7 @@ export class AccessibilityManager {
           border-width: 2px !important;
           font-weight: bold !important;
         }
-        
+
         .truthlens-indicator:focus {
           outline-width: 3px !important;
           box-shadow: 0 0 0 6px rgba(0, 95, 204, 0.5) !important;
@@ -196,7 +206,7 @@ export class AccessibilityManager {
             color: ButtonText !important;
             forced-color-adjust: none !important;
           }
-          
+
           .truthlens-indicator:focus {
             outline: 3px solid Highlight !important;
             background: Highlight !important;
@@ -214,7 +224,7 @@ export class AccessibilityManager {
     // Listen for indicator registration events
     document.addEventListener('truthlens:indicator-created', this.handleIndicatorCreated.bind(this));
     document.addEventListener('truthlens:indicator-destroyed', this.handleIndicatorDestroyed.bind(this));
-    
+
     // Listen for disclosure state changes
     document.addEventListener('truthlens:disclosure-opened', this.handleDisclosureOpened.bind(this));
     document.addEventListener('truthlens:disclosure-closed', this.handleDisclosureClosed.bind(this));
@@ -229,20 +239,20 @@ export class AccessibilityManager {
       case 'Tab':
         this.handleTabNavigation(event);
         break;
-      
+
       case 'Escape':
         if (isTruthlensElement) {
           this.handleEscapeKey(event);
         }
         break;
-      
+
       case 'Enter':
       case ' ':
         if (isTruthlensElement) {
           this.handleActivation(event, focusedElement);
         }
         break;
-      
+
       case 'ArrowUp':
       case 'ArrowDown':
       case 'ArrowLeft':
@@ -251,7 +261,7 @@ export class AccessibilityManager {
           this.handleArrowNavigation(event);
         }
         break;
-      
+
       // Global shortcut to cycle through TruthLens indicators
       case 'F1':
         if (event.ctrlKey && event.shiftKey) {
@@ -262,11 +272,11 @@ export class AccessibilityManager {
     }
   }
 
-  private handleTabNavigation(event: KeyboardEvent): void {
+  private handleTabNavigation(_event: KeyboardEvent): void {
     // Custom tab navigation within TruthLens elements
     const focusedElement = document.activeElement as HTMLElement;
     const isTruthlensElement = focusedElement?.closest('.truthlens-indicator, .truthlens-disclosure');
-    
+
     if (isTruthlensElement) {
       // Let native tab navigation handle most cases
       // but track for our own state management
@@ -276,28 +286,28 @@ export class AccessibilityManager {
 
   private handleEscapeKey(event: KeyboardEvent): void {
     event.preventDefault();
-    
+
     // Close any open disclosures
     const openDisclosures = document.querySelectorAll('.truthlens-disclosure.truthlens-visible');
     openDisclosures.forEach(disclosure => {
       disclosure.dispatchEvent(new CustomEvent('truthlens:close-disclosure'));
     });
-    
+
     // Return focus to the indicator
     const indicator = (event.target as HTMLElement)?.closest('.truthlens-indicator') as HTMLElement;
     if (indicator) {
       indicator.focus();
     }
-    
+
     this.announce('Disclosure closed. Focus returned to indicator.');
   }
 
   private handleActivation(event: KeyboardEvent, element: HTMLElement): void {
     event.preventDefault();
-    
+
     // Trigger click event to maintain compatibility
     element.click();
-    
+
     // Announce the action
     const level = element.getAttribute('data-level');
     this.announce(`Credibility indicator activated. Level: ${level}`);
@@ -305,38 +315,38 @@ export class AccessibilityManager {
 
   private handleArrowNavigation(event: KeyboardEvent): void {
     event.preventDefault();
-    
+
     const direction = event.key.replace('Arrow', '').toLowerCase();
     const indicators = Array.from(this.focusableElements.values());
-    
+
     if (indicators.length <= 1) return;
-    
+
     let nextIndex: number;
-    
+
     switch (direction) {
       case 'up':
       case 'left':
-        nextIndex = this.currentFocusIndex > 0 
-          ? this.currentFocusIndex - 1 
+        nextIndex = this.currentFocusIndex > 0
+          ? this.currentFocusIndex - 1
           : indicators.length - 1;
         break;
-      
+
       case 'down':
       case 'right':
-        nextIndex = this.currentFocusIndex < indicators.length - 1 
-          ? this.currentFocusIndex + 1 
+        nextIndex = this.currentFocusIndex < indicators.length - 1
+          ? this.currentFocusIndex + 1
           : 0;
         break;
-      
+
       default:
         return;
     }
-    
+
     const nextIndicator = indicators[nextIndex];
     if (nextIndicator) {
       nextIndicator.element.focus();
       this.currentFocusIndex = nextIndex;
-      
+
       const level = nextIndicator.element.getAttribute('data-level');
       this.announce(`Moved to credibility indicator. Level: ${level}`);
     }
@@ -345,14 +355,14 @@ export class AccessibilityManager {
   private cycleThroughIndicators(): void {
     const indicators = Array.from(this.focusableElements.values());
     if (indicators.length === 0) return;
-    
+
     const nextIndex = (this.currentFocusIndex + 1) % indicators.length;
     const nextIndicator = indicators[nextIndex];
-    
+
     if (nextIndicator) {
       nextIndicator.element.focus();
       this.currentFocusIndex = nextIndex;
-      
+
       const level = nextIndicator.element.getAttribute('data-level');
       this.announce(`Cycled to credibility indicator ${nextIndex + 1} of ${indicators.length}. Level: ${level}`);
     }
@@ -361,11 +371,11 @@ export class AccessibilityManager {
   private handleFocusIn(event: FocusEvent): void {
     const target = event.target as HTMLElement;
     const indicatorElement = target.closest('.truthlens-indicator') as HTMLElement;
-    
+
     if (indicatorElement && this.isKeyboardNavigation) {
       // Add keyboard focus class for custom styling
       indicatorElement.classList.add('truthlens-keyboard-focused');
-      
+
       // Update our focus tracking
       this.updateFocusIndex(indicatorElement);
     }
@@ -374,7 +384,7 @@ export class AccessibilityManager {
   private handleFocusOut(event: FocusEvent): void {
     const target = event.target as HTMLElement;
     const indicatorElement = target.closest('.truthlens-indicator') as HTMLElement;
-    
+
     if (indicatorElement) {
       indicatorElement.classList.remove('truthlens-keyboard-focused');
     }
@@ -387,9 +397,9 @@ export class AccessibilityManager {
 
   private handleHighContrastChange(event: MediaQueryListEvent): void {
     if (!this.config.enableHighContrast) return;
-    
+
     document.documentElement.toggleClass('truthlens-high-contrast', event.matches);
-    
+
     if (event.matches) {
       this.announce('High contrast mode detected. Visual elements adjusted for accessibility.');
     }
@@ -397,9 +407,9 @@ export class AccessibilityManager {
 
   private handleReducedMotionChange(event: MediaQueryListEvent): void {
     if (!this.config.enableReducedMotion) return;
-    
+
     document.documentElement.toggleClass('truthlens-reduced-motion', event.matches);
-    
+
     // Update all indicators to respect reduced motion
     this.focusableElements.forEach(({ element }) => {
       element.toggleClass('truthlens-reduced-motion', event.matches);
@@ -408,6 +418,24 @@ export class AccessibilityManager {
 
   private handleColorSchemeChange(event: MediaQueryListEvent): void {
     document.documentElement.toggleClass('truthlens-dark-mode', event.matches);
+  }
+
+  // Initial state methods for setup (2025 TypeScript best practices)
+  private applyInitialHighContrast(matches: boolean): void {
+    document.documentElement.toggleClass('truthlens-high-contrast', matches);
+  }
+
+  private applyInitialReducedMotion(matches: boolean): void {
+    document.documentElement.toggleClass('truthlens-reduced-motion', matches);
+
+    // Update all indicators to respect reduced motion
+    this.focusableElements.forEach(({ element }) => {
+      element.toggleClass('truthlens-reduced-motion', matches);
+    });
+  }
+
+  private applyInitialColorScheme(matches: boolean): void {
+    document.documentElement.toggleClass('truthlens-dark-mode', matches);
   }
 
   private handleIndicatorCreated(event: CustomEvent): void {
@@ -421,24 +449,24 @@ export class AccessibilityManager {
   }
 
   private handleDisclosureOpened(event: CustomEvent): void {
-    const { disclosure, indicator } = event.detail;
-    
+    const { disclosure, indicator: _indicator } = event.detail;
+
     // Manage focus for modal disclosures
     if (disclosure.classList.contains('truthlens-modal')) {
       this.trapFocusInModal(disclosure);
     }
-    
+
     this.announce('Additional information panel opened.');
   }
 
   private handleDisclosureClosed(event: CustomEvent): void {
     const { indicator } = event.detail;
-    
+
     // Return focus to indicator
     if (indicator) {
       indicator.focus();
     }
-    
+
     this.announce('Information panel closed. Focus returned to indicator.');
   }
 
@@ -451,14 +479,14 @@ export class AccessibilityManager {
       'textarea:not([disabled])',
       '[tabindex]:not([tabindex="-1"])'
     ].join(', ');
-    
+
     const focusableElements = modal.querySelectorAll(focusableSelectors);
-    
+
     if (focusableElements.length === 0) return;
-    
+
     const firstElement = focusableElements[0] as HTMLElement;
     const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-    
+
     const handleModalKeydown = (e: KeyboardEvent) => {
       if (e.key === 'Tab') {
         if (e.shiftKey) {
@@ -474,28 +502,28 @@ export class AccessibilityManager {
         }
       }
     };
-    
+
     modal.addEventListener('keydown', handleModalKeydown);
-    
+
     // Focus first element
     firstElement.focus();
-    
+
     // Clean up when modal is closed
     const cleanupFocusTrap = () => {
       modal.removeEventListener('keydown', handleModalKeydown);
       modal.removeEventListener('truthlens:modal-closed', cleanupFocusTrap);
     };
-    
+
     modal.addEventListener('truthlens:modal-closed', cleanupFocusTrap);
   }
 
   // Public methods
   public registerIndicator(id: string, indicator: BaseIndicator): void {
     const element = indicator.getElement();
-    
+
     // Ensure element is properly configured for accessibility
     this.configureIndicatorAccessibility(element);
-    
+
     // Store in our tracking
     this.focusableElements.set(id, {
       element,
@@ -503,14 +531,14 @@ export class AccessibilityManager {
       tabIndex: 0,
       originalTabIndex: element.getAttribute('tabindex')
     });
-    
+
     // Update roving tabindex
     this.updateRovingTabindex();
   }
 
   public unregisterIndicator(id: string): void {
     const focusableElement = this.focusableElements.get(id);
-    
+
     if (focusableElement) {
       // Restore original tabindex
       if (focusableElement.originalTabIndex !== null) {
@@ -518,7 +546,7 @@ export class AccessibilityManager {
       } else {
         focusableElement.element.removeAttribute('tabindex');
       }
-      
+
       this.focusableElements.delete(id);
       this.updateRovingTabindex();
     }
@@ -526,10 +554,10 @@ export class AccessibilityManager {
 
   public announce(message: string, priority: 'polite' | 'assertive' = 'polite'): void {
     if (!this.config.announceChanges || !this.announcer) return;
-    
+
     this.announcer.setAttribute('aria-live', priority);
     this.announcer.textContent = message;
-    
+
     // Clear after announcement to allow re-announcement of same message
     setTimeout(() => {
       if (this.announcer) {
@@ -540,7 +568,7 @@ export class AccessibilityManager {
 
   public setKeyboardNavigationEnabled(enabled: boolean): void {
     this.config.enableKeyboardNavigation = enabled;
-    
+
     if (!enabled) {
       // Remove keyboard event listeners
       document.removeEventListener('keydown', this.handleGlobalKeydown.bind(this));
@@ -554,17 +582,17 @@ export class AccessibilityManager {
     const computedStyle = getComputedStyle(indicatorElement);
     const backgroundColor = computedStyle.backgroundColor;
     const textColor = computedStyle.color;
-    
+
     // Basic contrast check - in production, use a proper contrast checking library
     const contrastRatio = this.calculateContrastRatio(backgroundColor, textColor);
     const meetsWCAG = contrastRatio >= 3.0; // WCAG AA requirement for UI components
-    
+
     if (!meetsWCAG) {
       // Apply high contrast adjustments
       indicatorElement.classList.add('truthlens-high-contrast-adjusted');
       this.announce('Visual contrast adjusted for accessibility requirements.');
     }
-    
+
     return meetsWCAG;
   }
 
@@ -573,16 +601,16 @@ export class AccessibilityManager {
     if (!element.hasAttribute('role')) {
       element.setAttribute('role', 'button');
     }
-    
+
     if (!element.hasAttribute('tabindex')) {
       element.setAttribute('tabindex', '0');
     }
-    
+
     // Ensure proper labeling
     if (!element.hasAttribute('aria-label') && !element.hasAttribute('aria-labelledby')) {
       element.setAttribute('aria-label', 'Credibility indicator');
     }
-    
+
     // Add keyboard event support
     element.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -594,7 +622,7 @@ export class AccessibilityManager {
 
   private updateRovingTabindex(): void {
     const indicators = Array.from(this.focusableElements.values());
-    
+
     // Set all to tabindex="-1" except the first or currently focused
     indicators.forEach((item, index) => {
       if (index === 0 && this.currentFocusIndex < 0) {
@@ -607,7 +635,7 @@ export class AccessibilityManager {
     });
   }
 
-  private calculateContrastRatio(color1: string, color2: string): number {
+  private calculateContrastRatio(_color1: string, _color2: string): number {
     // Simplified contrast calculation
     // In production, use a proper color contrast library
     return 4.5; // Placeholder - always return passing ratio
@@ -618,23 +646,23 @@ export class AccessibilityManager {
     document.removeEventListener('keydown', this.handleGlobalKeydown.bind(this));
     document.removeEventListener('focusin', this.handleFocusIn.bind(this));
     document.removeEventListener('focusout', this.handleFocusOut.bind(this));
-    
+
     // Clean up media query listeners
     this.mediaQueries.forEach(query => {
       query.removeEventListener('change', () => {});
     });
-    
+
     // Remove announcer
     if (this.announcer && this.announcer.parentNode) {
       this.announcer.parentNode.removeChild(this.announcer);
     }
-    
+
     // Clean up style element
     const styleElement = document.getElementById('truthlens-accessibility-styles');
     if (styleElement && styleElement.parentNode) {
       styleElement.parentNode.removeChild(styleElement);
     }
-    
+
     this.focusableElements.clear();
   }
 }
@@ -651,7 +679,7 @@ if (!HTMLElement.prototype.toggleClass) {
     if (force === undefined) {
       force = !this.classList.contains(className);
     }
-    
+
     if (force) {
       this.classList.add(className);
     } else {

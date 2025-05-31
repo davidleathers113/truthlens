@@ -93,7 +93,7 @@ class CSPReportingService {
       };
 
       await this.processViolation(violationReport);
-      
+
     } catch (error) {
       logger.error('Failed to handle CSP violation', {}, error as Error);
     }
@@ -232,13 +232,13 @@ class CSPReportingService {
       });
 
       if (response.ok) {
-        logger.info('CSP violations reported successfully', { 
-          count: reports.length 
+        logger.info('CSP violations reported successfully', {
+          count: reports.length
         });
       } else {
-        logger.warn('Failed to send CSP reports', { 
+        logger.warn('Failed to send CSP reports', {
           status: response.status,
-          count: reports.length 
+          count: reports.length
         });
         // Re-queue failed reports (up to max size)
         this.violationQueue.unshift(...reports.slice(0, this.maxQueueSize - this.violationQueue.length));
@@ -255,7 +255,7 @@ class CSPReportingService {
   private async updateViolationMetrics(violation: CSPViolationReport, riskLevel: string): Promise<void> {
     try {
       const currentMetrics = await this.getViolationMetrics();
-      
+
       const updatedMetrics: CSPViolationMetrics = {
         totalViolations: currentMetrics.totalViolations + 1,
         violationsByDirective: {
@@ -281,7 +281,7 @@ class CSPReportingService {
    * Calculate overall risk level based on violations
    */
   private calculateOverallRiskLevel(
-    currentMetrics: CSPViolationMetrics, 
+    currentMetrics: CSPViolationMetrics,
     newViolationRisk: 'low' | 'medium' | 'high' | 'critical'
   ): 'low' | 'medium' | 'high' | 'critical' {
     if (newViolationRisk === 'critical' || currentMetrics.riskLevel === 'critical') {
@@ -360,7 +360,7 @@ class CSPReportingService {
 
       // Keep only the 100 most recent violations
       const keysToDelete = violationKeys.slice(100);
-      
+
       if (keysToDelete.length > 0) {
         await chrome.storage.local.remove(keysToDelete);
         logger.debug('Cleaned up old CSP violations', { deleted: keysToDelete.length });
@@ -381,7 +381,7 @@ class CSPReportingService {
   }> {
     const metrics = await this.getViolationMetrics();
     const recentViolations = await this.getRecentViolations(10);
-    
+
     const recommendations = this.generateRecommendations(metrics, recentViolations);
 
     return {
@@ -395,8 +395,8 @@ class CSPReportingService {
    * Generate security recommendations based on violations
    */
   private generateRecommendations(
-    metrics: CSPViolationMetrics, 
-    violations: CSPViolationReport[]
+    metrics: CSPViolationMetrics,
+    _violations: CSPViolationReport[]
   ): string[] {
     const recommendations: string[] = [];
 
@@ -453,36 +453,36 @@ class CSPReportingService {
       }
 
       const extensionPagesCSP = typeof csp === 'string' ? csp : csp.extension_pages;
-      
+
       if (!extensionPagesCSP) {
         issues.push('No extension_pages CSP defined');
         recommendations.push('Define extension_pages CSP policy');
       }
 
       // Check for required directives
-      if (!extensionPagesCSP.includes('script-src')) {
+      if (extensionPagesCSP && !extensionPagesCSP.includes('script-src')) {
         issues.push('Missing script-src directive');
         recommendations.push('Add script-src directive to CSP');
       }
 
-      if (!extensionPagesCSP.includes('object-src')) {
+      if (extensionPagesCSP && !extensionPagesCSP.includes('object-src')) {
         issues.push('Missing object-src directive');
         recommendations.push('Add object-src directive to CSP');
       }
 
       // Check for secure values
-      if (extensionPagesCSP.includes("'unsafe-inline'")) {
+      if (extensionPagesCSP && extensionPagesCSP.includes("'unsafe-inline'")) {
         issues.push('Unsafe inline scripts allowed');
         recommendations.push('Remove unsafe-inline from script-src');
       }
 
-      if (extensionPagesCSP.includes("'unsafe-eval'")) {
+      if (extensionPagesCSP && extensionPagesCSP.includes("'unsafe-eval'")) {
         issues.push('Unsafe eval allowed');
         recommendations.push('Remove unsafe-eval from script-src if not needed for WASM');
       }
 
       const passed = issues.length === 0;
-      
+
       if (passed) {
         recommendations.push('CSP configuration follows 2025 security best practices');
       }

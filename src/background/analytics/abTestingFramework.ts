@@ -77,7 +77,7 @@ export class ABTestingFramework {
 
     // Deterministic assignment based on user ID and experiment ID
     const variant = this.assignVariant(userId, experiment);
-    
+
     const assignment: ABTestAssignment = {
       experimentId,
       variantId: variant.id,
@@ -90,7 +90,7 @@ export class ABTestingFramework {
       this.userAssignments.set(userId, []);
     }
     this.userAssignments.get(userId)!.push(assignment);
-    
+
     await this.storeUserAssignment(assignment);
 
     await this.analytics.trackEvent('experiment_assignment', {
@@ -119,9 +119,9 @@ export class ABTestingFramework {
    * Track experiment event (conversion, interaction, etc.)
    */
   async trackExperimentEvent(
-    userId: string, 
-    experimentId: string, 
-    eventType: string, 
+    userId: string,
+    experimentId: string,
+    eventType: string,
     value?: number,
     properties?: Record<string, any>
   ): Promise<void> {
@@ -163,7 +163,7 @@ export class ABTestingFramework {
 
     // Calculate statistical significance
     const significance = this.calculateStatisticalSignificance(variantResults);
-    
+
     return {
       experimentId,
       name: experiment.name,
@@ -190,7 +190,7 @@ export class ABTestingFramework {
     experiment.endDate = Date.now();
 
     const results = await this.calculateExperimentResults(experimentId);
-    
+
     await this.analytics.trackEvent('experiment_completed', {
       experimentId,
       duration: (experiment.endDate - experiment.startDate) / 1000 / 60 / 60 / 24, // days
@@ -210,7 +210,7 @@ export class ABTestingFramework {
     if (!hasConsent) return [];
 
     const variants: ABTestVariant[] = [];
-    
+
     for (const experiment of this.activeExperiments.values()) {
       if (experiment.status === 'active') {
         const variant = await this.getUserVariant(userId, experiment.id);
@@ -246,7 +246,7 @@ export class ABTestingFramework {
             trafficAllocation: 0.5
           }
         ],
-        allocation: { 'onboarding_control': 0.5, 'onboarding_streamlined': 0.5 },
+        allocation: { 'onboarding_control': 0.5, 'onboarding_streamlined': 0.5 } as Record<string, number>,
         startDate: Date.now(),
         targetMetric: 'conversion_rate',
         status: 'active' as const
@@ -276,11 +276,11 @@ export class ABTestingFramework {
             trafficAllocation: 0.34
           }
         ],
-        allocation: { 
-          'indicator_top_right': 0.33, 
-          'indicator_top_left': 0.33, 
-          'indicator_inline': 0.34 
-        },
+        allocation: {
+          'indicator_top_right': 0.33,
+          'indicator_top_left': 0.33,
+          'indicator_inline': 0.34
+        } as Record<string, number>,
         startDate: Date.now(),
         targetMetric: 'engagement_rate',
         status: 'active' as const
@@ -303,7 +303,7 @@ export class ABTestingFramework {
             trafficAllocation: 0.5
           }
         ],
-        allocation: { 'premium_benefits': 0.5, 'premium_urgency': 0.5 },
+        allocation: { 'premium_benefits': 0.5, 'premium_urgency': 0.5 } as Record<string, number>,
         startDate: Date.now(),
         targetMetric: 'premium_conversion',
         status: 'active' as const
@@ -326,7 +326,7 @@ export class ABTestingFramework {
     // Deterministic assignment using hash
     const hash = this.hashUserExperiment(userId, experiment.id);
     const normalizedHash = hash / Number.MAX_SAFE_INTEGER;
-    
+
     let cumulativeWeight = 0;
     for (const variant of experiment.variants) {
       cumulativeWeight += variant.trafficAllocation;
@@ -334,7 +334,7 @@ export class ABTestingFramework {
         return variant;
       }
     }
-    
+
     return experiment.variants[0]; // Fallback
   }
 
@@ -355,9 +355,9 @@ export class ABTestingFramework {
   }
 
   private async updateExperimentResults(
-    experimentId: string, 
-    variantId: string, 
-    eventType: string, 
+    experimentId: string,
+    variantId: string,
+    eventType: string,
     value?: number
   ): Promise<void> {
     if (!this.experimentResults.has(experimentId)) {
@@ -366,21 +366,21 @@ export class ABTestingFramework {
 
     const results = this.experimentResults.get(experimentId)!;
     if (!results[variantId]) {
-      results[variantId] = { 
-        participants: 0, 
-        events: 0, 
-        conversions: 0, 
-        totalValue: 0 
+      results[variantId] = {
+        participants: 0,
+        events: 0,
+        conversions: 0,
+        totalValue: 0
       };
     }
 
     const variantResults = results[variantId];
     variantResults.events++;
-    
+
     if (eventType === 'conversion') {
       variantResults.conversions++;
     }
-    
+
     if (value !== undefined) {
       variantResults.totalValue += value;
     }
@@ -398,7 +398,7 @@ export class ABTestingFramework {
     // Simplified statistical test (in production, use proper statistical library)
     const control = variants[0];
     const test = variants[1];
-    
+
     if (control.participants === 0 || test.participants === 0) {
       return { pValue: 1, winner: null, confidenceInterval: null };
     }
@@ -408,13 +408,13 @@ export class ABTestingFramework {
     const p2 = test.conversionRate;
     const n1 = control.participants;
     const n2 = test.participants;
-    
+
     const pooledP = (control.conversions + test.conversions) / (n1 + n2);
     const se = Math.sqrt(pooledP * (1 - pooledP) * (1/n1 + 1/n2));
-    
+
     const zScore = se > 0 ? (p2 - p1) / se : 0;
     const pValue = 2 * (1 - this.normalCDF(Math.abs(zScore))); // Two-tailed test
-    
+
     return {
       pValue,
       winner: pValue < 0.05 ? (p2 > p1 ? test.variantId : control.variantId) : null,
@@ -477,7 +477,7 @@ export class ABTestingFramework {
 
   private async loadActiveExperiments(): Promise<void> {
     const items = await chrome.storage.local.get();
-    
+
     Object.entries(items).forEach(([key, value]) => {
       if (key.startsWith('experiment_')) {
         const experiment = value as ABTestExperiment;
@@ -490,7 +490,7 @@ export class ABTestingFramework {
 
   private async loadUserAssignments(): Promise<void> {
     const items = await chrome.storage.local.get();
-    
+
     Object.entries(items).forEach(([key, value]) => {
       if (key.startsWith('assignment_')) {
         const assignment = value as ABTestAssignment;
@@ -517,12 +517,12 @@ export class ABTestingFramework {
     setInterval(async () => {
       const cutoffTime = Date.now() - (90 * 24 * 60 * 60 * 1000);
       const items = await chrome.storage.local.get();
-      
+
       const keysToRemove = Object.keys(items).filter(key => {
         if (key.startsWith('experiment_')) {
           const experiment = items[key] as ABTestExperiment;
-          return experiment.status === 'completed' && 
-                 experiment.endDate && 
+          return experiment.status === 'completed' &&
+                 experiment.endDate &&
                  experiment.endDate < cutoffTime;
         }
         return false;

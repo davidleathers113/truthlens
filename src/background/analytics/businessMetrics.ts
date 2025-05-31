@@ -11,7 +11,7 @@ export class BusinessMetricsTracker {
   private sessionStartTime: number;
   private dailyActiveUsers: Set<string> = new Set();
   private monthlyActiveUsers: Set<string> = new Set();
-  
+
   // Business targets from requirements
   private readonly TARGETS = {
     DAU_MAU_RATIO: 0.40, // 40% target
@@ -39,7 +39,7 @@ export class BusinessMetricsTracker {
    */
   async trackActiveUser(userId: string): Promise<void> {
     const anonymizedId = this.anonymizeUserId(userId);
-    
+
     this.dailyActiveUsers.add(anonymizedId);
     this.monthlyActiveUsers.add(anonymizedId);
 
@@ -60,7 +60,7 @@ export class BusinessMetricsTracker {
   async trackConversion(userId: string, conversionType: 'trial' | 'premium' | 'enterprise'): Promise<void> {
     const userCohort = await this.getUserCohort(userId);
     const isGenZ = await this.isGenZUser();
-    
+
     await this.analytics.trackBusinessEvent('conversion', {
       conversionType,
       cohort: userCohort,
@@ -78,7 +78,7 @@ export class BusinessMetricsTracker {
   async trackRetention(userId: string, installDate: number): Promise<void> {
     const daysSinceInstall = Math.floor((Date.now() - installDate) / (24 * 60 * 60 * 1000));
     const retentionBucket = this.getRetentionBucket(daysSinceInstall);
-    
+
     await this.analytics.trackBusinessEvent('retention', {
       daysSinceInstall,
       retentionBucket,
@@ -92,7 +92,7 @@ export class BusinessMetricsTracker {
    */
   async trackGenZEngagement(feature: string, action: 'viewed' | 'used' | 'abandoned'): Promise<void> {
     const isGenZ = await this.isGenZUser();
-    
+
     if (isGenZ) {
       await this.analytics.trackEvent('genz_engagement', {
         feature,
@@ -117,7 +117,7 @@ export class BusinessMetricsTracker {
   async trackSessionEnd(): Promise<void> {
     const sessionDuration = Date.now() - this.sessionStartTime;
     const isGenZ = await this.isGenZUser();
-    
+
     await this.analytics.trackEngagement({
       sessionDuration,
       timestamp: Date.now()
@@ -125,7 +125,7 @@ export class BusinessMetricsTracker {
 
     // Business metric: track if session meets engagement threshold
     const isEngagedSession = sessionDuration >= this.TARGETS.SESSION_DURATION;
-    
+
     await this.analytics.trackBusinessEvent('retention', {
       sessionDuration,
       isEngagedSession,
@@ -172,8 +172,8 @@ export class BusinessMetricsTracker {
    */
   private async getGenZSpecificMetrics(): Promise<any> {
     const analyticsData = await this.analytics.getLocalAnalytics();
-    
-    const genZEvents = analyticsData.filter(data => 
+
+    const genZEvents = analyticsData.filter(data =>
       data.eventCounts?.genz_engagement > 0
     );
 
@@ -215,7 +215,7 @@ export class BusinessMetricsTracker {
    */
   private getGenZPreferredFeatures(events: any[]): string[] {
     const featureUsage: Record<string, number> = {};
-    
+
     events.forEach(event => {
       // In a real implementation, we'd track specific features
       // This is a simplified example
@@ -253,7 +253,7 @@ export class BusinessMetricsTracker {
    */
   private async getConversionData(): Promise<any> {
     const subscription = await this.storage.getSubscription();
-    
+
     // In a real implementation, track conversion funnel
     return {
       totalUsers: this.monthlyActiveUsers.size,
@@ -290,8 +290,8 @@ export class BusinessMetricsTracker {
    */
   private async getEngagementData(): Promise<any> {
     const analyticsData = await this.analytics.getLocalAnalytics();
-    
-    const sessionData = analyticsData.filter(data => 
+
+    const sessionData = analyticsData.filter(data =>
       data.sessionData?.duration
     );
 
@@ -302,7 +302,7 @@ export class BusinessMetricsTracker {
       };
     }
 
-    const avgDuration = sessionData.reduce((sum, data) => 
+    const avgDuration = sessionData.reduce((sum, data) =>
       sum + (data.sessionData?.duration || 0), 0
     ) / sessionData.length;
 
@@ -317,7 +317,7 @@ export class BusinessMetricsTracker {
    */
   private async getFeatureUsageRates(): Promise<Record<string, number>> {
     const settings = await this.storage.getSettings();
-    
+
     // Calculate usage rates based on settings and activity
     return {
       credibilityChecking: settings.enabled ? 0.9 : 0,
@@ -368,7 +368,7 @@ export class BusinessMetricsTracker {
     // Load existing DAU/MAU data
     const items = await chrome.storage.local.get();
     const today = new Date().toDateString();
-    
+
     Object.entries(items).forEach(([key, value]) => {
       if (key.startsWith('dau_') && key.includes(today)) {
         const userData = value as any;
@@ -410,7 +410,7 @@ export class BusinessMetricsTracker {
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
-    
+
     setTimeout(() => {
       this.dailyActiveUsers.clear();
       setInterval(() => {
@@ -433,7 +433,7 @@ export class BusinessMetricsTracker {
     return Math.abs(hash).toString(36);
   }
 
-  private async getUserCohort(userId: string): Promise<string> {
+  private async getUserCohort(_userId: string): Promise<string> {
     const subscription = await this.storage.getSubscription();
     if (subscription.tier === 'premium') return 'premium';
     if (subscription.tier === 'enterprise') return 'enterprise';
@@ -443,7 +443,7 @@ export class BusinessMetricsTracker {
   private async isGenZUser(_userId?: string): Promise<boolean> {
     const settings = await this.storage.getSettings();
     // Use behavior patterns to identify Gen Z users (privacy-safe)
-    return settings.theme === 'dark' && 
+    return settings.theme === 'dark' &&
            settings.notifications.enabled &&
            settings.autoAnalyze;
   }

@@ -3,18 +3,29 @@
  * 2025 Best Practices Implementation for TruthLens Chrome Extension
  */
 
+// Import implementations for use in this file
+import { PerformanceMonitor } from './monitor';
+import { PerformanceDashboard } from './dashboard';
+import { ServiceWorkerIntegration, ContentScriptIntegration } from './integrations';
+import type {
+  ExtensionContext,
+  MetricType,
+  PerformanceMetrics,
+  OptimizationRecommendation,
+  MonitoringConfig
+} from './types';
+
 // Core exports
 export { PerformanceMonitor } from './monitor';
+export { PerformanceDashboard } from './dashboard';
+export { ServiceWorkerIntegration, ContentScriptIntegration } from './integrations';
 export { PerformanceStorage } from './storage';
 export { AlertManager } from './alerts';
 export { MemoryAnalyzer } from './memory-analyzer';
 export { WebVitalsMonitor } from './web-vitals';
-export { PerformanceDashboard } from './dashboard';
 
 // Integration exports
-export { 
-  ServiceWorkerIntegration,
-  ContentScriptIntegration,
+export {
   createPerformanceIntegration,
   PerformanceOptimizer
 } from './integrations';
@@ -118,9 +129,9 @@ export class PerformanceMonitoringSystem {
 
   private async initializeDashboard(): Promise<void> {
     const { PerformanceDashboard } = await import('./dashboard');
-    
+
     this.dashboard = new PerformanceDashboard(this.monitor['config'].dashboard);
-    
+
     // Only initialize DOM elements in browser contexts
     if (typeof document !== 'undefined') {
       this.dashboard.initialize();
@@ -129,9 +140,9 @@ export class PerformanceMonitoringSystem {
 
   private async initializeIntegration(): Promise<void> {
     const { createPerformanceIntegration } = await import('./integrations');
-    
+
     this.integration = createPerformanceIntegration(this.monitor, this.context);
-    
+
     if (this.integration instanceof (await import('./integrations')).ServiceWorkerIntegration) {
       (this.integration as any).setActive(true);
     }
@@ -139,10 +150,10 @@ export class PerformanceMonitoringSystem {
 
   private startOptimizations(): void {
     const { PerformanceOptimizer } = require('./integrations');
-    
+
     // Start memory cleanup
     PerformanceOptimizer.startMemoryCleanup();
-    
+
     // Preload critical resources for content scripts
     if (this.context.context === 'content') {
       PerformanceOptimizer.preloadCriticalResources([
@@ -198,7 +209,7 @@ export class PerformanceMonitoringSystem {
     type: MetricType = 'responseTime'
   ): Promise<{ result: T; duration: number }> {
     this.startMeasurement(id, type);
-    
+
     try {
       const result = await operation();
       const duration = this.endMeasurement(id, type);
@@ -222,7 +233,7 @@ export class PerformanceMonitoringSystem {
     type: MetricType = 'responseTime'
   ): { result: T; duration: number } {
     this.startMeasurement(id, type);
-    
+
     try {
       const result = operation();
       const duration = this.endMeasurement(id, type);
@@ -331,7 +342,7 @@ export class PerformanceMonitoringSystem {
     };
   } {
     const metrics = this.getMetrics();
-    
+
     return {
       initialized: this.isInitialized,
       context: this.context,
@@ -352,9 +363,9 @@ export class PerformanceMonitoringSystem {
     this.monitor.cleanup();
     this.dashboard?.cleanup();
     this.integration?.cleanup();
-    
+
     this.isInitialized = false;
-    
+
     console.log('[PerformanceMonitoringSystem] Cleaned up');
   }
 }
@@ -399,12 +410,12 @@ export function measurePerformance(metricType: MetricType = 'responseTime') {
     descriptor.value = function (...args: any[]) {
       const instance = getPerformanceMonitor();
       const measurementId = `${target.constructor.name}.${propertyKey}`;
-      
+
       instance.startMeasurement(measurementId, metricType);
-      
+
       try {
         const result = originalMethod.apply(this, args);
-        
+
         if (result && typeof result.then === 'function') {
           return result.finally(() => {
             instance.endMeasurement(measurementId, metricType);

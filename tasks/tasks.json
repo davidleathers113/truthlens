@@ -90,7 +90,7 @@
         3,
         4
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": [
         {
           "id": 1,
@@ -98,7 +98,7 @@
           "description": "Create the foundation for the generic extractor by implementing DOM parsing functionality and setting up the basic structure of the extractor class.",
           "dependencies": [],
           "details": "Create the genericExtractor.ts file with a class structure that includes methods for parsing HTML into a DOM structure. Implement utility functions for traversing and manipulating the DOM. Set up the basic interface that defines the extractor's input and output types. Use a robust HTML parser like 'jsdom' or 'cheerio' for DOM manipulation.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with simple HTML documents to verify correct parsing and DOM representation. Ensure the extractor can handle malformed HTML gracefully."
         },
         {
@@ -107,7 +107,7 @@
           "description": "Adapt and implement a modified Readability algorithm to identify and extract the main content from web pages.",
           "dependencies": [],
           "details": "Implement content scoring based on element characteristics (text length, link density, etc.). Create methods to identify and extract the main article content while filtering out navigation, ads, and other non-content elements. Adapt the Firefox Reader View algorithm, focusing on paragraph density and content-to-markup ratio. Include fallback mechanisms for when the primary algorithm fails to identify content.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with various article pages from different websites to verify content extraction accuracy. Compare results with known good extractions (e.g., from browser reader views)."
         },
         {
@@ -116,7 +116,7 @@
           "description": "Implement functionality to clean and normalize extracted content by removing irrelevant elements and standardizing text formatting.",
           "dependencies": [],
           "details": "Create methods to strip advertisements, promotional content, navigation elements, and sidebars from the extracted content. Implement text normalization to handle special characters, HTML entities, and inconsistent formatting. Add functionality to merge adjacent text nodes and normalize whitespace. Ensure proper handling of different text encodings.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with content containing various irrelevant elements to verify proper cleaning. Verify text normalization with content containing special characters and unusual formatting."
         },
         {
@@ -125,7 +125,7 @@
           "description": "Create functionality to extract key metadata including title, author, and publication date from web pages.",
           "dependencies": [],
           "details": "Implement methods to extract metadata from standard HTML meta tags, Open Graph tags, JSON-LD, and other common metadata formats. Create fallback mechanisms for extracting metadata from the page content when structured metadata is unavailable. Develop heuristics for identifying publication dates in various formats. Implement author extraction from bylines and author-specific markup.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with pages containing various metadata formats to verify extraction accuracy. Include edge cases like missing metadata and non-standard implementations."
         },
         {
@@ -134,7 +134,7 @@
           "description": "Implement functionality to analyze outbound links and citations within the content for credibility signals.",
           "dependencies": [],
           "details": "Create methods to identify and extract all links within the main content. Implement classification of links (e.g., citations, related content, advertisements). Develop analysis of link density and distribution within the content. Add functionality to extract citation information and assess credibility based on link targets.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with content containing various link types to verify correct classification. Verify citation extraction with academic and news articles."
         },
         {
@@ -143,7 +143,7 @@
           "description": "Create functionality to identify and extract images and other media content relevant to the main article.",
           "dependencies": [],
           "details": "Implement methods to identify images within the main content area. Create heuristics for determining which images are relevant to the content (vs. decorative or promotional). Add support for extracting image captions and alt text. Implement detection of other media types (videos, audio, etc.) within the content. Ensure proper handling of lazy-loaded images and responsive image sets.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with content containing various image types and layouts to verify correct extraction. Verify handling of different media embedding techniques."
         },
         {
@@ -152,7 +152,7 @@
           "description": "Develop functionality to detect and gracefully handle paywalled content.",
           "dependencies": [],
           "details": "Create methods to detect common paywall implementations based on content structure, keywords, and user interaction requirements. Implement strategies for extracting available content from paywalled pages. Add functionality to identify and extract preview content when full content is not accessible. Develop clear signaling in the extraction output when content is limited due to paywalls.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Test with known paywalled sites to verify detection accuracy. Verify extraction of available content from partially paywalled pages."
         },
         {
@@ -163,7 +163,7 @@
             7
           ],
           "details": "Profile and optimize the extraction process to meet the 500ms maximum processing time requirement. Implement timeout mechanisms for long-running operations. Add comprehensive error handling throughout the extraction pipeline. Create fallback extraction strategies for when primary methods fail. Implement logging for extraction failures and performance metrics. Add configuration options to trade off between extraction quality and performance.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Benchmark performance with various page sizes and complexities. Test error handling with malformed HTML, timeouts, and other failure scenarios. Verify the extractor meets the 500ms processing time requirement for typical pages."
         }
       ]

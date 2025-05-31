@@ -5,6 +5,12 @@
 
 import { WebVitalsEntry } from './types';
 
+// 2025 TypeScript best practice: Extend PerformanceEventTiming for INP measurement
+interface ExtendedPerformanceEventTiming extends PerformanceEventTiming {
+  interactionId?: number;
+  durationThreshold?: number;
+}
+
 type WebVitalCallback = (vital: WebVitalsEntry) => void;
 
 interface WebVitalConfig {
@@ -18,7 +24,7 @@ export class WebVitalsMonitor {
   private observers: Map<string, PerformanceObserver> = new Map();
   private measurements: Map<string, WebVitalsEntry> = new Map();
   private config: WebVitalConfig;
-  private isSupported: boolean;
+  private isBrowserSupported: boolean;
 
   constructor(config: Partial<WebVitalConfig> = {}) {
     this.config = {
@@ -28,9 +34,9 @@ export class WebVitalsMonitor {
       ...config
     };
 
-    this.isSupported = this.checkSupport();
-    
-    if (this.isSupported) {
+    this.isBrowserSupported = this.checkSupport();
+
+    if (this.isBrowserSupported) {
       this.initializeObservers();
     } else {
       console.warn('[WebVitalsMonitor] PerformanceObserver not supported');
@@ -48,10 +54,10 @@ export class WebVitalsMonitor {
   private initializeObservers(): void {
     // Initialize LCP (Largest Contentful Paint) observer
     this.initializeLCP();
-    
+
     // Initialize INP (Interaction to Next Paint) observer - replaced FID in 2024
     this.initializeINP();
-    
+
     // Initialize CLS (Cumulative Layout Shift) observer
     this.initializeCLS();
   }
@@ -61,7 +67,7 @@ export class WebVitalsMonitor {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1] as PerformanceEntry;
-        
+
         if (lastEntry) {
           this.reportWebVital('LCP', lastEntry.startTime, {
             entries: [lastEntry],
@@ -70,16 +76,16 @@ export class WebVitalsMonitor {
         }
       });
 
-      observer.observe({ 
-        type: 'largest-contentful-paint', 
-        buffered: this.config.buffered 
+      observer.observe({
+        type: 'largest-contentful-paint',
+        buffered: this.config.buffered
       });
-      
+
       this.observers.set('lcp', observer);
-      
+
       // LCP can change until user input or page hidden
       this.setupLCPFinalization();
-      
+
     } catch (error) {
       console.warn('[WebVitalsMonitor] LCP observer initialization failed:', error);
     }
@@ -110,25 +116,25 @@ export class WebVitalsMonitor {
     // INP (Interaction to Next Paint) replaced FID in March 2024
     try {
       let longestInteraction = 0;
-      let interactions: PerformanceEventTiming[] = [];
+      const interactions: ExtendedPerformanceEventTiming[] = [];
 
       const observer = new PerformanceObserver((list) => {
-        const entries = list.getEntries() as PerformanceEventTiming[];
-        
+        const entries = list.getEntries() as ExtendedPerformanceEventTiming[];
+
         entries.forEach(entry => {
           // Only consider actual interactions (not just any event)
           if (entry.interactionId) {
             interactions.push(entry);
-            
+
             // Group interactions by interactionId and calculate max duration
             const interactionGroups = this.groupInteractionsByID(interactions);
             const maxDuration = Math.max(...Object.values(interactionGroups));
-            
+
             if (maxDuration > longestInteraction) {
               longestInteraction = maxDuration;
-              
+
               this.reportWebVital('INP', maxDuration, {
-                entries: interactions.filter(e => 
+                entries: interactions.filter(e =>
                   this.getInteractionDuration(e, interactionGroups[e.interactionId || 0]) === maxDuration
                 ),
                 navigationType: this.getNavigationType()
@@ -138,14 +144,14 @@ export class WebVitalsMonitor {
         });
       });
 
-      observer.observe({ 
-        type: 'event', 
-        buffered: this.config.buffered,
-        durationThreshold: 16 // Only capture interactions longer than 16ms
+      observer.observe({
+        type: 'event',
+        buffered: this.config.buffered
+        // Note: durationThreshold removed as it's not part of PerformanceObserverInit in 2025
       });
-      
+
       this.observers.set('inp', observer);
-      
+
       // Finalize INP when page becomes hidden
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden' && longestInteraction > 0) {
@@ -155,15 +161,15 @@ export class WebVitalsMonitor {
           }
         }
       }, { once: true });
-      
+
     } catch (error) {
       console.warn('[WebVitalsMonitor] INP observer initialization failed:', error);
     }
   }
 
-  private groupInteractionsByID(interactions: PerformanceEventTiming[]): Record<number, number> {
-    const groups: Record<number, PerformanceEventTiming[]> = {};
-    
+  private groupInteractionsByID(interactions: ExtendedPerformanceEventTiming[]): Record<number, number> {
+    const groups: Record<number, ExtendedPerformanceEventTiming[]> = {};
+
     interactions.forEach(interaction => {
       const id = interaction.interactionId || 0;
       if (!groups[id]) groups[id] = [];
@@ -179,7 +185,8 @@ export class WebVitalsMonitor {
     return durations;
   }
 
-  private getInteractionDuration(entry: PerformanceEventTiming, groupDuration: number): number {
+  private getInteractionDuration(entry: PerformanceEventTiming, _groupDuration: number): number {
+    void _groupDuration; // 2025 TypeScript best practice: Suppress unused parameter warning
     // For INP, we need the full interaction duration including processing time
     return entry.processingEnd - entry.startTime;
   }
@@ -187,19 +194,19 @@ export class WebVitalsMonitor {
   private initializeCLS(): void {
     try {
       let clsValue = 0;
-      let clsEntries: PerformanceEntry[] = [];
+      const clsEntries: PerformanceEntry[] = [];
 
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        
+
         entries.forEach(entry => {
           const layoutShiftEntry = entry as any; // LayoutShift interface
-          
+
           // Only count layout shifts not caused by user input
           if (!layoutShiftEntry.hadRecentInput) {
             clsValue += layoutShiftEntry.value;
             clsEntries.push(entry);
-            
+
             this.reportWebVital('CLS', clsValue, {
               entries: clsEntries.slice(), // Copy array
               navigationType: this.getNavigationType()
@@ -208,13 +215,13 @@ export class WebVitalsMonitor {
         });
       });
 
-      observer.observe({ 
-        type: 'layout-shift', 
-        buffered: this.config.buffered 
+      observer.observe({
+        type: 'layout-shift',
+        buffered: this.config.buffered
       });
-      
+
       this.observers.set('cls', observer);
-      
+
       // Finalize CLS when page becomes hidden
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
@@ -224,7 +231,7 @@ export class WebVitalsMonitor {
           }
         }
       }, { once: true });
-      
+
     } catch (error) {
       console.warn('[WebVitalsMonitor] CLS observer initialization failed:', error);
     }
@@ -272,7 +279,7 @@ export class WebVitalsMonitor {
     };
 
     const threshold = thresholds[name];
-    
+
     if (value <= threshold.good) return 'good';
     if (value <= threshold.poor) return 'needs-improvement';
     return 'poor';
@@ -288,11 +295,12 @@ export class WebVitalsMonitor {
   }
 
   private getNavigationType(): string {
-    if ('navigation' in performance) {
+    // 2025 TypeScript best practice: Use proper type guards for performance API
+    if ('navigation' in performance && (performance as any).navigation) {
       const nav = (performance as any).navigation;
       return nav.type || 'navigate';
     }
-    
+
     // Fallback for older browsers
     if (performance.getEntriesByType) {
       const navEntries = performance.getEntriesByType('navigation');
@@ -300,7 +308,7 @@ export class WebVitalsMonitor {
         return (navEntries[0] as any).type || 'navigate';
       }
     }
-    
+
     return 'navigate';
   }
 
@@ -324,7 +332,7 @@ export class WebVitalsMonitor {
 
   public onVital(callback: WebVitalCallback): () => void {
     this.callbacks.add(callback);
-    
+
     // Return unsubscribe function
     return () => {
       this.callbacks.delete(callback);
@@ -337,7 +345,8 @@ export class WebVitalsMonitor {
 
   public getVitalScore(): number {
     const vitals = this.getCurrentVitals();
-    const scores = Object.values(vitals).map(vital => {
+    // 2025 TypeScript best practice: Explicit type annotation for reduce operations
+    const scores: number[] = Object.values(vitals).map(vital => {
       switch (vital.rating) {
         case 'good': return 100;
         case 'needs-improvement': return 60;
@@ -346,11 +355,11 @@ export class WebVitalsMonitor {
       }
     });
 
-    return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+    return scores.length > 0 ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length : 0;
   }
 
   public isSupported(): boolean {
-    return this.isSupported;
+    return this.isBrowserSupported;
   }
 
   public updateConfig(newConfig: Partial<WebVitalConfig>): void {
@@ -361,7 +370,7 @@ export class WebVitalsMonitor {
     // Disconnect all observers
     this.observers.forEach(observer => observer.disconnect());
     this.observers.clear();
-    
+
     // Clear callbacks and measurements
     this.callbacks.clear();
     this.measurements.clear();

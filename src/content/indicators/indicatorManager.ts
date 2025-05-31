@@ -19,7 +19,7 @@ export class IndicatorManager {
       this.positionIndicator(indicator, targetElement);
       this.indicators.set(content.url, indicator);
       document.body.appendChild(indicator);
-      
+
       // Animate in
       requestAnimationFrame(() => {
         indicator.classList.add('truthlens-visible');
@@ -71,7 +71,7 @@ export class IndicatorManager {
     `;
 
     indicator.style.setProperty('--indicator-color', color);
-    
+
     // Add click handler for more details
     indicator.addEventListener('click', (e) => {
       e.preventDefault();
@@ -84,15 +84,15 @@ export class IndicatorManager {
 
   private updateIndicatorContent(indicator: HTMLElement, credibility: CredibilityScore): void {
     indicator.setAttribute('data-level', credibility.level);
-    
+
     const emoji = this.getEmoji(credibility.level);
     const color = this.getColor(credibility.level);
     const score = indicator.querySelector('.truthlens-score');
     const emojiEl = indicator.querySelector('.truthlens-emoji');
-    
+
     if (score) score.textContent = `${credibility.score}/100`;
     if (emojiEl) emojiEl.textContent = emoji;
-    
+
     indicator.style.setProperty('--indicator-color', color);
   }
 
@@ -106,13 +106,15 @@ export class IndicatorManager {
         instagram: 'article',
         youtube: '#above-the-fold',
         tiktok: '[data-e2e="video-card"]',
+        reddit: '[data-testid="post-content"]',
+        linkedin: '.feed-shared-update-v2',
       };
-      
+
       if (content.platform && selectors[content.platform]) {
         return document.querySelector(selectors[content.platform]);
       }
     }
-    
+
     // Default to main content areas
     return document.querySelector('main, article, [role="main"]');
   }
@@ -121,7 +123,7 @@ export class IndicatorManager {
     const rect = target.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-    
+
     // Position in top-right corner of target element
     indicator.style.position = 'absolute';
     indicator.style.top = `${rect.top + scrollTop + 10}px`;
@@ -161,7 +163,7 @@ export class IndicatorManager {
 
   private injectStyles(): void {
     if (this.styleInjected) return;
-    
+
     const style = document.createElement('style');
     style.textContent = `
       .truthlens-indicator {
@@ -178,35 +180,35 @@ export class IndicatorManager {
         transform: translateY(-10px) scale(0.9);
         border: 2px solid var(--indicator-color);
       }
-      
+
       .truthlens-indicator.truthlens-visible {
         opacity: 1;
         transform: translateY(0) scale(1);
       }
-      
+
       .truthlens-indicator.truthlens-minimized {
         padding: 6px 8px;
       }
-      
+
       .truthlens-indicator.truthlens-minimized .truthlens-score {
         display: none;
       }
-      
+
       .truthlens-content {
         display: flex;
         align-items: center;
         gap: 8px;
       }
-      
+
       .truthlens-emoji {
         font-size: 18px;
       }
-      
+
       .truthlens-score {
         font-weight: 600;
         color: var(--indicator-color);
       }
-      
+
       .truthlens-tooltip {
         display: none;
         position: absolute;
@@ -220,29 +222,29 @@ export class IndicatorManager {
         min-width: 250px;
         z-index: 10000;
       }
-      
+
       .truthlens-indicator.truthlens-expanded .truthlens-tooltip {
         display: block;
       }
-      
+
       .truthlens-level {
         font-weight: 600;
         color: var(--indicator-color);
         margin-bottom: 4px;
       }
-      
+
       .truthlens-reasoning {
         color: #4b5563;
         font-size: 13px;
         margin-bottom: 4px;
       }
-      
+
       .truthlens-confidence {
         color: #6b7280;
         font-size: 12px;
       }
     `;
-    
+
     document.head.appendChild(style);
     this.styleInjected = true;
   }

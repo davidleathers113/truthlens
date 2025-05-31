@@ -5,7 +5,7 @@ import { ExtensionMessage } from '@shared/types';
  * Handles messaging between content script and background script
  */
 export class MessageHandler {
-  private messageListener: ((message: any) => void) | null = null;
+  private messageListener: ((message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => boolean | void) | null = null;
   private isListening = false;
 
   constructor(private handleMessage: (message: any) => void) {
@@ -96,9 +96,9 @@ export class MessageHandler {
       // For synchronous responses, return true
       // For async responses, the handler should call sendResponse
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error handling message:', error);
-      sendResponse({ error: error.message });
+      sendResponse({ error: error instanceof Error ? error.message : 'Unknown error occurred' });
       return true;
     }
   }

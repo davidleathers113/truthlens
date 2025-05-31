@@ -101,7 +101,7 @@ export class MemoryAnalyzer {
 
     if (memoryGrowth > this.config.memoryGrowthThreshold) {
       console.warn(`[MemoryAnalyzer] Potential memory leak detected: ${(memoryGrowth / 1000000).toFixed(2)}MB growth`);
-      
+
       // Trigger garbage collection hint if available
       this.triggerGarbageCollection();
     }
@@ -112,7 +112,7 @@ export class MemoryAnalyzer {
 
     const first = snapshots[0];
     const last = snapshots[snapshots.length - 1];
-    
+
     return last.heapUsed - first.heapUsed;
   }
 
@@ -133,7 +133,7 @@ export class MemoryAnalyzer {
 
   private cleanupWeakReferences(): void {
     const toDelete: WeakRef<any>[] = [];
-    
+
     this.weakRefs.forEach(ref => {
       if (ref.deref() === undefined) {
         toDelete.push(ref);
@@ -212,7 +212,7 @@ export class MemoryAnalyzer {
         // This is a simplified check - in practice, you'd need to track
         // open databases and transactions more carefully
         const databases = await indexedDB.databases();
-        
+
         if (databases.length > 5) { // Arbitrary threshold
           leaks.push({
             type: 'indexeddb',
@@ -275,7 +275,7 @@ export class MemoryAnalyzer {
     } catch (error) {
       // Fallback method not available
     }
-    
+
     return 0; // Cannot reliably count without custom tracking
   }
 
@@ -284,7 +284,7 @@ export class MemoryAnalyzer {
 
     // Track timer counts (would need custom implementation to track all timers)
     const estimatedTimers = this.estimateActiveTimers();
-    
+
     if (estimatedTimers > 20) {
       leaks.push({
         type: 'timer',
@@ -307,7 +307,8 @@ export class MemoryAnalyzer {
 
     try {
       // Count detached DOM nodes (simplified check)
-      const elements = document.querySelectorAll('*');
+      const _elements = document.querySelectorAll('*');
+      void _elements; // 2025 TypeScript best practice: Suppress unused variable warning
       const truthlensElements = document.querySelectorAll('[class*="truthlens"]');
 
       if (truthlensElements.length > 50) {

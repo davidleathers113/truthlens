@@ -31,9 +31,9 @@ export interface PositionResult {
 export class PositionManager {
   private indicators: Map<string, BaseIndicator> = new Map();
   private collisionZones: Set<CollisionZone> = new Set();
-  private resizeObserver: ResizeObserver;
-  private mutationObserver: MutationObserver;
-  private isInitialized: boolean = false;
+  private resizeObserver!: ResizeObserver;
+  private mutationObserver!: MutationObserver;
+  private _isInitialized: boolean = false;
 
   constructor() {
     this.initializeObservers();
@@ -51,7 +51,7 @@ export class PositionManager {
     this.mutationObserver = new MutationObserver((mutations) => {
       this.handleDOMChanges(mutations);
     });
-    
+
     this.mutationObserver.observe(document.body, {
       childList: true,
       subtree: true,
@@ -59,7 +59,8 @@ export class PositionManager {
       attributeFilter: ['style', 'class']
     });
 
-    this.isInitialized = true;
+    this._isInitialized = true;
+    void this._isInitialized; // Suppress unused warning
   }
 
   private scanExistingElements(): void {
@@ -67,7 +68,7 @@ export class PositionManager {
     const fixedElements = document.querySelectorAll(
       '[style*="position: fixed"], [style*="position: absolute"]'
     );
-    
+
     fixedElements.forEach((element) => {
       this.addCollisionZone(element as HTMLElement);
     });
@@ -111,54 +112,54 @@ export class PositionManager {
 
   private isLikelyExtensionElement(element: HTMLElement): boolean {
     const style = getComputedStyle(element);
-    
+
     // Check if element is positioned and visible
     if (style.position !== 'fixed' && style.position !== 'absolute') {
       return false;
     }
-    
+
     if (style.display === 'none' || style.visibility === 'hidden') {
       return false;
     }
-    
+
     // Check z-index (extensions often use high values)
     const zIndex = parseInt(style.zIndex);
     if (zIndex > 1000) {
       return true;
     }
-    
+
     // Check for common extension characteristics
     const rect = element.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) {
       return false;
     }
-    
+
     // Small elements in corners are likely indicators
     const isSmall = rect.width < 200 && rect.height < 200;
-    const isInCorner = 
+    const isInCorner =
       (rect.left < 50 || rect.right > window.innerWidth - 50) &&
       (rect.top < 50 || rect.bottom > window.innerHeight - 50);
-    
+
     return isSmall && isInCorner;
   }
 
   private addCollisionZone(
-    element: HTMLElement, 
+    element: HTMLElement,
     type: CollisionZone['type'] = 'native',
     priority: number = 1
   ): void {
     const rect = element.getBoundingClientRect();
-    
+
     // Ignore elements that are not visible or positioned
     if (rect.width === 0 || rect.height === 0) return;
-    
+
     const collisionZone: CollisionZone = {
       element,
       rect,
       priority,
       type
     };
-    
+
     this.collisionZones.add(collisionZone);
   }
 
@@ -184,7 +185,7 @@ export class PositionManager {
       const position = this.calculatePositionForPlacement(placement, fullConstraints);
       const collisions = this.detectCollisions(position, fullConstraints);
       const score = this.scorePlacement(position, collisions, placement, fullConstraints);
-      
+
       const result: PositionResult = {
         position,
         placement,
@@ -217,7 +218,7 @@ export class PositionManager {
   private getPossiblePlacements(constraints: PositionConstraints): string[] {
     const primary = constraints.preferredPlacement;
     const placements = [primary];
-    
+
     if (constraints.allowFlip) {
       // Add alternative placements based on preference
       switch (primary) {
@@ -235,7 +236,7 @@ export class PositionManager {
           break;
       }
     }
-    
+
     return placements;
   }
 
@@ -245,9 +246,9 @@ export class PositionManager {
   ): IndicatorPosition {
     const { target, margin } = constraints;
     const indicatorSize = this.getIndicatorSize();
-    
+
     let x: number, y: number;
-    
+
     switch (placement) {
       case 'top-right':
         x = target.right - indicatorSize.width - margin;
@@ -269,7 +270,7 @@ export class PositionManager {
         x = target.right + margin;
         y = target.top + margin;
     }
-    
+
     return {
       x: Math.max(margin, Math.min(x, constraints.viewport.width - indicatorSize.width - margin)),
       y: Math.max(margin, Math.min(y, constraints.viewport.height - indicatorSize.height - margin)),
@@ -289,7 +290,7 @@ export class PositionManager {
 
   private detectCollisions(
     position: IndicatorPosition,
-    constraints: PositionConstraints
+    _constraints: PositionConstraints
   ): CollisionZone[] {
     const indicatorRect = {
       left: position.x,
@@ -299,16 +300,16 @@ export class PositionManager {
     };
 
     const collisions: CollisionZone[] = [];
-    
+
     // Update collision zones with current positions
     this.updateCollisionZones();
-    
+
     for (const zone of this.collisionZones) {
       if (this.isRectCollision(indicatorRect, zone.rect)) {
         collisions.push(zone);
       }
     }
-    
+
     return collisions;
   }
 
@@ -328,17 +329,17 @@ export class PositionManager {
     constraints: PositionConstraints
   ): number {
     let score = 100;
-    
+
     // Penalize collisions
     for (const collision of collisions) {
       score -= collision.priority * 20;
     }
-    
+
     // Prefer original placement
     if (placement === constraints.preferredPlacement) {
       score += 10;
     }
-    
+
     // Penalize edge proximity
     const edgeDistance = Math.min(
       position.x,
@@ -346,11 +347,11 @@ export class PositionManager {
       constraints.viewport.width - position.x - position.constraints.maxWidth,
       constraints.viewport.height - position.y - position.constraints.maxHeight
     );
-    
+
     if (edgeDistance < constraints.margin) {
       score -= (constraints.margin - edgeDistance) * 2;
     }
-    
+
     // Bonus for being within target bounds
     const targetRect = constraints.target;
     if (
@@ -361,14 +362,14 @@ export class PositionManager {
     ) {
       score += 15;
     }
-    
+
     return Math.max(0, score);
   }
 
   private createFallbackPosition(constraints: PositionConstraints): PositionResult {
     const fallbackX = constraints.viewport.width - 80;
     const fallbackY = 20;
-    
+
     return {
       position: {
         x: fallbackX,
@@ -390,38 +391,38 @@ export class PositionManager {
     result: PositionResult,
     constraints: PositionConstraints
   ): PositionResult {
-    let { position } = result;
+    const { position } = result;
     const adjustments = [...result.adjustments];
-    
+
     // Simple collision avoidance: move away from collisions
     for (const collision of result.collisions) {
       const collisionCenter = {
         x: collision.rect.left + collision.rect.width / 2,
         y: collision.rect.top + collision.rect.height / 2
       };
-      
+
       const indicatorCenter = {
         x: position.x + position.constraints.maxWidth / 2,
         y: position.y + position.constraints.maxHeight / 2
       };
-      
+
       // Move away from collision center
       const deltaX = indicatorCenter.x - collisionCenter.x;
       const deltaY = indicatorCenter.y - collisionCenter.y;
-      
+
       const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       if (magnitude > 0) {
         const moveDistance = 20; // Minimum separation distance
         const normalizedX = deltaX / magnitude;
         const normalizedY = deltaY / magnitude;
-        
+
         position.x += normalizedX * moveDistance;
         position.y += normalizedY * moveDistance;
-        
+
         adjustments.push('collision-avoidance');
       }
     }
-    
+
     // Ensure position stays within viewport
     position.x = Math.max(
       constraints.margin,
@@ -431,10 +432,10 @@ export class PositionManager {
       constraints.margin,
       Math.min(position.y, constraints.viewport.height - position.constraints.maxHeight - constraints.margin)
     );
-    
+
     // Re-check collisions after adjustment
     const newCollisions = this.detectCollisions(position, constraints);
-    
+
     return {
       position,
       placement: result.placement,
@@ -446,7 +447,7 @@ export class PositionManager {
   private updateCollisionZones(): void {
     // Remove stale zones and update existing ones
     const zonesToRemove: CollisionZone[] = [];
-    
+
     for (const zone of this.collisionZones) {
       if (!document.contains(zone.element)) {
         zonesToRemove.push(zone);
@@ -455,7 +456,7 @@ export class PositionManager {
         zone.rect = zone.element.getBoundingClientRect();
       }
     }
-    
+
     // Remove stale zones
     zonesToRemove.forEach(zone => this.collisionZones.delete(zone));
   }
@@ -483,7 +484,7 @@ export class PositionManager {
     });
   }
 
-  private repositionIndicator(id: string, indicator: BaseIndicator): void {
+  private repositionIndicator(_id: string, indicator: BaseIndicator): void {
     // This would require the indicator to provide its target element
     // For now, we'll trigger a reposition event
     indicator.getElement().dispatchEvent(new CustomEvent('truthlens:reposition-needed'));

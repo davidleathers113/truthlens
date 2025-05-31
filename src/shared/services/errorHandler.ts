@@ -3,11 +3,11 @@
  * Chrome Manifest V3 compliant error handling with modern recovery patterns
  */
 
-import { 
-  TruthLensError, 
-  ErrorCategory, 
-  ErrorSeverity, 
-  RecoveryStrategy, 
+import {
+  TruthLensError,
+  ErrorCategory,
+  ErrorSeverity,
+  RecoveryStrategy,
   RecoveryResult,
   ErrorHandlerConfig,
   ExtensionContextType,
@@ -31,7 +31,7 @@ class ErrorHandler {
   constructor(context: ExtensionContextType, config?: Partial<ErrorHandlerConfig>) {
     this.context = context;
     this.sessionId = this.generateSessionId();
-    
+
     // Default configuration optimized for 2025
     this.config = {
       enableReporting: process.env.NODE_ENV === 'production',
@@ -65,7 +65,7 @@ class ErrorHandler {
     this.recoveryStrategies = new Map();
     this.initializeRecoveryStrategies();
     this.setupGlobalErrorHandling();
-    
+
     logger.info('ErrorHandler initialized', {
       context: this.context,
       sessionId: this.sessionId,
@@ -92,7 +92,7 @@ class ErrorHandler {
     // Network error recovery (2025 patterns with exponential backoff)
     this.recoveryStrategies.set('network', async (error: TruthLensError) => {
       const networkError = error as NetworkError;
-      
+
       // Check circuit breaker
       if (this.isCircuitBreakerOpen(networkError.network.endpoint)) {
         return {
@@ -106,10 +106,10 @@ class ErrorHandler {
 
       // Implement exponential backoff retry
       const delay = this.calculateBackoffDelay(error.recovery.retryCount || 0);
-      
+
       if ((error.recovery.retryCount || 0) < this.config.retryConfig.maxRetries) {
         await this.sleep(delay);
-        
+
         try {
           // Attempt recovery based on network error type
           if (networkError.network.statusCode === 429) {
@@ -117,7 +117,7 @@ class ErrorHandler {
             const retryAfter = networkError.network.retryAfter || this.config.retryConfig.baseDelay;
             await this.sleep(retryAfter * 1000);
           }
-          
+
           return {
             successful: true,
             strategy: 'retry',
@@ -125,7 +125,7 @@ class ErrorHandler {
             userActionRequired: false,
             message: 'Connection restored'
           };
-        } catch (retryError) {
+        } catch (_retryError) {
           this.updateCircuitBreaker(networkError.network.endpoint, false);
           return {
             successful: false,
@@ -148,9 +148,9 @@ class ErrorHandler {
     });
 
     // Permission error recovery
-    this.recoveryStrategies.set('permission', async (error: TruthLensError) => {
-      const permError = error as PermissionError;
-      
+    this.recoveryStrategies.set('permission', async (_error: TruthLensError) => {
+      const permError = _error as PermissionError;
+
       if (permError.permission.optional) {
         return {
           successful: true,
@@ -171,9 +171,9 @@ class ErrorHandler {
     });
 
     // AI processing error recovery (Chrome Built-in AI specific)
-    this.recoveryStrategies.set('ai', async (error: TruthLensError) => {
-      const aiError = error as AIError;
-      
+    this.recoveryStrategies.set('ai', async (_error: TruthLensError) => {
+      const aiError = _error as AIError;
+
       if (aiError.ai.quotaExceeded) {
         return {
           successful: true,
@@ -206,7 +206,7 @@ class ErrorHandler {
     });
 
     // Data error recovery
-    this.recoveryStrategies.set('data', async (error: TruthLensError) => {
+    this.recoveryStrategies.set('data', async (_error: TruthLensError) => {
       return {
         successful: true,
         strategy: 'fallback',
@@ -239,7 +239,7 @@ class ErrorHandler {
     });
 
     // Security error recovery
-    this.recoveryStrategies.set('security', async (error: TruthLensError) => {
+    this.recoveryStrategies.set('security', async (_error: TruthLensError) => {
       return {
         successful: false,
         strategy: 'user-action',
@@ -250,7 +250,7 @@ class ErrorHandler {
     });
 
     // User error recovery
-    this.recoveryStrategies.set('user', async (error: TruthLensError) => {
+    this.recoveryStrategies.set('user', async (_error: TruthLensError) => {
       return {
         successful: true,
         strategy: 'user-action',
@@ -261,7 +261,7 @@ class ErrorHandler {
     });
 
     // System error recovery
-    this.recoveryStrategies.set('system', async (error: TruthLensError) => {
+    this.recoveryStrategies.set('system', async (_error: TruthLensError) => {
       return {
         successful: false,
         strategy: 'graceful-degrade',
@@ -275,66 +275,81 @@ class ErrorHandler {
   private setupGlobalErrorHandling(): void {
     // Global unhandled error handler
     if (typeof window !== 'undefined') {
-      window.addEventListener('error', (event) => {
-        this.handleError({
-          id: this.generateErrorId(),
-          timestamp: Date.now(),
-          category: 'runtime',
-          severity: 'high',
-          message: event.message,
-          technicalMessage: event.error?.stack,
-          context: {
-            extension: this.context,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            extensionVersion: chrome.runtime.getManifest().version,
-            sessionId: this.sessionId
-          },
-          source: {
-            file: event.filename,
-            line: event.lineno,
-            column: event.colno
-          },
-          stack: event.error?.stack,
-          recovery: {
-            strategy: 'graceful-degrade',
-            attempted: false
-          },
-          userImpact: {
-            affectedFeatures: ['unknown'],
-            dataLoss: false
-          },
-          reportingConsent: await this.getReportingConsent()
-        });
+      // 2025 TypeScript best practice: Proper async event handler
+      window.addEventListener('error', async (event) => {
+        try {
+          const reportingConsent = await this.getReportingConsent();
+          this.handleError({
+            id: this.generateErrorId(),
+            timestamp: Date.now(),
+            category: 'runtime',
+            severity: 'high',
+            message: event.message,
+            technicalMessage: event.error?.stack,
+            context: {
+              extension: this.context,
+              url: window.location.href,
+              userAgent: navigator.userAgent,
+              extensionVersion: chrome.runtime.getManifest().version,
+              sessionId: this.sessionId
+            },
+            source: {
+              file: event.filename,
+              line: event.lineno,
+              column: event.colno
+            },
+            stack: event.error?.stack,
+            recovery: {
+              strategy: 'graceful-degrade',
+              attempted: false
+            },
+            userImpact: {
+              affectedFeatures: ['unknown'],
+              dataLoss: false
+            },
+            reportingConsent
+          });
+        } catch (_error) {
+          console.error('[ErrorHandler] Failed to get reporting consent:', _error);
+        }
       });
 
       // Global unhandled promise rejection handler
-      window.addEventListener('unhandledrejection', (event) => {
-        this.handleError({
-          id: this.generateErrorId(),
-          timestamp: Date.now(),
-          category: 'runtime',
-          severity: 'medium',
-          message: 'Unhandled Promise Rejection',
-          technicalMessage: event.reason?.toString(),
-          context: {
-            extension: this.context,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            extensionVersion: chrome.runtime.getManifest().version,
-            sessionId: this.sessionId
-          },
-          stack: event.reason?.stack,
-          recovery: {
-            strategy: 'graceful-degrade',
-            attempted: false
-          },
-          userImpact: {
-            affectedFeatures: ['unknown'],
-            dataLoss: false
-          },
-          reportingConsent: await this.getReportingConsent()
-        });
+      // 2025 TypeScript best practice: Proper async promise rejection handler
+      window.addEventListener('unhandledrejection', async (event) => {
+        try {
+          const reportingConsent = await this.getReportingConsent();
+          this.handleError({
+            id: this.generateErrorId(),
+            timestamp: Date.now(),
+            category: 'runtime',
+            severity: 'medium',
+            message: 'Unhandled Promise Rejection',
+            technicalMessage: event.reason?.toString(),
+            context: {
+              extension: this.context,
+              url: window.location.href,
+              userAgent: navigator.userAgent,
+              extensionVersion: chrome.runtime.getManifest().version,
+              sessionId: this.sessionId
+            },
+            source: {
+              function: 'unhandledrejection'
+            },
+            stack: event.reason?.stack,
+            recovery: {
+              strategy: 'graceful-degrade',
+              attempted: false
+            },
+            userImpact: {
+              affectedFeatures: ['unknown'],
+              dataLoss: false
+            },
+            reportingConsent
+          });
+        } catch (_error) {
+          console.error('[ErrorHandler] Failed to get reporting consent for unhandled rejection:', _error);
+        }
       });
     }
   }
@@ -345,8 +360,8 @@ class ErrorHandler {
 
   private async getReportingConsent(): Promise<boolean> {
     try {
-      const settings = await storageService.get(['userSettings']);
-      return settings.userSettings?.analytics?.enabled || false;
+      const settings = await storageService.get('userSettings');
+      return settings?.analytics?.enabled || false;
     } catch {
       return false; // Default to no consent if can't determine
     }
@@ -357,7 +372,7 @@ class ErrorHandler {
       this.config.retryConfig.baseDelay * Math.pow(this.config.retryConfig.backoffMultiplier, retryCount),
       this.config.retryConfig.maxDelay
     );
-    
+
     // Add jitter to prevent thundering herd
     const jitter = delay * 0.1 * Math.random();
     return delay + jitter;
@@ -382,7 +397,7 @@ class ErrorHandler {
 
   private updateCircuitBreaker(endpoint: string, success: boolean): void {
     const breaker = this.circuitBreakers.get(endpoint) || { failures: 0, lastFailure: 0, isOpen: false };
-    
+
     if (success) {
       breaker.failures = 0;
       breaker.isOpen = false;
@@ -424,13 +439,13 @@ class ErrorHandler {
 
       if (this.config.enableRecovery) {
         this.emit('recovery:started', { errorId: error.id, strategy: error.recovery.strategy });
-        
+
         const recoveryStrategy = this.recoveryStrategies.get(error.category);
         if (recoveryStrategy) {
           const startTime = performance.now();
           recoveryResult = await recoveryStrategy(error);
           recoveryResult.duration = performance.now() - startTime;
-          
+
           // Update error recovery information
           error.recovery.attempted = true;
           error.recovery.successful = recoveryResult.successful;
@@ -441,7 +456,7 @@ class ErrorHandler {
         }
 
         this.emit('recovery:completed', { errorId: error.id, result: recoveryResult });
-        
+
         if (recoveryResult.successful) {
           this.emit('error:recovered', { error, result: recoveryResult });
         }
@@ -461,7 +476,7 @@ class ErrorHandler {
       // If error handling itself fails, log to console as fallback
       console.error('[ErrorHandler] Failed to handle error:', handlingError);
       logger.error('Error handler failed', { originalError: error }, handlingError as Error);
-      
+
       return {
         successful: false,
         strategy: 'none',
@@ -520,7 +535,7 @@ class ErrorHandler {
   private getCallerFunction(): string {
     const stack = new Error().stack;
     if (!stack) return 'unknown';
-    
+
     const lines = stack.split('\n');
     // Skip this function and createError
     const callerLine = lines[3] || '';
@@ -539,20 +554,20 @@ class ErrorHandler {
       user: 'user-action',
       system: 'graceful-degrade'
     };
-    
+
     return strategies[category] || 'none';
   }
 
   private async storeError(error: TruthLensError): Promise<void> {
     try {
-      const existingErrors = await storageService.get(['errors']);
-      const errors = existingErrors.errors || [];
-      
+      const existingErrors = await storageService.get('errors');
+      const errors = existingErrors || [];
+
       // Limit stored errors
       const maxStoredErrors = 100;
       const updatedErrors = [...errors, error].slice(-maxStoredErrors);
-      
-      await storageService.set({ errors: updatedErrors });
+
+      await storageService.setMultiple({ errors: updatedErrors });
     } catch (storageError) {
       logger.error('Failed to store error', { error }, storageError as Error);
     }

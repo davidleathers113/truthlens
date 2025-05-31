@@ -9,7 +9,6 @@ import {
   MetricType,
   PerformanceThresholds,
   MonitoringConfig,
-  MemoryAnalysis,
   OptimizationRecommendation,
   ServiceWorkerMetrics,
   BrowserCapabilities,
@@ -52,7 +51,7 @@ export class PerformanceMonitor {
   constructor(context: ExtensionContext, config: Partial<MonitoringConfig> = {}) {
     this.context = context;
     this.capabilities = this.detectBrowserCapabilities();
-    
+
     this.config = {
       sampling: {
         responseTime: 1, // Sample every operation
@@ -82,18 +81,23 @@ export class PerformanceMonitor {
       ...config
     };
 
-    this.initializeMetrics();
-    this.initializeComponents();
-    this.setupPerformanceObservers();
-    this.startMemoryMonitoring();
-    
+    // Initialize properties following 2025 TypeScript best practices
+    this.metrics = this.initializeMetrics();
+    this.storage = new PerformanceStorage(this.config.storage);
+    this.alertManager = new AlertManager(this.config.alerts);
+    this.memoryAnalyzer = new MemoryAnalyzer();
+    this.webVitalsMonitor = new WebVitalsMonitor();
+
+    // Setup async initialization
+    this.initializeAsync();
+
     if (this.config.debugMode) {
       console.log('[PerformanceMonitor] Initialized with capabilities:', this.capabilities);
     }
   }
 
-  private initializeMetrics(): void {
-    this.metrics = {
+  private initializeMetrics(): PerformanceMetrics {
+    return {
       responseTime: [],
       pageLoadImpact: [],
       memoryUsage: [],
@@ -108,19 +112,16 @@ export class PerformanceMonitor {
     };
   }
 
-  private async initializeComponents(): Promise<void> {
-    this.storage = new PerformanceStorage(this.config.storage);
-    this.alertManager = new AlertManager(this.config.alerts);
-    this.memoryAnalyzer = new MemoryAnalyzer();
-    
+  private async initializeAsync(): Promise<void> {
     if (this.capabilities.webVitalsAPI) {
-      this.webVitalsMonitor = new WebVitalsMonitor();
       this.webVitalsMonitor.onVital((vital: WebVitalsEntry) => {
         this.recordWebVital(vital);
       });
     }
 
     await this.storage.initialize();
+    this.setupPerformanceObservers();
+    this.startMemoryMonitoring();
   }
 
   private detectBrowserCapabilities(): BrowserCapabilities {
@@ -160,11 +161,17 @@ export class PerformanceMonitor {
     try {
       const lcpObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
+          // 2025 TypeScript best practice: Use type guards for PerformanceEntry casting
+          const lcpEntry = entry as PerformanceEntry & {
+            element?: Element;
+            size?: number;
+            url?: string;
+          };
           this.recordMeasurement('lcp', entry.startTime, {
-            metadata: { 
-              element: entry.element?.tagName,
-              size: entry.size,
-              url: entry.url 
+            metadata: {
+              element: lcpEntry.element?.tagName,
+              size: lcpEntry.size,
+              url: lcpEntry.url
             }
           });
         }
@@ -179,11 +186,17 @@ export class PerformanceMonitor {
     try {
       const clsObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (!entry.hadRecentInput) {
-            this.recordMeasurement('cls', entry.value, {
-              metadata: { 
-                sources: entry.sources?.length || 0,
-                hadRecentInput: entry.hadRecentInput
+          // 2025 TypeScript best practice: Use type guards for Layout Shift entries
+          const clsEntry = entry as PerformanceEntry & {
+            hadRecentInput?: boolean;
+            value?: number;
+            sources?: any[];
+          };
+          if (!clsEntry.hadRecentInput) {
+            this.recordMeasurement('cls', clsEntry.value || 0, {
+              metadata: {
+                sources: clsEntry.sources?.length || 0,
+                hadRecentInput: clsEntry.hadRecentInput
               }
             });
           }
@@ -203,7 +216,7 @@ export class PerformanceMonitor {
           if (resource.name.includes('chrome-extension://')) {
             const duration = resource.responseEnd - resource.requestStart;
             this.recordMeasurement('pageLoadImpact', duration, {
-              metadata: { 
+              metadata: {
                 resourceType: resource.initiatorType,
                 size: resource.transferSize || 0,
                 cached: resource.transferSize === 0
@@ -232,12 +245,12 @@ export class PerformanceMonitor {
         const memoryInfo = (performance as any).memory;
         if (memoryInfo) {
           this.recordMeasurement('memoryUsage', memoryInfo.usedJSHeapSize);
-          
+
           // Check for memory leaks
           if (this.metrics.memoryUsage.length > 10) {
             const recentMemory = this.metrics.memoryUsage.slice(-10);
             const averageIncrease = this.calculateMemoryTrend(recentMemory);
-            
+
             if (averageIncrease > 1000000) { // 1MB increase trend
               this.triggerMemoryLeakAnalysis();
             }
@@ -255,21 +268,21 @@ export class PerformanceMonitor {
 
   private calculateMemoryTrend(memoryData: number[]): number {
     if (memoryData.length < 2) return 0;
-    
+
     let totalIncrease = 0;
     for (let i = 1; i < memoryData.length; i++) {
       totalIncrease += Math.max(0, memoryData[i] - memoryData[i - 1]);
     }
-    
+
     return totalIncrease / (memoryData.length - 1);
   }
 
   private async triggerMemoryLeakAnalysis(): Promise<void> {
     try {
       const analysis = await this.memoryAnalyzer.analyzeMemoryLeaks();
-      
+
       if (analysis.leakDetected) {
-        this.alertManager.triggerAlert('memory', 'critical', analysis.totalMemoryUsage, {
+        this.alertManager.triggerAlert('memoryUsage', 'critical', analysis.totalMemoryUsage, {
           leakSources: analysis.leakSources,
           recommendations: analysis.recommendations
         });
@@ -286,7 +299,7 @@ export class PerformanceMonitor {
 
     const startTime = performance.now();
     this.activeMeasurements.set(id, startTime);
-    
+
     // Use Performance API mark for detailed analysis
     try {
       performance.mark(`truthlens-${id}-start`);
@@ -329,8 +342,8 @@ export class PerformanceMonitor {
   }
 
   public recordMeasurement(
-    type: MetricType, 
-    value: number, 
+    type: MetricType,
+    value: number,
     options: { metadata?: Record<string, any> } = {}
   ): void {
     if (!this.isEnabled) return;
@@ -425,7 +438,7 @@ export class PerformanceMonitor {
     if (metrics.startTime !== undefined) {
       this.recordMeasurement('serviceWorkerStartTime', metrics.startTime);
     }
-    
+
     if (metrics.messageLatency) {
       metrics.messageLatency.forEach(latency => {
         this.recordMeasurement('responseTime', latency, {
@@ -558,10 +571,10 @@ async function getCachedResponse(key) {
 
   public updateConfig(newConfig: Partial<MonitoringConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Apply configuration changes
     this.alertManager.updateConfig(this.config.alerts);
-    
+
     if (this.config.debugMode) {
       console.log('[PerformanceMonitor] Configuration updated:', newConfig);
     }
@@ -569,19 +582,19 @@ async function getCachedResponse(key) {
 
   public cleanup(): void {
     this.isEnabled = false;
-    
+
     // Disconnect all observers
     this.observers.forEach(observer => observer.disconnect());
     this.observers.clear();
-    
+
     // Clear active measurements
     this.activeMeasurements.clear();
-    
+
     // Cleanup components
     this.alertManager?.cleanup();
     this.storage?.cleanup();
     this.webVitalsMonitor?.cleanup();
-    
+
     if (this.config.debugMode) {
       console.log('[PerformanceMonitor] Cleaned up');
     }

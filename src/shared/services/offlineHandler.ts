@@ -52,7 +52,7 @@ class OfflineHandler {
 
   constructor(context: ExtensionContextType, config?: Partial<OfflineConfig>) {
     this.context = context;
-    
+
     // Default configuration optimized for 2025
     this.config = {
       enableOfflineMode: true,
@@ -73,7 +73,7 @@ class OfflineHandler {
     };
 
     this.initializeOfflineHandling();
-    
+
     logger.info('OfflineHandler initialized', {
       context: this.context,
       isOnline: this.isOnline,
@@ -84,18 +84,18 @@ class OfflineHandler {
   private initializeOfflineHandling(): void {
     // Set up network status listeners
     this.setupNetworkListeners();
-    
+
     // Initialize network connection detection
     this.detectNetworkCapabilities();
-    
+
     // Set up periodic network polling if enabled
     if (this.config.enableNetworkPolling) {
       this.startNetworkPolling();
     }
-    
+
     // Load queued operations from storage
     this.loadQueueFromStorage();
-    
+
     // Set up service worker sync if enabled (background context only)
     if (this.config.enableServiceWorkerSync && this.context === 'background') {
       this.setupServiceWorkerSync();
@@ -136,7 +136,7 @@ class OfflineHandler {
 
       // Test actual connectivity with a lightweight request
       await this.testConnectivity();
-      
+
     } catch (error) {
       logger.warn('Failed to detect network capabilities', {}, error as Error);
     }
@@ -146,23 +146,24 @@ class OfflineHandler {
     try {
       // Use Chrome extension's chrome.runtime.getManifest() as connectivity test
       // This is lightweight and always available
-      const manifest = chrome.runtime.getManifest();
-      
+      // 2025 TypeScript best practice: Remove unused variables entirely rather than suppress
+      // const manifest = chrome.runtime.getManifest(); // Removed - not used for actual connectivity test
+
       // Try a network request to a reliable endpoint
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
+
       const response = await fetch('https://www.google.com/favicon.ico', {
         method: 'HEAD',
         signal: controller.signal,
         cache: 'no-cache'
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       const isConnected = response.ok;
       this.updateOnlineStatus(isConnected);
-      
+
       return isConnected;
     } catch (error) {
       this.updateOnlineStatus(false);
@@ -200,15 +201,15 @@ class OfflineHandler {
   private handleOnline(): void {
     const now = Date.now();
     const wasOffline = !this.networkStats.isOnline;
-    
+
     if (wasOffline) {
       this.networkStats.lastOnlineTime = now;
       this.networkStats.reconnectCount++;
-      
+
       if (this.networkStats.lastOfflineTime) {
         this.networkStats.offlineDuration = now - this.networkStats.lastOfflineTime;
       }
-      
+
       logger.info('Network connection restored', {
         offlineDuration: this.networkStats.offlineDuration,
         reconnectCount: this.networkStats.reconnectCount
@@ -266,8 +267,8 @@ class OfflineHandler {
     this.pollingTimer = window.setInterval(async () => {
       try {
         await this.testConnectivity();
-      } catch (error) {
-        logger.debug('Network polling failed', {}, error as Error);
+      } catch (_error) {
+        logger.debug('Network polling failed', { error: (_error as Error).message });
       }
     }, this.config.pollingInterval);
   }
@@ -277,9 +278,10 @@ class OfflineHandler {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       navigator.serviceWorker.ready.then(registration => {
         // Register for background sync when network is restored
-        return registration.sync.register('network-sync');
-      }).catch(error => {
-        logger.warn('Failed to register background sync', {}, error as Error);
+        // 2025 TypeScript best practice: Proper type casting for Background Sync API
+        return (registration as any).sync.register('network-sync');
+      }).catch(_error => {
+        logger.warn('Failed to register background sync', {}, _error as Error);
       });
     }
   }
@@ -306,11 +308,11 @@ class OfflineHandler {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       const aPriority = priorityOrder[a.priority];
       const bPriority = priorityOrder[b.priority];
-      
+
       if (aPriority !== bPriority) {
         return bPriority - aPriority;
       }
-      
+
       return a.timestamp - b.timestamp;
     });
 
@@ -339,7 +341,7 @@ class OfflineHandler {
     for (const operation of operationsToProcess) {
       try {
         const success = await this.executeQueuedOperation(operation);
-        
+
         if (success) {
           successfulOperations.push(operation.id);
         } else {
@@ -359,7 +361,7 @@ class OfflineHandler {
           operationId: operation.id,
           operation: operation.operation
         }, error as Error);
-        
+
         operation.retryCount++;
         if (operation.retryCount < operation.maxRetries) {
           failedOperations.push(operation);
@@ -393,7 +395,7 @@ class OfflineHandler {
 
     // Simulate operation execution
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     // Return success based on network status
     return this.isOnline;
   }
@@ -403,7 +405,7 @@ class OfflineHandler {
 
     // Exponential backoff for retries
     const delay = Math.min(5000 * Math.pow(2, this.networkStats.reconnectCount), 60000);
-    
+
     this.retryTimer = window.setTimeout(() => {
       this.retryTimer = null;
       if (this.isOnline && this.operationQueue.length > 0) {
@@ -414,31 +416,31 @@ class OfflineHandler {
 
   private async saveQueueToStorage(): Promise<void> {
     try {
-      await storageService.set({
+      await storageService.setMultiple({
         operationQueue: this.operationQueue,
         networkStats: this.networkStats
       });
-    } catch (error) {
-      logger.error('Failed to save operation queue', {}, error as Error);
+    } catch (_error) {
+      logger.error('Failed to save operation queue', {}, _error as Error);
     }
   }
 
   private async loadQueueFromStorage(): Promise<void> {
     try {
-      const stored = await storageService.get(['operationQueue', 'networkStats']);
-      
+      const stored = await storageService.getMultiple(['operationQueue', 'networkStats']);
+
       if (stored.operationQueue) {
         this.operationQueue = stored.operationQueue;
         logger.info('Loaded queued operations from storage', {
           queueSize: this.operationQueue.length
         });
       }
-      
+
       if (stored.networkStats) {
         this.networkStats = { ...this.networkStats, ...stored.networkStats };
       }
-    } catch (error) {
-      logger.error('Failed to load operation queue from storage', {}, error as Error);
+    } catch (_error) {
+      logger.error('Failed to load operation queue from storage', {}, _error as Error);
     }
   }
 
@@ -501,7 +503,7 @@ class OfflineHandler {
         clearInterval(this.pollingTimer);
         this.pollingTimer = null;
       }
-      
+
       if (this.config.enableNetworkPolling) {
         this.startNetworkPolling();
       }
@@ -516,7 +518,7 @@ class OfflineHandler {
       clearInterval(this.pollingTimer);
       this.pollingTimer = null;
     }
-    
+
     if (this.retryTimer) {
       clearTimeout(this.retryTimer);
       this.retryTimer = null;

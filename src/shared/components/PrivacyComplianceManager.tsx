@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { storageService } from '../storage/storageService';
-import { securityService } from '../services/securityService';
 import { ConsentData } from '../types';
 
 interface PrivacyComplianceManagerProps {
@@ -20,9 +19,9 @@ interface PrivacySettings {
   aiProcessingConsent: boolean;
 }
 
-const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({ 
-  onConsentUpdate, 
-  compactMode = false 
+const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
+  onConsentUpdate,
+  compactMode = false
 }) => {
   const [consentData, setConsentData] = useState<ConsentData | null>(null);
   const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
@@ -44,7 +43,7 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
     try {
       const consent = await storageService.getConsentData();
       setConsentData(consent);
-      
+
       if (consent) {
         setPrivacySettings({
           analyticsConsent: consent.analyticsConsent,
@@ -61,10 +60,10 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
   const updateConsent = async (updates: Partial<PrivacySettings>) => {
     try {
       setLoading(true);
-      
+
       const newSettings = { ...privacySettings, ...updates };
       setPrivacySettings(newSettings);
-      
+
       const newConsentData: ConsentData = {
         analyticsConsent: newSettings.analyticsConsent,
         performanceConsent: newSettings.performanceConsent,
@@ -74,15 +73,15 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
         consentVersion: '2025.1',
         userAgent: navigator.userAgent
       };
-      
+
       await storageService.storeConsentData(newConsentData);
       setConsentData(newConsentData);
-      
+
       // Update privacy metrics
       await storageService.updatePrivacyMetrics({ userConsents: 1 });
-      
+
       onConsentUpdate?.(newConsentData);
-      
+
     } catch (error) {
       console.error('Failed to update consent:', error);
     } finally {
@@ -93,15 +92,15 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
   const exportUserData = async () => {
     try {
       setLoading(true);
-      
+
       const userData = await storageService.exportUserData();
       const exportString = JSON.stringify(userData, null, 2);
       setExportData(exportString);
       setShowDataExport(true);
-      
+
       // Update privacy metrics
       await storageService.updatePrivacyMetrics({ dataExports: 1 });
-      
+
     } catch (error) {
       console.error('Failed to export user data:', error);
     } finally {
@@ -112,9 +111,9 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
   const deleteAllData = async () => {
     try {
       setLoading(true);
-      
+
       await storageService.deleteAllUserData();
-      
+
       // Reset local state
       setConsentData(null);
       setPrivacySettings({
@@ -123,11 +122,11 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
         abTestingConsent: false,
         aiProcessingConsent: false
       });
-      
+
       setShowDataDeletion(false);
-      
+
       // Note: We can't update privacy metrics after deletion
-      
+
     } catch (error) {
       console.error('Failed to delete user data:', error);
     } finally {
@@ -152,17 +151,17 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
       <div className="privacy-compliance-compact">
         <div className="consent-summary">
           <span className="consent-status">
-            Privacy: {privacySettings.analyticsConsent ? '✓' : '✗'} Analytics, 
+            Privacy: {privacySettings.analyticsConsent ? '✓' : '✗'} Analytics,
             {privacySettings.aiProcessingConsent ? '✓' : '✗'} AI Processing
           </span>
-          <button 
+          <button
             onClick={() => setShowDataExport(!showDataExport)}
             className="privacy-settings-btn"
           >
             Privacy Settings
           </button>
         </div>
-        
+
         {showDataExport && (
           <div className="privacy-dropdown">
             <PrivacyComplianceManager compactMode={false} onConsentUpdate={onConsentUpdate} />
@@ -186,7 +185,7 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
         <p className="section-description">
           Control how TruthLens processes your data. All processing is done locally when possible.
         </p>
-        
+
         <div className="consent-option">
           <label className="consent-label">
             <input
@@ -197,7 +196,7 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
             />
             <div className="consent-details">
               <strong>Analytics & Usage Data</strong>
-              <p>Help improve TruthLens by sharing anonymous usage statistics. 
+              <p>Help improve TruthLens by sharing anonymous usage statistics.
                  No personal data or browsing history is collected.</p>
             </div>
           </label>
@@ -228,7 +227,7 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
             />
             <div className="consent-details">
               <strong>AI Processing Enhancement</strong>
-              <p>Allow anonymized content analysis data to improve AI accuracy. 
+              <p>Allow anonymized content analysis data to improve AI accuracy.
                  Required for advanced credibility features. EU AI Act compliant.</p>
             </div>
           </label>
@@ -255,17 +254,17 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
         <p className="section-description">
           Exercise your privacy rights under GDPR and applicable data protection laws.
         </p>
-        
+
         <div className="data-rights-actions">
-          <button 
+          <button
             onClick={exportUserData}
             disabled={loading}
             className="data-export-btn"
           >
             📥 Export My Data
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setShowDataDeletion(true)}
             disabled={loading}
             className="data-delete-btn"
@@ -280,13 +279,13 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
           <div className="modal-content">
             <h4>Data Export</h4>
             <p>Your complete data export is ready for download:</p>
-            
+
             <div className="export-summary">
               <p>Includes: Settings, subscription, consent history, and anonymized usage metrics</p>
               <p>Export format: JSON</p>
               <p>Generated: {new Date().toLocaleString()}</p>
             </div>
-            
+
             <div className="modal-actions">
               <button onClick={downloadExportData} className="download-btn">
                 Download Data
@@ -304,7 +303,7 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
           <div className="modal-content">
             <h4>⚠️ Delete All Data</h4>
             <p><strong>This action cannot be undone.</strong></p>
-            
+
             <div className="deletion-warning">
               <p>This will permanently delete:</p>
               <ul>
@@ -314,10 +313,10 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
                 <li>Subscription information</li>
                 <li>All stored data</li>
               </ul>
-              
+
               <p>You will need to reconfigure TruthLens after deletion.</p>
             </div>
-            
+
             <div className="modal-actions">
               <button onClick={deleteAllData} className="delete-confirm-btn" disabled={loading}>
                 {loading ? 'Deleting...' : 'Delete Everything'}
@@ -356,11 +355,11 @@ const PrivacyComplianceManager: React.FC<PrivacyComplianceManagerProps> = ({
 
       <div className="compliance-footer">
         <p className="compliance-text">
-          <strong>Privacy by Design:</strong> TruthLens processes data locally whenever possible. 
+          <strong>Privacy by Design:</strong> TruthLens processes data locally whenever possible.
           Remote processing only occurs with your explicit consent and is subject to EU AI Act bias assessments.
         </p>
         <p className="compliance-text">
-          <strong>Contact:</strong> For privacy questions or to exercise your rights, 
+          <strong>Contact:</strong> For privacy questions or to exercise your rights,
           contact our Data Protection Officer at privacy@truthlens.app
         </p>
       </div>

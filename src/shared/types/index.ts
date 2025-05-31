@@ -92,7 +92,7 @@ export interface ExtensionMessage {
   timestamp?: number;
 }
 
-export type MessageType = 
+export type MessageType =
   | 'ANALYZE_PAGE'
   | 'ANALYZE_CONTENT'
   | 'GET_CREDIBILITY'
@@ -171,6 +171,7 @@ export interface ConsentData {
   analyticsConsent: boolean;
   performanceConsent: boolean;
   abTestingConsent: boolean;
+  aiProcessingConsent: boolean;
   consentTimestamp: number;
   consentVersion: string;
   ipAddress?: string;

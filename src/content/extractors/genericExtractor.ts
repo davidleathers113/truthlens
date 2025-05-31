@@ -1,5 +1,5 @@
 import { Readability, isProbablyReaderable, ReadabilityResult } from '@mozilla/readability';
-import { ContentAnalysis, CredibilityScore } from '@shared/types';
+import { ContentAnalysis } from '@shared/types';
 
 /**
  * Extracted content metadata for credibility analysis
@@ -112,18 +112,18 @@ export class GenericExtractor {
     // Generic extractor can handle any standard web page
     // Return false for social media platforms or other specialized content
     const hostname = new URL(url).hostname.toLowerCase();
-    
+
     // Skip social media platforms (handled by specialized extractors)
     const socialPlatforms = [
       'twitter.com', 'x.com', 'facebook.com', 'fb.com',
       'instagram.com', 'tiktok.com', 'youtube.com', 'youtu.be',
       'reddit.com', 'linkedin.com'
     ];
-    
+
     if (socialPlatforms.some(platform => hostname.includes(platform))) {
       return false;
     }
-    
+
     // Check if document has readable content
     try {
       return isProbablyReaderable(document);
@@ -138,11 +138,11 @@ export class GenericExtractor {
    */
   async extractPageContent(): Promise<ContentAnalysis> {
     const startTime = performance.now();
-    
+
     try {
       // Create a deep clone to avoid modifying the original DOM
       const documentClone = document.cloneNode(true) as Document;
-      
+
       // Check if document is suitable for readability processing
       if (!isProbablyReaderable(documentClone)) {
         this.logPerformance('readability_check', startTime);
@@ -151,25 +151,25 @@ export class GenericExtractor {
 
       // Extract main content using Readability algorithm
       const readabilityResult = await this.extractWithReadability(documentClone);
-      
+
       // Extract metadata from various sources
       const metadata = await this.extractMetadata(documentClone);
-      
+
       // Analyze links and citations
-      const linkAnalysis = this.config.enableLinkAnalysis 
+      const linkAnalysis = this.config.enableLinkAnalysis
         ? await this.analyzeLinksCitations(documentClone, readabilityResult)
         : null;
-      
+
       // Detect media content
       const mediaContent = this.config.enableMediaDetection
         ? await this.detectMediaContent(documentClone, readabilityResult)
         : null;
-      
+
       // Check for paywall
       const paywallDetection = this.config.enablePaywallDetection
         ? await this.detectPaywall(documentClone)
         : null;
-      
+
       // Clean and normalize content
       const cleanedContent = await this.cleanNormalizeContent(
         readabilityResult?.textContent || ''
@@ -177,7 +177,7 @@ export class GenericExtractor {
 
       const totalTime = performance.now() - startTime;
       this.logPerformance('total_extraction', startTime);
-      
+
       // Check performance constraint
       if (totalTime > this.config.maxProcessingTime) {
         console.warn(`Content extraction exceeded time limit: ${totalTime}ms > ${this.config.maxProcessingTime}ms`);
@@ -205,21 +205,21 @@ export class GenericExtractor {
    */
   private async extractWithReadability(documentClone: Document): Promise<ReadabilityResult | null> {
     const startTime = performance.now();
-    
+
     try {
       const reader = new Readability(documentClone, {
         charThreshold: this.config.minContentLength,
         classesToPreserve: ['highlight', 'important', 'citation'],
         disableJSONLD: false,
         linkDensityModifier: 0,
-        serializer: this.config.preserveFormatting 
-          ? (el: Element) => el 
+        serializer: this.config.preserveFormatting
+          ? (el: Element) => el
           : undefined,
       });
 
       const result = reader.parse();
       this.logPerformance('readability_parse', startTime);
-      
+
       return result;
     } catch (error) {
       console.error('Readability parsing failed:', error);
@@ -232,27 +232,27 @@ export class GenericExtractor {
    */
   private async cleanNormalizeContent(content: string): Promise<string> {
     const startTime = performance.now();
-    
+
     try {
       let cleaned = content;
-      
+
       // Remove excessive whitespace
       cleaned = cleaned.replace(/\s+/g, ' ').trim();
-      
+
       // Normalize Unicode characters
       cleaned = cleaned.normalize('NFKD');
-      
+
       // Remove control characters
       cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-      
+
       // Decode HTML entities
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = cleaned;
       cleaned = tempDiv.textContent || tempDiv.innerText || '';
-      
+
       // Merge adjacent text nodes (handled by readability, but additional cleanup)
       cleaned = cleaned.replace(/(\r\n|\n|\r)/gm, ' ');
-      
+
       this.logPerformance('content_cleaning', startTime);
       return cleaned;
     } catch (error) {
@@ -266,7 +266,7 @@ export class GenericExtractor {
    */
   private async extractMetadata(documentClone: Document): Promise<ExtractedMetadata> {
     const startTime = performance.now();
-    
+
     try {
       const metadata: ExtractedMetadata = {
         title: this.extractTitle(documentClone),
@@ -277,7 +277,7 @@ export class GenericExtractor {
       metaTags.forEach(meta => {
         const name = meta.getAttribute('name') || meta.getAttribute('property');
         const content = meta.getAttribute('content');
-        
+
         if (name && content) {
           switch (name.toLowerCase()) {
             case 'author':
@@ -341,19 +341,19 @@ export class GenericExtractor {
    * SUBTASK 4: Link and Citation Analysis
    */
   private async analyzeLinksCitations(
-    documentClone: Document, 
+    documentClone: Document,
     readabilityResult: ReadabilityResult | null
   ): Promise<LinkAnalysis> {
     const startTime = performance.now();
-    
+
     try {
-      const contentArea = readabilityResult 
+      const contentArea = readabilityResult
         ? this.createElementFromHtml(readabilityResult.content)
         : documentClone.body;
-      
+
       const links = Array.from(contentArea.querySelectorAll('a[href]'));
       const currentDomain = window.location.hostname;
-      
+
       const analysis: LinkAnalysis = {
         totalLinks: links.length,
         externalLinks: 0,
@@ -384,7 +384,7 @@ export class GenericExtractor {
           const isExternal = url.hostname !== currentDomain;
           const linkText = link.textContent?.trim() || '';
           const context = this.getLinkContext(link);
-          
+
           if (isExternal) {
             analysis.externalLinks++;
           } else {
@@ -398,7 +398,7 @@ export class GenericExtractor {
           }
 
           // Check domain credibility
-          const isCredible = crediblePatterns.some(pattern => 
+          const isCredible = crediblePatterns.some(pattern =>
             pattern.test(url.hostname)
           );
 
@@ -422,8 +422,8 @@ export class GenericExtractor {
 
       // Calculate link density (links per paragraph)
       const paragraphs = contentArea.querySelectorAll('p');
-      analysis.linkDensity = paragraphs.length > 0 
-        ? analysis.totalLinks / paragraphs.length 
+      analysis.linkDensity = paragraphs.length > 0
+        ? analysis.totalLinks / paragraphs.length
         : 0;
 
       this.logPerformance('link_analysis', startTime);
@@ -451,9 +451,9 @@ export class GenericExtractor {
     readabilityResult: ReadabilityResult | null
   ): Promise<MediaContent> {
     const startTime = performance.now();
-    
+
     try {
-      const contentArea = readabilityResult 
+      const contentArea = readabilityResult
         ? this.createElementFromHtml(readabilityResult.content)
         : documentClone.body;
 
@@ -537,7 +537,7 @@ export class GenericExtractor {
    */
   private async detectPaywall(documentClone: Document): Promise<PaywallDetection> {
     const startTime = performance.now();
-    
+
     try {
       const indicators: string[] = [];
       let confidence = 0;
@@ -613,7 +613,7 @@ export class GenericExtractor {
       confidence = Math.min(confidence, 1);
 
       this.logPerformance('paywall_detection', startTime);
-      
+
       return {
         hasPaywall,
         confidence,
@@ -725,16 +725,16 @@ export class GenericExtractor {
   private getLinkContext(link: Element): string {
     const parent = link.parentElement;
     if (!parent) return '';
-    
+
     const context = parent.textContent || '';
     const linkStart = context.indexOf(link.textContent || '');
     const start = Math.max(0, linkStart - 50);
     const end = Math.min(context.length, linkStart + (link.textContent?.length || 0) + 50);
-    
+
     return context.substring(start, end).trim();
   }
 
-  private isCitationLink(link: Element, linkText: string, context: string): boolean {
+  private isCitationLink(_link: Element, linkText: string, context: string): boolean {
     // Check for citation patterns
     const citationPatterns = [
       /^\[\d+\]$/,           // [1], [23], etc.
@@ -765,9 +765,9 @@ export class GenericExtractor {
     return undefined;
   }
 
-  private isRelevantImage(img: Element, alt: string, caption?: string): boolean {
+  private isRelevantImage(img: Element, alt: string, _caption?: string): boolean {
     // Skip decorative images
-    if (alt.toLowerCase().includes('decoration') || 
+    if (alt.toLowerCase().includes('decoration') ||
         alt.toLowerCase().includes('spacer') ||
         !alt) {
       return false;
@@ -776,7 +776,7 @@ export class GenericExtractor {
     // Check image size
     const width = parseInt(img.getAttribute('width') || '0');
     const height = parseInt(img.getAttribute('height') || '0');
-    
+
     if (width > 0 && height > 0 && (width < 50 || height < 50)) {
       return false; // Too small, likely decorative
     }
@@ -849,7 +849,7 @@ export class GenericExtractor {
     cleanedContent: string;
     extractionTime: number;
   }): ContentAnalysis {
-    
+
     // Calculate initial credibility score based on extraction quality
     let credibilityScore = 50; // baseline
     let confidence = 0.5;
@@ -886,7 +886,7 @@ export class GenericExtractor {
     credibilityScore = Math.max(0, Math.min(100, credibilityScore));
     confidence = Math.max(0, Math.min(1, confidence));
 
-    const level: 'high' | 'medium' | 'low' | 'unknown' = 
+    const level: 'high' | 'medium' | 'low' | 'unknown' =
       credibilityScore >= 70 ? 'high' :
       credibilityScore >= 50 ? 'medium' :
       credibilityScore >= 30 ? 'low' : 'unknown';

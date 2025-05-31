@@ -83,7 +83,7 @@ class SecurityTestingFramework {
       warnings: tests.filter(t => t.status === 'warning').length
     };
 
-    const overallStatus = summary.failed > 0 ? 'fail' : 
+    const overallStatus = summary.failed > 0 ? 'fail' :
                          summary.warnings > 0 ? 'warning' : 'pass';
 
     const testSuite: SecurityTestSuite = {
@@ -115,7 +115,7 @@ class SecurityTestingFramework {
     try {
       const manifest = await this.getManifestData();
       const csp = manifest.content_security_policy?.extension_pages;
-      
+
       if (!csp) {
         tests.push({
           testName: 'CSP Configuration',
@@ -175,7 +175,7 @@ class SecurityTestingFramework {
       const hostPermissions = manifest.host_permissions || [];
 
       // Test minimal permissions
-      const unnecessaryPermissions = permissions.filter(perm => 
+      const unnecessaryPermissions = permissions.filter((perm: string) =>
         !['activeTab', 'storage', 'scripting'].includes(perm)
       );
 
@@ -243,7 +243,7 @@ class SecurityTestingFramework {
       // Test encryption functionality
       const testData = { sensitive: 'test-data', timestamp: Date.now() };
       const encryptResult = await securityService.encryptData(testData);
-      
+
       if (!encryptResult.success) {
         tests.push({
           testName: 'Data Encryption',
@@ -259,8 +259,8 @@ class SecurityTestingFramework {
 
       // Test decryption
       const decryptResult = await securityService.decryptData(encryptResult.data!);
-      
-      if (!decryptResult.success || 
+
+      if (!decryptResult.success ||
           JSON.stringify(decryptResult.data) !== JSON.stringify(testData)) {
         tests.push({
           testName: 'Data Decryption',
@@ -324,7 +324,7 @@ class SecurityTestingFramework {
     try {
       // Test storage quotas
       const storageStats = await storageService.getStorageStats();
-      
+
       // Check for storage quota warnings
       const localUsagePercent = (storageStats.local.bytesInUse / storageStats.local.quota) * 100;
       const syncUsagePercent = (storageStats.sync.bytesInUse / storageStats.sync.quota) * 100;
@@ -382,7 +382,7 @@ class SecurityTestingFramework {
     try {
       // Test consent management
       const consentData = await storageService.getConsentData();
-      
+
       if (!consentData) {
         tests.push({
           testName: 'Consent Management',
@@ -396,7 +396,7 @@ class SecurityTestingFramework {
         // Check consent age
         const consentAge = Date.now() - consentData.consentTimestamp;
         const oneYear = 365 * 24 * 60 * 60 * 1000;
-        
+
         if (consentAge > oneYear) {
           tests.push({
             testName: 'Consent Validity',
@@ -458,7 +458,7 @@ class SecurityTestingFramework {
     try {
       // This would typically integrate with npm audit or similar tools
       // For now, we'll do basic checks
-      
+
       tests.push({
         testName: 'Dependency Security Scan',
         status: 'warning',
@@ -526,7 +526,7 @@ class SecurityTestingFramework {
       // Test bias assessment compliance
       const biasAssessment = await storageService.getLastBiasAssessment();
       const aiMetrics = await storageService.getAIProcessingMetrics();
-      
+
       if (aiMetrics.totalProcessingEvents > 1000 && !biasAssessment) {
         tests.push({
           testName: 'AI Bias Assessment',
@@ -539,7 +539,7 @@ class SecurityTestingFramework {
       } else if (biasAssessment) {
         const assessmentAge = Date.now() - biasAssessment.timestamp;
         const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-        
+
         if (assessmentAge > thirtyDays) {
           tests.push({
             testName: 'AI Bias Assessment',
@@ -561,9 +561,9 @@ class SecurityTestingFramework {
       }
 
       // Test local vs remote processing ratio
-      const localRatio = aiMetrics.localProcessingEvents / 
+      const localRatio = aiMetrics.localProcessingEvents /
                          (aiMetrics.localProcessingEvents + aiMetrics.remoteProcessingEvents);
-      
+
       if (localRatio < 0.8) {
         tests.push({
           testName: 'AI Processing Privacy',
@@ -852,7 +852,7 @@ class SecurityTestingFramework {
     try {
       const testSuite = await this.runSecurityTests();
       const complianceReport = await storageService.getLatestComplianceReport();
-      
+
       const report = {
         securityTesting: testSuite,
         complianceStatus: complianceReport,
@@ -869,7 +869,7 @@ class SecurityTestingFramework {
 
   private generateSecurityRecommendations(testSuite: SecurityTestSuite): string[] {
     const recommendations: string[] = [];
-    
+
     testSuite.tests.forEach(test => {
       if (test.status === 'fail' || test.status === 'warning') {
         if (test.recommendations) {

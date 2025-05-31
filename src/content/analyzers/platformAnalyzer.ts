@@ -1,4 +1,4 @@
-import { SocialPlatform, ContentAnalysis } from '@shared/types';
+import { SocialPlatform } from '@shared/types';
 
 /**
  * Platform detection and analysis result
@@ -17,6 +17,7 @@ export interface SocialContent {
   text: string;
   author?: string;
   timestamp?: Date;
+  platform?: SocialPlatform;
   engagement?: {
     likes?: number;
     shares?: number;
@@ -102,14 +103,14 @@ export class PlatformAnalyzer {
       // Extract content using platform-specific selectors
       for (const selector of config.contentSelectors) {
         const elements = document.querySelectorAll(selector);
-        
+
         for (const element of elements) {
           const socialContent = await this.extractSocialContent(
             element,
             platformResult.platform,
             config
           );
-          
+
           if (socialContent && socialContent.text.trim()) {
             content.push(socialContent);
           }
@@ -128,7 +129,7 @@ export class PlatformAnalyzer {
    */
   private async extractSocialContent(
     element: Element,
-    platform: SocialPlatform,
+    _platform: SocialPlatform,
     config: PlatformConfig
   ): Promise<SocialContent | null> {
     try {
@@ -167,7 +168,7 @@ export class PlatformAnalyzer {
         return textElement.textContent.trim();
       }
     }
-    
+
     // Fallback to element text content
     return element.textContent?.trim() || '';
   }
@@ -192,10 +193,10 @@ export class PlatformAnalyzer {
     for (const selector of selectors) {
       const timeElement = element.querySelector(selector);
       if (timeElement) {
-        const datetime = timeElement.getAttribute('datetime') || 
+        const datetime = timeElement.getAttribute('datetime') ||
                         timeElement.getAttribute('title') ||
                         timeElement.textContent;
-        
+
         if (datetime) {
           const date = new Date(datetime);
           if (!isNaN(date.getTime())) {
@@ -246,10 +247,10 @@ export class PlatformAnalyzer {
     for (const selector of selectors) {
       const mediaElements = element.querySelectorAll(selector);
       for (const mediaElement of mediaElements) {
-        const src = mediaElement.getAttribute('src') || 
+        const src = mediaElement.getAttribute('src') ||
                    mediaElement.getAttribute('data-src') ||
                    mediaElement.getAttribute('href');
-        
+
         if (src && !urls.includes(src)) {
           urls.push(src);
         }
@@ -283,9 +284,9 @@ export class PlatformAnalyzer {
   private parseEngagementNumber(text: string): number {
     const cleaned = text.replace(/[^\d.,KMB]/gi, '');
     const number = parseFloat(cleaned.replace(',', ''));
-    
+
     if (isNaN(number)) return 0;
-    
+
     const suffix = cleaned.toUpperCase().slice(-1);
     switch (suffix) {
       case 'K': return Math.round(number * 1000);
@@ -397,7 +398,7 @@ export class PlatformAnalyzer {
       mediaSelectors: ['[data-testid="post-image"]', '[data-testid="post-video"]'],
     });
 
-    // TikTok configuration  
+    // TikTok configuration
     this.platformConfigs.set('tiktok', {
       domainPatterns: [/tiktok\.com/],
       urlPatterns: [/\/video\//, /@.*\/video\//],

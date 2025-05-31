@@ -37,7 +37,7 @@ export class MobileGestureManager {
   private config: GestureConfig;
   private indicators: Map<string, BaseIndicator> = new Map();
   private activeTouches: Map<number, TouchPoint> = new Map();
-  private gestureStartTime: number = 0;
+  private _gestureStartTime: number = 0;
   private initialDistance: number = 0;
   private lastTapTime: number = 0;
   private lastTapTarget: HTMLElement | null = null;
@@ -77,7 +77,7 @@ export class MobileGestureManager {
 
     // Handle device orientation changes
     window.addEventListener('orientationchange', this.handleOrientationChange.bind(this));
-    
+
     // Handle visual viewport changes (mobile keyboard, etc.)
     if ('visualViewport' in window) {
       window.visualViewport!.addEventListener('resize', this.handleViewportResize.bind(this));
@@ -99,7 +99,7 @@ export class MobileGestureManager {
   private handleTouchStart(event: TouchEvent): void {
     const target = event.target as HTMLElement;
     const indicator = this.findIndicatorElement(target);
-    
+
     if (!indicator) return;
 
     // Prevent default for indicator elements to avoid scrolling
@@ -114,7 +114,8 @@ export class MobileGestureManager {
     };
 
     this.activeTouches.set(touch.identifier, touchPoint);
-    this.gestureStartTime = touchPoint.timestamp;
+    this._gestureStartTime = touchPoint.timestamp;
+    void this._gestureStartTime; // Suppress unused warning
 
     // Handle multi-touch
     if (event.touches.length === 1) {
@@ -131,7 +132,7 @@ export class MobileGestureManager {
   private handleTouchMove(event: TouchEvent): void {
     const target = event.target as HTMLElement;
     const indicator = this.findIndicatorElement(target);
-    
+
     if (!indicator) return;
 
     event.preventDefault(); // Prevent scrolling when interacting with indicators
@@ -163,12 +164,12 @@ export class MobileGestureManager {
   private handleTouchEnd(event: TouchEvent): void {
     const target = event.target as HTMLElement;
     const indicator = this.findIndicatorElement(target);
-    
+
     if (!indicator) return;
 
     const touch = event.changedTouches[0];
     const startTouch = this.activeTouches.get(touch.identifier);
-    
+
     if (!startTouch) return;
 
     const endTime = Date.now();
@@ -190,8 +191,8 @@ export class MobileGestureManager {
 
     if (distance < 10 && duration < 200) {
       this.handleTap(indicator, touch, endTime);
-    } else if (this.config.enableSwipeGestures && 
-               distance > this.config.swipeThreshold && 
+    } else if (this.config.enableSwipeGestures &&
+               distance > this.config.swipeThreshold &&
                velocity > this.config.velocityThreshold) {
       this.handleSwipe(indicator, deltaX, deltaY, velocity, event);
     }
@@ -226,7 +227,7 @@ export class MobileGestureManager {
 
   private handleTap(indicator: HTMLElement, touch: Touch, timestamp: number): void {
     const isDoubleTap = this.isDoubleTap(indicator, timestamp);
-    
+
     if (isDoubleTap) {
       this.handleDoubleTap(indicator, touch);
     } else {
@@ -239,7 +240,7 @@ export class MobileGestureManager {
 
   private handleSingleTap(indicator: HTMLElement, touch: Touch): void {
     this.triggerHapticFeedback('light');
-    
+
     // Dispatch custom tap event
     const gestureEvent: GestureEvent = {
       type: 'tap',
@@ -248,14 +249,14 @@ export class MobileGestureManager {
     };
 
     this.dispatchGestureEvent(indicator, 'truthlens:gesture-tap', gestureEvent);
-    
+
     // Default tap behavior - trigger indicator interaction
     indicator.click();
   }
 
   private handleDoubleTap(indicator: HTMLElement, touch: Touch): void {
     this.triggerHapticFeedback('medium');
-    
+
     const gestureEvent: GestureEvent = {
       type: 'double-tap',
       target: indicator,
@@ -263,7 +264,7 @@ export class MobileGestureManager {
     };
 
     this.dispatchGestureEvent(indicator, 'truthlens:gesture-double-tap', gestureEvent);
-    
+
     // Double tap could trigger level 3 disclosure directly
     indicator.dispatchEvent(new CustomEvent('truthlens:advanced-interaction', {
       detail: { action: 'double-tap', level: 3 }
@@ -272,7 +273,7 @@ export class MobileGestureManager {
 
   private handleLongPress(indicator: HTMLElement, touchPoint: TouchPoint): void {
     this.triggerHapticFeedback('heavy');
-    
+
     const gestureEvent: GestureEvent = {
       type: 'long-press',
       target: indicator,
@@ -280,7 +281,7 @@ export class MobileGestureManager {
     };
 
     this.dispatchGestureEvent(indicator, 'truthlens:gesture-long-press', gestureEvent);
-    
+
     // Long press could show context menu or quick actions
     indicator.dispatchEvent(new CustomEvent('truthlens:context-menu', {
       detail: { x: touchPoint.x, y: touchPoint.y }
@@ -288,17 +289,17 @@ export class MobileGestureManager {
   }
 
   private handleSwipe(
-    indicator: HTMLElement, 
-    deltaX: number, 
-    deltaY: number, 
+    indicator: HTMLElement,
+    deltaX: number,
+    deltaY: number,
     velocity: number,
     originalEvent: TouchEvent
   ): void {
     const direction = this.getSwipeDirection(deltaX, deltaY);
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
+
     this.triggerHapticFeedback('medium');
-    
+
     const gestureEvent: GestureEvent = {
       type: 'swipe',
       direction,
@@ -309,7 +310,7 @@ export class MobileGestureManager {
     };
 
     this.dispatchGestureEvent(indicator, 'truthlens:gesture-swipe', gestureEvent);
-    
+
     // Handle swipe actions based on direction
     switch (direction) {
       case 'up':
@@ -331,12 +332,12 @@ export class MobileGestureManager {
     }
   }
 
-  private handlePinchStart(event: TouchEvent, indicator: HTMLElement): void {
+  private handlePinchStart(event: TouchEvent, _indicator: HTMLElement): void {
     if (event.touches.length !== 2) return;
-    
+
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
-    
+
     this.initialDistance = this.getDistance(
       { x: touch1.clientX, y: touch1.clientY },
       { x: touch2.clientX, y: touch2.clientY }
@@ -345,20 +346,20 @@ export class MobileGestureManager {
 
   private handlePinchMove(event: TouchEvent, indicator: HTMLElement): void {
     if (event.touches.length !== 2) return;
-    
+
     const touch1 = event.touches[0];
     const touch2 = event.touches[1];
-    
+
     const currentDistance = this.getDistance(
       { x: touch1.clientX, y: touch1.clientY },
       { x: touch2.clientX, y: touch2.clientY }
     );
-    
+
     const scale = currentDistance / this.initialDistance;
-    
+
     // Visual feedback for pinch
     indicator.style.transform = `scale(${Math.max(0.8, Math.min(1.5, scale))})`;
-    
+
     // Dispatch pinch event
     const gestureEvent: GestureEvent = {
       type: 'pinch',
@@ -386,15 +387,15 @@ export class MobileGestureManager {
 
   private getTouchMovementDistance(): number {
     if (this.activeTouches.size === 0) return 0;
-    
+
     const touches = Array.from(this.activeTouches.values());
     let maxDistance = 0;
-    
-    for (const touch of touches) {
+
+    for (const _touch of touches) {
       // Calculate distance from initial position (simplified)
       maxDistance = Math.max(maxDistance, 10); // Placeholder calculation
     }
-    
+
     return maxDistance;
   }
 
@@ -402,7 +403,7 @@ export class MobileGestureManager {
     const timeDiff = timestamp - this.lastTapTime;
     const isSameTarget = this.lastTapTarget === indicator;
     const isWithinTimeWindow = timeDiff < 300; // 300ms window for double tap
-    
+
     return isSameTarget && isWithinTimeWindow;
   }
 
@@ -419,19 +420,19 @@ export class MobileGestureManager {
 
   private triggerHapticFeedback(intensity: 'light' | 'medium' | 'heavy'): void {
     if (!this.config.enableHapticFeedback || !('vibrate' in navigator)) return;
-    
+
     const patterns = {
       light: [10],
       medium: [20],
       heavy: [50, 50, 50]
     };
-    
+
     navigator.vibrate(patterns[intensity]);
   }
 
   private dispatchGestureEvent(
-    target: HTMLElement, 
-    eventName: string, 
+    target: HTMLElement,
+    eventName: string,
     gestureEvent: GestureEvent
   ): void {
     const customEvent = new CustomEvent(eventName, {
@@ -439,7 +440,7 @@ export class MobileGestureManager {
       bubbles: true,
       cancelable: true
     });
-    
+
     target.dispatchEvent(customEvent);
   }
 
@@ -459,7 +460,7 @@ export class MobileGestureManager {
   private resetGestureState(): void {
     this.activeTouches.clear();
     this.cancelLongPress();
-    
+
     // Remove active states from all indicators
     document.querySelectorAll('.truthlens-indicator.truthlens-touch-active')
       .forEach(el => el.classList.remove('truthlens-touch-active'));
@@ -472,11 +473,11 @@ export class MobileGestureManager {
   // Public methods
   public registerIndicator(id: string, indicator: BaseIndicator): void {
     this.indicators.set(id, indicator);
-    
+
     // Add touch-action CSS for better gesture handling
     const element = indicator.getElement();
     element.style.touchAction = 'manipulation';
-    
+
     // Add gesture-specific classes
     element.classList.add('truthlens-gesture-enabled');
   }
@@ -487,7 +488,7 @@ export class MobileGestureManager {
 
   public setGestureConfig(newConfig: Partial<GestureConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     if (!this.config.enableHapticFeedback) {
       // Disable haptic feedback if config changed
     }
@@ -500,11 +501,12 @@ export class MobileGestureManager {
   public calibrateForDevice(): void {
     // Adjust gesture thresholds based on device characteristics
     const screenWidth = window.screen.width;
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    
+    const _devicePixelRatio = window.devicePixelRatio || 1;
+    void _devicePixelRatio; // Suppress unused warning - reserved for future use
+
     // Adjust thresholds for high-DPI displays
     this.config.swipeThreshold = Math.max(30, screenWidth * 0.05);
-    
+
     // Adjust for device type (phone vs tablet)
     if (screenWidth > 768) {
       // Tablet adjustments
@@ -533,13 +535,13 @@ export class MobileGestureManager {
     document.removeEventListener('touchmove', this.handleTouchMove.bind(this));
     document.removeEventListener('touchend', this.handleTouchEnd.bind(this));
     document.removeEventListener('touchcancel', this.handleTouchCancel.bind(this));
-    
+
     window.removeEventListener('orientationchange', this.handleOrientationChange.bind(this));
-    
+
     if ('visualViewport' in window) {
       window.visualViewport!.removeEventListener('resize', this.handleViewportResize.bind(this));
     }
-    
+
     // Clean up state
     this.resetGestureState();
     this.indicators.clear();

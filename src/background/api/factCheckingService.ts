@@ -28,10 +28,10 @@ export class FactCheckingService {
 
       // Combine results
       const credibilityScore = this.combineResults(results, content);
-      
+
       // Cache the result
       await this.cacheResult(content.url, credibilityScore);
-      
+
       return credibilityScore;
 
     } catch (error) {
@@ -46,7 +46,7 @@ export class FactCheckingService {
   private static async checkWithPrimaryAPI(_content: ContentAnalysis): Promise<CredibilityScore> {
     // This would integrate with a real fact-checking API
     // For now, return a mock response
-    
+
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
@@ -67,7 +67,7 @@ export class FactCheckingService {
   private static async checkWithSecondaryAPI(_content: ContentAnalysis): Promise<CredibilityScore> {
     // This would integrate with a secondary fact-checking API
     // For now, return a mock response
-    
+
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
@@ -88,7 +88,7 @@ export class FactCheckingService {
   private static async performLocalAnalysis(content: ContentAnalysis): Promise<CredibilityScore> {
     // This would use local AI (Chrome Built-in AI) for analysis
     // For now, return a mock response based on content characteristics
-    
+
     let score = 50; // baseline
     const factors: string[] = [];
 
@@ -99,7 +99,7 @@ export class FactCheckingService {
         'reuters.com', 'bbc.com', 'ap.org', 'npr.org',
         'nytimes.com', 'washingtonpost.com', 'theguardian.com'
       ];
-      
+
       if (trustedDomains.some(trusted => domain.includes(trusted))) {
         score += 20;
         factors.push('Trusted news domain');
@@ -121,14 +121,14 @@ export class FactCheckingService {
         /this one trick/i,
         /doctors hate/i,
       ];
-      
-      if (clickbaitPatterns.some(pattern => pattern.test(content.title))) {
+
+      if (clickbaitPatterns.some(pattern => pattern.test(content.title!))) {
         score -= 15;
         factors.push('Potential clickbait title');
       }
     }
 
-    const level: 'high' | 'medium' | 'low' | 'unknown' = 
+    const level: 'high' | 'medium' | 'low' | 'unknown' =
       score >= 70 ? 'high' :
       score >= 50 ? 'medium' :
       score >= 30 ? 'low' : 'unknown';
@@ -151,7 +151,7 @@ export class FactCheckingService {
     _content: ContentAnalysis
   ): CredibilityScore {
     const successful = results
-      .filter((result): result is PromiseFulfilledResult<CredibilityScore> => 
+      .filter((result): result is PromiseFulfilledResult<CredibilityScore> =>
         result.status === 'fulfilled'
       )
       .map(result => result.value);
@@ -175,7 +175,7 @@ export class FactCheckingService {
     const finalScore = Math.round(weightedScore / totalWeight);
     const avgConfidence = totalWeight / successful.length;
 
-    const level: 'high' | 'medium' | 'low' | 'unknown' = 
+    const level: 'high' | 'medium' | 'low' | 'unknown' =
       finalScore >= 70 ? 'high' :
       finalScore >= 50 ? 'medium' :
       finalScore >= 30 ? 'low' : 'unknown';
@@ -212,11 +212,11 @@ export class FactCheckingService {
       const cacheKey = `credibility:${url}`;
       const result = await chrome.storage.local.get([cacheKey]);
       const cached = result[cacheKey];
-      
+
       if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
         return cached;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Cache read error:', error);

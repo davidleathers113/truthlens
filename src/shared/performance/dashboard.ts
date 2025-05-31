@@ -3,7 +3,7 @@
  * 2025 Best Practices with interactive charts and export functionality
  */
 
-import { PerformanceMetrics, DashboardConfig, MetricType, PerformanceMeasurement } from './types';
+import { DashboardConfig, MetricType, PerformanceMeasurement } from './types';
 
 interface ChartDataPoint {
   timestamp: number;
@@ -24,7 +24,16 @@ export class PerformanceDashboard {
   private config: DashboardConfig;
   private charts: Map<MetricType, HTMLElement> = new Map();
   private updateInterval: number | null = null;
-  private isVisible = false;
+  private _isVisible = false;
+
+  // Getter and setter for isVisible to maintain compatibility
+  get isVisible(): boolean {
+    return this._isVisible;
+  }
+
+  set isVisible(value: boolean) {
+    this._isVisible = value;
+  }
   private dataHistory: Map<MetricType, ChartDataPoint[]> = new Map();
 
   constructor(config: DashboardConfig) {
@@ -47,7 +56,7 @@ export class PerformanceDashboard {
     this.createContainer(containerId);
     this.createDashboardLayout();
     this.setupEventListeners();
-    
+
     if (this.config.enabled) {
       this.show();
     }
@@ -368,7 +377,7 @@ export class PerformanceDashboard {
     chartElements.forEach(element => {
       const metricType = element.getAttribute('data-metric') as MetricType;
       const config = chartConfigs[metricType];
-      
+
       if (config) {
         this.createChart(element as HTMLElement, metricType, config);
         this.charts.set(metricType, element as HTMLElement);
@@ -492,7 +501,7 @@ export class PerformanceDashboard {
     const svg = chartElement.querySelector('svg');
     const linePath = svg?.querySelector('.chart-line') as SVGPathElement;
     const areaPath = svg?.querySelector('.chart-area') as SVGPathElement;
-    
+
     if (!linePath || !areaPath) return;
 
     const maxValue = Math.max(...data.map(d => d.value));
@@ -630,10 +639,10 @@ export class PerformanceDashboard {
 
   private exportData(): void {
     const data = Object.fromEntries(this.dataHistory);
-    const blob = new Blob([JSON.stringify(data, null, 2)], { 
-      type: 'application/json' 
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json'
     });
-    
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -645,9 +654,9 @@ export class PerformanceDashboard {
   private clearData(): void {
     this.dataHistory.clear();
     this.initializeDataHistory();
-    
+
     // Clear all chart visuals
-    this.charts.forEach((element, metricType) => {
+    this.charts.forEach((element, _metricType) => {
       const valueElement = element.querySelector('.metric-value');
       if (valueElement) {
         valueElement.textContent = '--';
@@ -657,7 +666,7 @@ export class PerformanceDashboard {
       const svg = element.querySelector('svg');
       const linePath = svg?.querySelector('.chart-line') as SVGPathElement;
       const areaPath = svg?.querySelector('.chart-area') as SVGPathElement;
-      
+
       if (linePath) linePath.setAttribute('d', '');
       if (areaPath) areaPath.setAttribute('d', '');
     });

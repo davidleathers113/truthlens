@@ -3,10 +3,8 @@
  * Modern async/await error handling with retry mechanisms and structured logging
  */
 
-import { Result, AsyncResult, Ok, Err, withRetry } from '../types/result';
+import { Result, AsyncResult, Ok, Err } from '../types/result';
 import { logger } from '../services/logger';
-import { errorHandler } from '../services/errorHandler';
-import { TruthLensError } from '../types/error';
 
 export interface RetryConfig {
   maxRetries: number;
@@ -47,7 +45,7 @@ class AsyncErrorHandler {
       return Ok(result);
     } catch (error) {
       const errorContext = context || 'unknown-operation';
-      
+
       // Log the error with context
       logger.error('Async operation failed', {
         context: errorContext,
@@ -79,7 +77,7 @@ class AsyncErrorHandler {
         timeoutMs: config.timeoutMs,
         operation: operation.name
       });
-      
+
       return Err(error as Error);
     }
   }
@@ -98,7 +96,7 @@ class AsyncErrorHandler {
     for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
       try {
         const result = await operation();
-        
+
         if (attempt > 0) {
           logger.info('Operation succeeded after retry', {
             operation: operationName,
@@ -106,11 +104,11 @@ class AsyncErrorHandler {
             totalAttempts: attempt + 1
           });
         }
-        
+
         return Ok(result);
       } catch (error) {
         lastError = error as Error;
-        
+
         if (attempt === config.maxRetries) {
           logger.error('Operation failed after all retries', {
             operation: operationName,
@@ -161,11 +159,11 @@ class AsyncErrorHandler {
     config: CircuitBreakerConfig
   ): AsyncResult<T> {
     const breaker = this.getOrCreateCircuitBreaker(operationId, config);
-    
+
     // Check if circuit is open
     if (breaker.state === 'open') {
       const timeSinceLastFailure = Date.now() - breaker.lastFailure;
-      
+
       if (timeSinceLastFailure < config.resetTimeoutMs) {
         logger.warn('Circuit breaker is open', {
           operationId,
@@ -183,20 +181,20 @@ class AsyncErrorHandler {
 
     try {
       const result = await operation();
-      
+
       // Success - reset circuit breaker
       if (breaker.state === 'half-open') {
         breaker.state = 'closed';
         breaker.failures = 0;
         logger.info('Circuit breaker reset to closed', { operationId });
       }
-      
+
       return Ok(result);
     } catch (error) {
       // Failure - update circuit breaker
       breaker.failures++;
       breaker.lastFailure = Date.now();
-      
+
       if (breaker.failures >= config.failureThreshold) {
         breaker.state = 'open';
         logger.warn('Circuit breaker opened due to failures', {
@@ -205,13 +203,13 @@ class AsyncErrorHandler {
           threshold: config.failureThreshold
         });
       }
-      
+
       logger.error('Circuit breaker operation failed', {
         operationId,
         failures: breaker.failures,
         state: breaker.state
       }, error as Error);
-      
+
       return Err(error as Error);
     }
   }
@@ -228,19 +226,19 @@ class AsyncErrorHandler {
     } = {}
   ): Promise<Result<T[], Error[]>> {
     const { concurrency = operations.length, failFast = false, retryConfig } = options;
-    
+
     try {
       const results: T[] = [];
       const errors: Error[] = [];
-      
+
       // Execute operations in batches based on concurrency limit
       for (let i = 0; i < operations.length; i += concurrency) {
         const batch = operations.slice(i, i + concurrency);
-        
+
         const batchPromises = batch.map(async (operation, index) => {
           try {
             let result: T;
-            
+
             if (retryConfig) {
               const retryResult = await this.withRetry(operation, retryConfig, `parallel-${i + index}`);
               if (retryResult.success) {
@@ -251,21 +249,21 @@ class AsyncErrorHandler {
             } else {
               result = await operation();
             }
-            
+
             return { success: true, data: result, index: i + index };
           } catch (error) {
             return { success: false, error: error as Error, index: i + index };
           }
         });
-        
+
         const batchResults = await Promise.all(batchPromises);
-        
+
         for (const result of batchResults) {
           if (result.success) {
-            results[result.index] = result.data;
+            results[result.index] = result.data as T;
           } else {
-            errors.push(result.error);
-            
+            errors.push(result.error!);
+
             if (failFast) {
               logger.error('Parallel execution failed fast', {
                 totalOperations: operations.length,
@@ -277,7 +275,7 @@ class AsyncErrorHandler {
           }
         }
       }
-      
+
       if (errors.length > 0 && !failFast) {
         logger.warn('Parallel execution completed with errors', {
           totalOperations: operations.length,
@@ -285,7 +283,7 @@ class AsyncErrorHandler {
           failedOperations: errors.length
         });
       }
-      
+
       return Ok(results);
     } catch (error) {
       logger.error('Parallel execution framework error', {}, error as Error);
@@ -306,11 +304,11 @@ class AsyncErrorHandler {
     const { stopOnError = false, retryConfig } = options;
     const results: T[] = [];
     const errors: Error[] = [];
-    
+
     for (let i = 0; i < operations.length; i++) {
       try {
         let result: T;
-        
+
         if (retryConfig) {
           const retryResult = await this.withRetry(operations[i], retryConfig, `sequential-${i}`);
           if (retryResult.success) {
@@ -321,11 +319,11 @@ class AsyncErrorHandler {
         } else {
           result = await operations[i]();
         }
-        
+
         results.push(result);
       } catch (error) {
         errors.push(error as Error);
-        
+
         if (stopOnError) {
           logger.error('Sequential execution stopped on error', {
             totalOperations: operations.length,
@@ -336,7 +334,7 @@ class AsyncErrorHandler {
         }
       }
     }
-    
+
     if (errors.length > 0) {
       logger.warn('Sequential execution completed with errors', {
         totalOperations: operations.length,
@@ -344,7 +342,7 @@ class AsyncErrorHandler {
         failedOperations: errors.length
       });
     }
-    
+
     return errors.length === 0 ? Ok(results) : Err(errors);
   }
 
@@ -357,7 +355,7 @@ class AsyncErrorHandler {
     key: string
   ): () => Promise<T> {
     const debounceMap = new Map<string, { timer: number; resolve: Function; reject: Function }>();
-    
+
     return () => {
       return new Promise<T>((resolve, reject) => {
         // Clear existing timer if any
@@ -365,7 +363,7 @@ class AsyncErrorHandler {
         if (existing) {
           clearTimeout(existing.timer);
         }
-        
+
         // Set new timer
         const timer = window.setTimeout(async () => {
           try {
@@ -377,7 +375,7 @@ class AsyncErrorHandler {
             debounceMap.delete(key);
           }
         }, delayMs);
-        
+
         debounceMap.set(key, { timer, resolve, reject });
       });
     };
@@ -392,15 +390,15 @@ class AsyncErrorHandler {
     keyGenerator?: (...args: any[]) => string
   ): (...args: any[]) => Promise<T> {
     const cache = new Map<string, { data: T; timestamp: number }>();
-    
+
     return async (...args: any[]): Promise<T> => {
       const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
       const cached = cache.get(key);
-      
+
       if (cached && Date.now() - cached.timestamp < ttlMs) {
         return cached.data;
       }
-      
+
       try {
         const result = await operation(...args);
         cache.set(key, { data: result, timestamp: Date.now() });
@@ -413,7 +411,7 @@ class AsyncErrorHandler {
     };
   }
 
-  private getOrCreateCircuitBreaker(operationId: string, config: CircuitBreakerConfig) {
+  private getOrCreateCircuitBreaker(operationId: string, _config: CircuitBreakerConfig) {
     if (!this.circuitBreakers.has(operationId)) {
       this.circuitBreakers.set(operationId, {
         failures: 0,
@@ -434,7 +432,7 @@ class AsyncErrorHandler {
   public cleanupCircuitBreakers(): void {
     const now = Date.now();
     const cleanupThreshold = 5 * 60 * 1000; // 5 minutes
-    
+
     for (const [operationId, breaker] of this.circuitBreakers.entries()) {
       if (now - breaker.lastFailure > cleanupThreshold && breaker.state === 'closed') {
         this.circuitBreakers.delete(operationId);
@@ -447,7 +445,7 @@ class AsyncErrorHandler {
    */
   public getCircuitBreakerStatus(): Record<string, any> {
     const status: Record<string, any> = {};
-    
+
     for (const [operationId, breaker] of this.circuitBreakers.entries()) {
       status[operationId] = {
         state: breaker.state,
@@ -456,7 +454,7 @@ class AsyncErrorHandler {
         timeSinceLastFailure: Date.now() - breaker.lastFailure
       };
     }
-    
+
     return status;
   }
 }
@@ -481,8 +479,8 @@ export const retryConfigs = {
     backoffMultiplier: 2,
     retryWhen: (error: any) => {
       // Retry on network errors, timeouts, and 5xx status codes
-      return error.name === 'NetworkError' || 
-             error.name === 'TimeoutError' || 
+      return error.name === 'NetworkError' ||
+             error.name === 'TimeoutError' ||
              (error.status && error.status >= 500);
     }
   },

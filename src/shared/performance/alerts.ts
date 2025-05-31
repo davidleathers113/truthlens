@@ -38,7 +38,7 @@ export class AlertManager {
     if (!this.config.enabled) return;
 
     const alertKey = `${type}-${level}`;
-    
+
     // Check rate limiting
     if (!this.shouldTriggerAlert(alertKey)) {
       return;
@@ -134,7 +134,7 @@ export class AlertManager {
 
     try {
       let permission = Notification.permission;
-      
+
       if (permission === 'default') {
         permission = await Notification.requestPermission();
       }
@@ -142,13 +142,12 @@ export class AlertManager {
       if (permission === 'granted') {
         const title = `TruthLens Performance ${alert.level.toUpperCase()}`;
         const body = `${alert.type}: ${alert.value.toFixed(2)} ${this.getMetricUnit(alert.type)}`;
-        
+
         const notification = new Notification(title, {
           body,
           icon: '/icons/icon48.png',
           badge: '/icons/icon16.png',
           tag: `truthlens-performance-${alert.type}`,
-          renotify: true,
           requireInteraction: alert.level === 'critical'
         });
 
@@ -186,7 +185,7 @@ export class AlertManager {
     try {
       const color = alert.level === 'critical' ? '#ff0000' : '#ffaa00';
       const emoji = alert.level === 'critical' ? '🚨' : '⚠️';
-      
+
       const payload = {
         text: `${emoji} TruthLens Performance Alert`,
         attachments: [{
@@ -227,7 +226,7 @@ export class AlertManager {
     // Note: In a real implementation, this would use a backend service
     // For browser extensions, this could integrate with a cloud function
     console.log('[AlertManager] Email alert would be sent to:', this.config.emailRecipients);
-    
+
     // This could be implemented as a message to the background script
     // which then calls a cloud function or API endpoint
     try {

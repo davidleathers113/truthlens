@@ -4,8 +4,8 @@
 import { ContentExtractor } from './extractors/contentExtractor';
 import { IndicatorManager } from './indicators/indicatorManager';
 // Import enhanced manager for modern features
-import { EnhancedIndicatorManager } from './indicators/enhanced-indicator-manager';
-import { PlatformAnalyzer } from './analyzers/platformAnalyzer';
+// import { EnhancedIndicatorManager } from './indicators/enhanced-indicator-manager';
+import { PlatformAnalyzer, SocialContent } from './analyzers/platformAnalyzer';
 import { MessageHandler } from './utils/messageHandler';
 import { ContentAnalysis } from '@shared/types';
 
@@ -44,20 +44,21 @@ class TruthLensContent {
     try {
       // Extract content from the page
       const content = await this.extractor.extractPageContent();
-      
+
       // Check if it's a supported social media platform
       const platformData = this.platformAnalyzer.analyzePlatform();
-      
+
       if (platformData) {
         content.platform = platformData.platform;
         content.type = 'social-post';
-        
+
         // Extract platform-specific content
         const socialContent = await this.platformAnalyzer.extractContent();
         if (socialContent.length > 0) {
-          // Analyze each piece of content
+          // Convert social content to content analysis format and analyze
           for (const item of socialContent) {
-            await this.analyzeContent(item);
+            const contentAnalysis = this.convertSocialContentToAnalysis(item);
+            await this.analyzeContent(contentAnalysis);
           }
         }
       } else {
@@ -104,7 +105,7 @@ class TruthLensContent {
       timeout = setTimeout(() => {
         // Check if significant content was added
         const hasSignificantChanges = mutations.some((mutation) => {
-          return mutation.addedNodes.length > 0 && 
+          return mutation.addedNodes.length > 0 &&
                  Array.from(mutation.addedNodes).some((node) => {
                    return node.nodeType === Node.ELEMENT_NODE &&
                           (node as Element).querySelector('article, .post, .tweet, [role="article"]');
@@ -128,18 +129,45 @@ class TruthLensContent {
           this.indicatorManager.hideAllIndicators();
         }
         break;
-      
+
       case 'CREDIBILITY_UPDATE':
         // Handle credibility updates from background
         if (message.payload) {
           this.indicatorManager.updateIndicator(message.payload);
         }
         break;
-        
+
       case 'CLEAR_INDICATORS':
         this.indicatorManager.hideAllIndicators();
         break;
     }
+  }
+
+  /**
+   * Convert SocialContent to ContentAnalysis format (2025 TypeScript best practices)
+   */
+  private convertSocialContentToAnalysis(socialContent: SocialContent): ContentAnalysis {
+    // Create minimal SourceAnalysis since SocialContent lacks this data
+    const sourceAnalysis = {
+      domain: window.location.hostname,
+      credibility: {
+        score: 50, // Default unknown score
+        level: 'unknown' as const,
+        confidence: 0.1,
+        reasoning: 'Social media content - requires analysis',
+        source: 'fallback' as const,
+        timestamp: Date.now()
+      }
+    };
+
+    return {
+      url: window.location.href,
+      title: socialContent.text?.substring(0, 100) || 'Social media post',
+      content: socialContent.text || '',
+      type: 'social-post' as const,
+      platform: socialContent.platform,
+      analysis: sourceAnalysis
+    };
   }
 
   cleanup(): void {

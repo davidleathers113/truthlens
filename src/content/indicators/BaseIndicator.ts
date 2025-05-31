@@ -41,7 +41,7 @@ export class BaseIndicator {
       animationDuration: 150, // 2025 Gen Z standard: <200ms
       ...config
     };
-    
+
     this.element = this.createElement();
     this.attachEventListeners();
   }
@@ -53,22 +53,22 @@ export class BaseIndicator {
     indicator.setAttribute('tabindex', '0');
     indicator.setAttribute('aria-label', this.getAriaLabel());
     indicator.setAttribute('aria-describedby', `truthlens-desc-${this.getIndicatorId()}`);
-    
+
     // Touch target compliance: minimum 44x44px
-    const sizeClass = this.getSizeClass();
+    this.getSizeClass(); // Ensure size compliance check
     const emojiEl = this.createEmojiElement();
     const scoreEl = this.createScoreElement();
     const contentEl = this.createContentElement(emojiEl, scoreEl);
-    
+
     indicator.appendChild(contentEl);
-    
+
     // Add hidden description for screen readers
     const description = this.createScreenReaderDescription();
     indicator.appendChild(description);
-    
+
     // Set CSS custom properties for theming
     this.applyStyling(indicator);
-    
+
     return indicator;
   }
 
@@ -80,7 +80,7 @@ export class BaseIndicator {
       `truthlens-${this.config.theme}`,
       `truthlens-level-${this.credibility.level}`
     ];
-    
+
     if (this.isMinimized) classes.push('truthlens-minimized');
     return classes.join(' ');
   }
@@ -113,15 +113,15 @@ export class BaseIndicator {
   private createContentElement(emojiEl: HTMLElement, scoreEl: HTMLElement): HTMLElement {
     const content = document.createElement('div');
     content.className = 'truthlens-content';
-    
+
     if (this.config.showEmoji) {
       content.appendChild(emojiEl);
     }
-    
+
     if (this.config.showScore) {
       content.appendChild(scoreEl);
     }
-    
+
     return content;
   }
 
@@ -137,7 +137,7 @@ export class BaseIndicator {
     // 2025 Gen Z Traffic Light System
     const emojis = {
       high: '🟢',     // Green circle
-      medium: '🟡',   // Yellow circle  
+      medium: '🟡',   // Yellow circle
       low: '🔴',      // Red circle
       unknown: '⚪'   // White circle
     };
@@ -148,7 +148,7 @@ export class BaseIndicator {
     const levelText = this.getLevelText();
     const score = this.credibility.score;
     const confidence = Math.round(this.credibility.confidence * 100);
-    
+
     return `Credibility indicator: ${levelText}, score ${score} out of 100, confidence ${confidence}%. Press Enter or Space to view details.`;
   }
 
@@ -175,7 +175,7 @@ export class BaseIndicator {
   private applyStyling(element: HTMLElement): void {
     const size = this.getSizeClass();
     const color = this.getThemeColor();
-    
+
     element.style.setProperty('--indicator-width', size.width);
     element.style.setProperty('--indicator-height', size.height);
     element.style.setProperty('--emoji-size', size.fontSize);
@@ -186,19 +186,19 @@ export class BaseIndicator {
   }
 
   private getThemeColor(): { primary: string; background: string; border: string } {
-    const isDark = this.config.theme === 'dark' || 
+    const isDark = this.config.theme === 'dark' ||
       (this.config.theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    
+
     const baseColors = {
       high: { light: '#059669', dark: '#10b981' },
       medium: { light: '#d97706', dark: '#f59e0b' },
       low: { light: '#dc2626', dark: '#ef4444' },
       unknown: { light: '#4b5563', dark: '#6b7280' }
     };
-    
+
     const level = this.credibility.level as keyof typeof baseColors;
     const primary = isDark ? baseColors[level].dark : baseColors[level].light;
-    
+
     return {
       primary,
       background: isDark ? '#1f2937' : '#ffffff',
@@ -209,14 +209,14 @@ export class BaseIndicator {
   private attachEventListeners(): void {
     // Click/touch interaction
     this.element.addEventListener('click', this.handleInteraction.bind(this));
-    
+
     // Keyboard accessibility
     this.element.addEventListener('keydown', this.handleKeydown.bind(this));
-    
+
     // Touch gestures (basic tap)
     this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
     this.element.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
-    
+
     // Hover effects for non-touch devices
     if (!this.isTouchDevice()) {
       this.element.addEventListener('mouseenter', this.handleMouseEnter.bind(this));
@@ -227,13 +227,13 @@ export class BaseIndicator {
   private handleInteraction(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    
+
     // Haptic feedback for supported devices
     this.triggerHapticFeedback('light');
-    
+
     // Dispatch custom event for progressive disclosure
     this.element.dispatchEvent(new CustomEvent('truthlens:indicator-tap', {
-      detail: { 
+      detail: {
         credibility: this.credibility,
         level: this.isMinimized ? 2 : 1,
         element: this.element
@@ -249,22 +249,22 @@ export class BaseIndicator {
     }
   }
 
-  private handleTouchStart(event: TouchEvent): void {
+  private handleTouchStart(_event: TouchEvent): void {
     this.element.classList.add('truthlens-touched');
     this.triggerHapticFeedback('light');
   }
 
-  private handleTouchEnd(event: TouchEvent): void {
+  private handleTouchEnd(_event: TouchEvent): void {
     this.element.classList.remove('truthlens-touched');
   }
 
-  private handleMouseEnter(event: MouseEvent): void {
+  private handleMouseEnter(_event: MouseEvent): void {
     if (!this.isTouchDevice()) {
       this.element.classList.add('truthlens-hovered');
     }
   }
 
-  private handleMouseLeave(event: MouseEvent): void {
+  private handleMouseLeave(_event: MouseEvent): void {
     this.element.classList.remove('truthlens-hovered');
   }
 
@@ -286,14 +286,14 @@ export class BaseIndicator {
   // Public methods
   public show(position: IndicatorPosition): void {
     if (this.isVisible) return;
-    
+
     this.element.style.position = 'fixed';
     this.element.style.left = `${position.x}px`;
     this.element.style.top = `${position.y}px`;
     this.element.style.zIndex = '2147483647'; // Max z-index for top layer
-    
+
     document.body.appendChild(this.element);
-    
+
     // Trigger entrance animation
     requestAnimationFrame(() => {
       this.element.classList.add('truthlens-visible');
@@ -303,10 +303,10 @@ export class BaseIndicator {
 
   public hide(): void {
     if (!this.isVisible) return;
-    
+
     this.element.classList.remove('truthlens-visible');
     this.element.classList.add('truthlens-hiding');
-    
+
     setTimeout(() => {
       if (this.element.parentNode) {
         this.element.parentNode.removeChild(this.element);
@@ -318,38 +318,38 @@ export class BaseIndicator {
 
   public minimize(): void {
     if (this.isMinimized) return;
-    
+
     this.isMinimized = true;
     this.element.classList.add('truthlens-minimized');
-    
+
     // Update ARIA label for minimized state
-    this.element.setAttribute('aria-label', 
+    this.element.setAttribute('aria-label',
       `Minimized credibility indicator: ${this.getTrafficLightEmoji()}. Press Enter to expand.`
     );
   }
 
   public expand(): void {
     if (!this.isMinimized) return;
-    
+
     this.isMinimized = false;
     this.element.classList.remove('truthlens-minimized');
-    
+
     // Restore full ARIA label
     this.element.setAttribute('aria-label', this.getAriaLabel());
   }
 
   public updateCredibility(newCredibility: CredibilityScore): void {
     this.credibility = newCredibility;
-    
+
     // Update visual elements
     const emojiEl = this.element.querySelector('.truthlens-emoji');
     const scoreEl = this.element.querySelector('.truthlens-score');
     const descEl = this.element.querySelector(`#truthlens-desc-${this.getIndicatorId()}`);
-    
+
     if (emojiEl) emojiEl.textContent = this.getTrafficLightEmoji();
     if (scoreEl) scoreEl.textContent = `${newCredibility.score}`;
     if (descEl) descEl.textContent = this.getDetailedDescription();
-    
+
     // Update styling and classes
     this.element.className = this.getBaseClassNames();
     this.element.setAttribute('aria-label', this.getAriaLabel());

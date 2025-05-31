@@ -4,7 +4,7 @@
  */
 
 import { PerformanceMonitor } from './monitor';
-import { ExtensionContext, ServiceWorkerMetrics } from './types';
+import { ExtensionContext } from './types';
 
 export class ServiceWorkerIntegration {
   private monitor: PerformanceMonitor;
@@ -20,20 +20,20 @@ export class ServiceWorkerIntegration {
   private setupServiceWorkerHooks(): void {
     // Monitor service worker lifecycle
     this.monitorServiceWorkerLifecycle();
-    
+
     // Hook into extension API calls
     this.hookExtensionAPIs();
-    
+
     // Monitor message passing performance
     this.setupMessagePerformanceTracking();
-    
+
     // Monitor AI processing performance
     this.setupAIProcessingHooks();
   }
 
   private monitorServiceWorkerLifecycle(): void {
     const startTime = performance.now();
-    
+
     // Record service worker start time
     this.monitor.recordServiceWorkerMetrics({
       startTime,
@@ -69,7 +69,7 @@ export class ServiceWorkerIntegration {
       const now = Date.now();
       // Remove old messages (older than 30 seconds)
       this.messageQueue = this.messageQueue.filter(msg => now - msg.timestamp < 30000);
-      
+
       // If no recent messages and we should be active, potential restart detected
       if (this.messageQueue.length === 0 && this.isActive) {
         console.warn('[ServiceWorkerIntegration] Potential service worker restart detected');
@@ -99,10 +99,10 @@ export class ServiceWorkerIntegration {
         api[methodName] = (...args: any[]) => {
           const measurementId = `chrome.${namespace}.${methodName}`;
           this.monitor.startMeasurement(measurementId);
-          
+
           try {
             const result = originalMethod.apply(api, args);
-            
+
             // Handle promise-based APIs
             if (result && typeof result.then === 'function') {
               return result.finally(() => {
@@ -132,10 +132,10 @@ export class ServiceWorkerIntegration {
   private setupMessagePerformanceTracking(): void {
     // Hook into runtime.onMessage for latency tracking
     if (chrome?.runtime?.onMessage) {
-      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
         const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const startTime = performance.now();
-        
+
         this.messageQueue.push({
           id: messageId,
           timestamp: Date.now()
@@ -148,7 +148,7 @@ export class ServiceWorkerIntegration {
           this.monitor.recordServiceWorkerMetrics({
             messageLatency: [latency]
           });
-          
+
           return originalSendResponse(response);
         };
 
@@ -191,7 +191,7 @@ export class ServiceWorkerIntegration {
       aiApi.languageModel.create = async (...args: any[]) => {
         const measurementId = 'ai-model-create';
         this.monitor.startMeasurement(measurementId);
-        
+
         try {
           const result = await originalCreate.apply(aiApi.languageModel, args);
           this.monitor.endMeasurement(measurementId);
@@ -241,13 +241,13 @@ export class ContentScriptIntegration {
   private setupContentScriptHooks(): void {
     // Monitor DOM manipulation performance
     this.setupDOMPerformanceTracking();
-    
+
     // Monitor visual indicator impact
     this.setupIndicatorPerformanceTracking();
-    
+
     // Monitor page load impact
     this.setupPageLoadImpactTracking();
-    
+
     // Monitor scroll performance
     this.setupScrollPerformanceTracking();
   }
@@ -260,11 +260,11 @@ export class ContentScriptIntegration {
 
       mutations.forEach(mutation => {
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          const truthlensNodes = Array.from(mutation.addedNodes).filter(node => 
+          const truthlensNodes = Array.from(mutation.addedNodes).filter(node =>
             node.nodeType === Node.ELEMENT_NODE &&
             (node as Element).className?.includes('truthlens')
           );
-          
+
           if (truthlensNodes.length > 0) {
             significantChanges += truthlensNodes.length;
           }
@@ -274,7 +274,7 @@ export class ContentScriptIntegration {
       if (significantChanges > 0) {
         const processingTime = performance.now() - startTime;
         this.monitor.recordMeasurement('pageLoadImpact', processingTime, {
-          metadata: { 
+          metadata: {
             type: 'dom-mutation',
             elementCount: significantChanges,
             source: 'truthlens'
@@ -298,7 +298,7 @@ export class ContentScriptIntegration {
     window.addEventListener('truthlens:indicator-created', (event) => {
       const { duration, indicatorId } = (event as CustomEvent).detail;
       this.indicatorCount++;
-      
+
       this.monitor.recordMeasurement('responseTime', duration, {
         metadata: {
           type: 'indicator-creation',
@@ -321,7 +321,7 @@ export class ContentScriptIntegration {
     if ('memory' in performance) {
       const memoryInfo = (performance as any).memory;
       const estimatedIndicatorMemory = this.indicatorCount * 50000; // Estimate 50KB per indicator
-      
+
       this.monitor.recordMeasurement('memoryUsage', memoryInfo.usedJSHeapSize, {
         metadata: {
           estimatedIndicatorMemory,
@@ -337,12 +337,12 @@ export class ContentScriptIntegration {
       // Measure time from navigation start to load complete
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       if (navigation) {
-        const loadTime = navigation.loadEventEnd - navigation.navigationStart;
-        
+        const loadTime = navigation.loadEventEnd - navigation.startTime;
+
         // Estimate extension impact (this is approximate)
         const extensionElements = document.querySelectorAll('[class*="truthlens"]').length;
         const estimatedImpact = extensionElements * 10; // Estimate 10ms per element
-        
+
         this.monitor.recordMeasurement('pageLoadImpact', estimatedImpact, {
           metadata: {
             totalLoadTime: loadTime,
@@ -361,11 +361,11 @@ export class ContentScriptIntegration {
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach(entry => {
         const resource = entry as PerformanceResourceTiming;
-        
+
         // Check if this is an extension resource
-        if (resource.name.includes('chrome-extension://') || 
+        if (resource.name.includes('chrome-extension://') ||
             resource.name.includes('truthlens')) {
-          
+
           const loadTime = resource.responseEnd - resource.requestStart;
           this.monitor.recordMeasurement('pageLoadImpact', loadTime, {
             metadata: {
@@ -396,7 +396,7 @@ export class ContentScriptIntegration {
     const onScrollEnd = () => {
       if (isScrolling) {
         const scrollDuration = performance.now() - scrollStartTime;
-        
+
         // Only record if scroll took longer than 16ms (60fps threshold)
         if (scrollDuration > 16) {
           this.monitor.recordMeasurement('responseTime', scrollDuration, {
@@ -406,7 +406,7 @@ export class ContentScriptIntegration {
             }
           });
         }
-        
+
         isScrolling = false;
       }
     };
@@ -414,7 +414,7 @@ export class ContentScriptIntegration {
     let scrollTimeout: number;
     window.addEventListener('scroll', () => {
       onScrollStart();
-      
+
       clearTimeout(scrollTimeout);
       scrollTimeout = window.setTimeout(onScrollEnd, 150);
     }, { passive: true });
@@ -450,7 +450,7 @@ export class ContentScriptIntegration {
       this.domObserver.disconnect();
       this.domObserver = null;
     }
-    
+
     this.indicatorCount = 0;
     this.lastDOMModification = 0;
   }

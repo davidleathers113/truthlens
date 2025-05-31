@@ -18,7 +18,7 @@ class Logger {
   constructor(context: ExtensionContextType, config?: Partial<LogConfig>) {
     this.context = context;
     this.sessionId = this.generateSessionId();
-    
+
     // Default configuration (Pino-inspired, 2025 optimized)
     this.config = {
       level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
@@ -101,7 +101,7 @@ class Logger {
     if (!data || typeof data !== 'object') return data;
 
     const sanitized = { ...data };
-    
+
     // Remove blocked fields
     this.config.privacy.blockedFields.forEach(field => {
       if (field in sanitized) {
@@ -133,13 +133,13 @@ class Logger {
     try {
       const urlObj = new URL(url);
       const sensitiveParams = ['token', 'key', 'password', 'secret', 'auth'];
-      
+
       sensitiveParams.forEach(param => {
         if (urlObj.searchParams.has(param)) {
           urlObj.searchParams.set(param, '[REDACTED]');
         }
       });
-      
+
       return urlObj.toString();
     } catch {
       return '[INVALID_URL]';
@@ -190,14 +190,14 @@ class Logger {
 
   private async getAnonymousUserId(): Promise<string | undefined> {
     try {
-      const stored = await storageService.get(['anonymousUserId']);
-      if (stored.anonymousUserId) {
-        return stored.anonymousUserId;
+      const stored = await storageService.get('anonymousUserId');
+      if (stored) {
+        return stored;
       }
 
       // Generate anonymous ID if not exists
       const anonymousId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
-      await storageService.set({ anonymousUserId: anonymousId });
+      await storageService.set('anonymousUserId', anonymousId);
       return anonymousId;
     } catch {
       return undefined;
@@ -228,7 +228,7 @@ class Logger {
   }
 
   private writeToConsole(entry: LogEntry): void {
-    const formatted = this.config.structured 
+    const formatted = this.config.structured
       ? JSON.stringify(entry, null, 2)
       : `[${entry.level.toUpperCase()}] ${entry.message}`;
 
@@ -273,22 +273,22 @@ class Logger {
       const logsToFlush = [...this.logQueue];
       this.logQueue = []; // Clear queue immediately
 
-      const existingLogs = await storageService.get(['logs']);
-      const allLogs = [...(existingLogs.logs || []), ...logsToFlush];
+      const existingLogs = await storageService.get('logs');
+      const allLogs = [...(existingLogs || []), ...logsToFlush];
 
       // Limit total stored logs
       const maxStoredLogs = 1000;
       const logsToStore = allLogs.slice(-maxStoredLogs);
 
-      await storageService.set({ logs: logsToStore });
-    } catch (error) {
-      console.error('[Logger] Failed to flush logs to storage:', error);
+      await storageService.set('logs', logsToStore);
+    } catch (_error) {
+      console.error('[Logger] Failed to flush logs to storage:', _error);
       // Put logs back in queue for retry
       this.logQueue.unshift(...this.logQueue);
     }
   }
 
-  private async sendToRemote(entry: LogEntry): Promise<void> {
+  private async sendToRemote(_entry: LogEntry): Promise<void> {
     // Implementation would depend on chosen remote logging service
     // This is a placeholder for services like Sentry, LogRocket, etc.
     console.debug('[Logger] Remote logging not implemented');
@@ -296,21 +296,21 @@ class Logger {
 
   private async cleanupOldLogs(): Promise<void> {
     try {
-      const existingLogs = await storageService.get(['logs']);
-      if (!existingLogs.logs) return;
+      const existingLogs = await storageService.get('logs');
+      if (!existingLogs) return;
 
       const cutoffTime = Date.now() - (this.config.retentionDays * 24 * 60 * 60 * 1000);
-      const filteredLogs = existingLogs.logs.filter((log: LogEntry) => log.timestamp > cutoffTime);
+      const filteredLogs = existingLogs.filter((log: LogEntry) => log.timestamp > cutoffTime);
 
-      if (filteredLogs.length !== existingLogs.logs.length) {
-        await storageService.set({ logs: filteredLogs });
+      if (filteredLogs.length !== existingLogs.length) {
+        await storageService.set('logs', filteredLogs);
         this.info('Cleaned up old logs', {
-          removed: existingLogs.logs.length - filteredLogs.length,
+          removed: existingLogs.length - filteredLogs.length,
           remaining: filteredLogs.length
         });
       }
-    } catch (error) {
-      console.error('[Logger] Failed to cleanup old logs:', error);
+    } catch (_error) {
+      console.error('[Logger] Failed to cleanup old logs:', _error);
     }
   }
 
@@ -318,7 +318,7 @@ class Logger {
 
   public debug(message: string, data?: Record<string, any>): void {
     if (!this.shouldLog('debug') || !this.shouldSample('debug')) return;
-    
+
     this.createLogEntry('debug', message, data).then(entry => {
       this.writeLog(entry);
     });
@@ -326,7 +326,7 @@ class Logger {
 
   public info(message: string, data?: Record<string, any>): void {
     if (!this.shouldLog('info') || !this.shouldSample('info')) return;
-    
+
     this.createLogEntry('info', message, data).then(entry => {
       this.writeLog(entry);
     });
@@ -334,7 +334,7 @@ class Logger {
 
   public warn(message: string, data?: Record<string, any>, error?: Error): void {
     if (!this.shouldLog('warn')) return;
-    
+
     this.createLogEntry('warn', message, data, error).then(entry => {
       this.writeLog(entry);
     });
@@ -342,7 +342,7 @@ class Logger {
 
   public error(message: string, data?: Record<string, any>, error?: Error): void {
     if (!this.shouldLog('error')) return;
-    
+
     this.createLogEntry('error', message, data, error).then(entry => {
       this.writeLog(entry);
     });
@@ -350,7 +350,7 @@ class Logger {
 
   public fatal(message: string, data?: Record<string, any>, error?: Error): void {
     if (!this.shouldLog('fatal')) return;
-    
+
     this.createLogEntry('fatal', message, data, error).then(entry => {
       this.writeLog(entry);
     });
@@ -396,9 +396,9 @@ class Logger {
   // Log export functionality
   public async exportLogs(): Promise<string> {
     try {
-      const existingLogs = await storageService.get(['logs']);
-      const logs = existingLogs.logs || [];
-      
+      const existingLogs = await storageService.get('logs');
+      const logs = existingLogs || [];
+
       const exportData = {
         exportedAt: new Date().toISOString(),
         extension: chrome.runtime.getManifest().name,
@@ -428,10 +428,10 @@ class Logger {
       clearInterval(this.flushTimer);
       this.flushTimer = null;
     }
-    
+
     // Flush any remaining logs
     this.flushToStorage();
-    
+
     this.info('Logger cleanup completed');
   }
 
@@ -449,8 +449,8 @@ class Logger {
     sessionLogs: number;
   }> {
     try {
-      const existingLogs = await storageService.get(['logs']);
-      const logs = existingLogs.logs || [];
+      const existingLogs = await storageService.get('logs');
+      const logs = existingLogs || [];
 
       const logsByLevel: Record<string, number> = {};
       let sessionLogs = 0;

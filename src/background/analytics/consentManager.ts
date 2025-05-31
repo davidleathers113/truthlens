@@ -54,6 +54,7 @@ export class ConsentManager {
       analyticsConsent: consentData.analyticsConsent || false,
       performanceConsent: consentData.performanceConsent || false,
       abTestingConsent: consentData.abTestingConsent || false,
+      aiProcessingConsent: consentData.aiProcessingConsent || false,
       consentTimestamp: Date.now(),
       consentVersion: this.CONSENT_VERSION,
       ipAddress: undefined, // Not collected for privacy
@@ -239,7 +240,7 @@ export class ConsentManager {
   private isConsentCurrent(consent: ConsentData): boolean {
     const consentAge = Date.now() - consent.consentTimestamp;
     const oneYear = 365 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
-    
+
     return consentAge < oneYear && consent.consentVersion === this.CONSENT_VERSION;
   }
 
@@ -280,7 +281,7 @@ export class ConsentManager {
   private async cleanOldAuditEntries(): Promise<void> {
     const items = await chrome.storage.sync.get();
     const twoYearsAgo = Date.now() - (2 * 365 * 24 * 60 * 60 * 1000);
-    
+
     const keysToRemove = Object.keys(items).filter(key => {
       if (key.startsWith('audit_')) {
         const timestamp = parseInt(key.split('_')[1]);
@@ -299,7 +300,7 @@ export class ConsentManager {
    */
   private async clearAnalyticsData(): Promise<void> {
     const items = await chrome.storage.local.get();
-    const analyticsKeys = Object.keys(items).filter(key => 
+    const analyticsKeys = Object.keys(items).filter(key =>
       key.startsWith('analytics_') || key.startsWith('performance_') || key.startsWith('business_')
     );
 
@@ -313,7 +314,7 @@ export class ConsentManager {
    */
   private async getDataRetentionInfo(): Promise<any> {
     const settings = await this.storage.getSettings();
-    
+
     return {
       retentionPeriod: `${settings.privacy.cacheDuration} hours`,
       localProcessingOnly: settings.privacy.localProcessingOnly,
@@ -343,11 +344,11 @@ export class ConsentManager {
     const consent = await this.getConsent();
     const settings = await this.storage.getSettings();
     const subscription = await this.storage.getSubscription();
-    
+
     // Get all analytics data
     const analyticsData = await chrome.storage.local.get();
     const userAnalytics = Object.fromEntries(
-      Object.entries(analyticsData).filter(([key]) => 
+      Object.entries(analyticsData).filter(([key]) =>
         key.startsWith('analytics_') || key.startsWith('performance_') || key.startsWith('business_')
       )
     );

@@ -42,7 +42,7 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [isSearchMode, setIsSearchMode] = useState(false);
-   
+
   // @ts-ignore - Reserved for future category filtering feature
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 

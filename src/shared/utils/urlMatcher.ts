@@ -3,15 +3,17 @@
  * Replaces regex-based URL parsing with url-pattern and url-parse libraries
  */
 
-import UrlPattern = require('url-pattern');
-import urlParse = require('url-parse');
+// @ts-expect-error - url-pattern doesn't have proper ES module types
+import UrlPattern from 'url-pattern';
+// @ts-expect-error - url-parse doesn't have proper ES module types
+import urlParse from 'url-parse';
 
 export interface ContentMatch {
   platform: string;
   contentType: string;
   contentId?: string;
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UrlPatternConfig {
@@ -19,7 +21,7 @@ export interface UrlPatternConfig {
   patterns: {
     pattern: UrlPattern;
     contentType: string;
-    extractor: (match: any, url: any) => ContentMatch;
+    extractor: (match: Record<string, string>, url: urlParse<Record<string, string>>) => ContentMatch;
   }[];
 }
 

@@ -17,6 +17,7 @@
 4. **Naming** camelCase vars/fns ⋅ PascalCase components/classes
 5. **Errors** Wrap async/await in try/catch ⋅ surface with Result<>
 6. **Comments** Explain *why*, not *what* ⋅ omit obvious boilerplate
+7. **Modules** Always use ES module syntax instead of CommonJS
 
 ## 🔄 Workflow
 > **lint → typecheck → test → commit**

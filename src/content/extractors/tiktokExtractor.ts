@@ -780,7 +780,7 @@ export class TikTokExtractor implements IExtractor {
    * Handle "Load more comments" pagination
    * @private - Currently unused but reserved for future comment pagination features
    */
-   
+
   // @ts-ignore - Unused but reserved for future features
   private async loadMoreComments(container: Element, comments: TikTokComment[]): Promise<void> {
     const maxLoadAttempts = 5;
@@ -1136,7 +1136,7 @@ export class TikTokExtractor implements IExtractor {
    * Check if there are more comments to load
    * @private - Currently unused but reserved for future comment pagination features
    */
-   
+
   // @ts-ignore - Unused but reserved for future features
   private hasMoreCommentsToLoad(): boolean {
     return this.findElementWithSelectors(TikTokSelectors.comments.loadMore) !== null;

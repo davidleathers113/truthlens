@@ -1,0 +1,497 @@
+/**
+ * Premium Feature Indicator Component Styles
+ * Following 2025 design patterns with modern CSS features and accessibility
+ */
+
+/* Base indicator styles */
+.premium-feature-indicator {
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Badge variant */
+.premium-feature-indicator.variant-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  min-height: 2.5rem;
+}
+
+.premium-feature-indicator.variant-badge.needs-upgrade {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-color: #f59e0b;
+}
+
+.premium-feature-indicator.variant-badge.has-access {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border-color: #10b981;
+}
+
+.feature-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.feature-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.feature-name {
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tier-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.upgrade-badge {
+  padding: 0.375rem 0.75rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.upgrade-badge:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.upgrade-badge:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Card variant */
+.premium-feature-indicator.variant-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.premium-feature-indicator.variant-card.needs-upgrade {
+  border-color: #f59e0b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(245, 158, 11, 0.1);
+}
+
+.premium-feature-indicator.variant-card.has-access {
+  border-color: #10b981;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(16, 185, 129, 0.1);
+}
+
+.premium-feature-indicator.variant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.feature-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.feature-title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.feature-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.feature-status {
+  flex-shrink: 0;
+}
+
+.access-badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.access-badge.available {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.access-badge.premium {
+  /* Colors set via inline styles based on tier */
+}
+
+.feature-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.feature-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.learn-more-button {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.learn-more-button:hover {
+  background: #f8fafc;
+  color: #374151;
+  border-color: #9ca3af;
+}
+
+.upgrade-button {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.upgrade-button:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+}
+
+.upgrade-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Inline variant */
+.premium-feature-indicator.variant-inline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.premium-feature-indicator.variant-inline.needs-upgrade:hover {
+  opacity: 0.8;
+}
+
+.inline-icon {
+  font-size: 0.875rem;
+  margin-left: 0.25rem;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  white-space: nowrap;
+  animation: tooltip-appear 0.2s ease;
+}
+
+.tooltip-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #1f2937;
+  color: white;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-upgrade {
+  padding: 0.25rem 0.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #1f2937;
+}
+
+/* Loading state */
+.premium-feature-indicator.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: inherit;
+  backdrop-filter: blur(1px);
+}
+
+.loading-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Feature list styles */
+.premium-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.premium-feature-list.variant-badge {
+  gap: 0.75rem;
+}
+
+.premium-feature-list.variant-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.feature-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.category-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.category-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Tier-specific colors */
+.premium-feature-indicator.tier-premium {
+  --tier-color: #f59e0b;
+  --tier-bg: #fef3c7;
+}
+
+.premium-feature-indicator.tier-enterprise {
+  --tier-color: #8b5cf6;
+  --tier-bg: #ddd6fe;
+}
+
+/* Animations */
+@keyframes tooltip-appear {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .premium-feature-indicator.variant-badge,
+  .premium-feature-indicator.variant-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .feature-name,
+  .feature-title {
+    color: #f1f5f9;
+  }
+
+  .feature-description {
+    color: #cbd5e1;
+  }
+
+  .learn-more-button {
+    background: transparent;
+    color: #cbd5e1;
+    border-color: #475569;
+  }
+
+  .learn-more-button:hover {
+    background: #334155;
+    color: #f1f5f9;
+    border-color: #64748b;
+  }
+
+  .loading-overlay {
+    background: rgba(30, 41, 59, 0.9);
+  }
+
+  .loading-spinner {
+    border-color: #475569;
+    border-top-color: #3b82f6;
+  }
+
+  .category-title {
+    color: #e2e8f0;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .premium-feature-indicator.variant-card {
+    padding: 0.875rem;
+  }
+
+  .feature-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .feature-actions {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .learn-more-button,
+  .upgrade-button {
+    text-align: center;
+  }
+
+  .tooltip-content {
+    flex-direction: column;
+    gap: 0.375rem;
+    white-space: normal;
+    max-width: 200px;
+    text-align: center;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .premium-feature-indicator {
+    border-width: 2px;
+  }
+
+  .feature-name,
+  .feature-title {
+    font-weight: 700;
+  }
+
+  .upgrade-badge,
+  .upgrade-button {
+    font-weight: 700;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .premium-feature-indicator,
+  .upgrade-badge,
+  .upgrade-button,
+  .learn-more-button {
+    transition: none;
+  }
+
+  .premium-feature-indicator.variant-card:hover {
+    transform: none;
+  }
+
+  .upgrade-badge:hover,
+  .upgrade-button:hover {
+    transform: none;
+  }
+
+  @keyframes tooltip-appear,
+  @keyframes spin {
+    from, to {
+      transform: none;
+    }
+  }
+}

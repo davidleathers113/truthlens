@@ -1,5 +1,8 @@
 import { ContentAnalysis, SocialPlatform } from '@shared/types';
 import { GenericExtractor } from './genericExtractor';
+import { TwitterExtractor } from './twitterExtractor';
+import { TikTokExtractor } from './tiktokExtractor';
+import { InstagramExtractor } from './instagramExtractor';
 
 /**
  * Extraction strategy interface for different content types
@@ -37,8 +40,10 @@ export class ContentExtractor {
       enablePerformanceLogging: false,
     });
 
-    // Platform extractors will be added as they're implemented
-    // Example: this.platformExtractors.set('twitter', new TwitterExtractor());
+    // Register platform-specific extractors
+    this.platformExtractors.set('twitter', new TwitterExtractor());
+    this.platformExtractors.set('tiktok', new TikTokExtractor());
+    this.platformExtractors.set('instagram', new InstagramExtractor());
   }
 
   /**
@@ -47,14 +52,14 @@ export class ContentExtractor {
   async extractPageContent(): Promise<ContentAnalysis> {
     try {
       const startTime = performance.now();
-      
+
       // Detect platform
       const platformDetection = this.detectPlatform();
-      
+
       // Choose appropriate extractor
       let extractor: IExtractor;
-      
-      if (platformDetection.platform !== 'generic' && 
+
+      if (platformDetection.platform !== 'generic' &&
           this.platformExtractors.has(platformDetection.platform)) {
         extractor = this.platformExtractors.get(platformDetection.platform)!;
         console.debug(`Using ${platformDetection.platform} extractor`);
@@ -64,7 +69,7 @@ export class ContentExtractor {
       }
 
       // Verify extractor can handle this content
-      if (extractor !== this.genericExtractor && 
+      if (extractor !== this.genericExtractor &&
           !extractor.canHandle(window.location.href, document)) {
         console.debug('Platform extractor cannot handle content, falling back to generic');
         extractor = this.genericExtractor;
@@ -72,7 +77,7 @@ export class ContentExtractor {
 
       // Extract content
       const result = await extractor.extractPageContent();
-      
+
       // Add platform information if detected
       if (platformDetection.platform !== 'generic') {
         result.platform = platformDetection.platform;
@@ -112,7 +117,7 @@ export class ContentExtractor {
         indicators.push('Tweet-specific URL pattern or elements detected');
       }
     }
-    
+
     // Facebook detection
     else if (hostname.includes('facebook.com') || hostname.includes('fb.com')) {
       platform = 'facebook';
@@ -120,13 +125,13 @@ export class ContentExtractor {
       indicators.push('Facebook domain detected');
 
       // Check for post indicators
-      if (document.querySelector('[role="article"]') || 
+      if (document.querySelector('[role="article"]') ||
           document.querySelector('[data-pagelet="FeedUnit"]')) {
         confidence = 1.0;
         indicators.push('Facebook post elements detected');
       }
     }
-    
+
     // Instagram detection
     else if (hostname.includes('instagram.com')) {
       platform = 'instagram';
@@ -134,13 +139,13 @@ export class ContentExtractor {
       indicators.push('Instagram domain detected');
 
       // Check for post indicators
-      if (url.includes('/p/') || url.includes('/reel/') || 
+      if (url.includes('/p/') || url.includes('/reel/') ||
           document.querySelector('article[role="presentation"]')) {
         confidence = 1.0;
         indicators.push('Instagram post URL pattern or elements detected');
       }
     }
-    
+
     // TikTok detection
     else if (hostname.includes('tiktok.com')) {
       platform = 'tiktok';
@@ -153,7 +158,7 @@ export class ContentExtractor {
         indicators.push('TikTok video URL pattern or elements detected');
       }
     }
-    
+
     // YouTube detection
     else if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
       platform = 'youtube';
@@ -161,13 +166,13 @@ export class ContentExtractor {
       indicators.push('YouTube domain detected');
 
       // Check for video indicators
-      if (url.includes('/watch?v=') || url.includes('/shorts/') || 
+      if (url.includes('/watch?v=') || url.includes('/shorts/') ||
           document.querySelector('#movie_player')) {
         confidence = 1.0;
         indicators.push('YouTube video URL pattern or elements detected');
       }
     }
-    
+
     // Reddit detection
     else if (hostname.includes('reddit.com')) {
       platform = 'reddit';
@@ -180,7 +185,7 @@ export class ContentExtractor {
         indicators.push('Reddit post URL pattern or elements detected');
       }
     }
-    
+
     // LinkedIn detection
     else if (hostname.includes('linkedin.com')) {
       platform = 'linkedin';

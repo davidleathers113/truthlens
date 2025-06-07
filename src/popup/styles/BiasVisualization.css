@@ -1,0 +1,604 @@
+/* Advanced Bias Visualization Styles - 2025 Design Standards */
+
+.bias-visualization {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.bias-visualization--locked {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #fefefe 0%, #f9fafb 100%);
+}
+
+.bias-visualization__premium-prompt {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.bias-visualization__lock-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.bias-visualization__premium-prompt h3 {
+  color: #1f2937;
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.bias-visualization__premium-prompt p {
+  color: #6b7280;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.bias-visualization__upgrade-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bias-visualization__upgrade-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.3);
+}
+
+.bias-visualization__header {
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+}
+
+.bias-visualization__header h3 {
+  color: #111827;
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bias-visualization__tabs {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.bias-visualization__tab {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.bias-visualization__tab:hover {
+  color: #374151;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.bias-visualization__tab.active {
+  background: white;
+  color: #1f2937;
+  font-weight: 600;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.bias-visualization__content {
+  margin-bottom: 20px;
+}
+
+/* Political Spectrum Styles */
+.bias-spectrum__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.bias-spectrum__header h4 {
+  color: #111827;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bias-spectrum__confidence {
+  background: #e5e7eb;
+  color: #374151;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bias-spectrum__scale {
+  margin: 20px 0;
+}
+
+.bias-spectrum__labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.bias-spectrum__track {
+  position: relative;
+  height: 24px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bias-spectrum__gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #2563eb 0%, #93c5fd 25%, #6b7280 50%, #fca5a5 75%, #dc2626 100%);
+  opacity: 0.3;
+}
+
+.bias-spectrum__indicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bias-spectrum__indicator:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.bias-spectrum__tooltip {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.bias-spectrum__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.bias-spectrum__scale-numbers {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.bias-spectrum__explanation {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.bias-spectrum__explanation p {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.bias-spectrum__comparison {
+  margin-top: 24px;
+}
+
+.bias-spectrum__comparison h5 {
+  color: #111827;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bias-spectrum__similar-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bias-spectrum__source {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.bias-spectrum__source-name {
+  flex: 0 0 120px;
+  font-size: 12px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.bias-spectrum__source-position {
+  flex: 1;
+  position: relative;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.bias-spectrum__source-indicator {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+/* Bias Factors Styles */
+.bias-factors__header {
+  margin-bottom: 24px;
+}
+
+.bias-factors__header h4 {
+  color: #111827;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bias-factors__header p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 14px;
+}
+
+.bias-factors__chart {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.bias-factors__factor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.bias-factors__factor:last-child {
+  margin-bottom: 0;
+}
+
+.bias-factors__label {
+  flex: 0 0 140px;
+  font-size: 13px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.bias-factors__bar-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bias-factors__bar {
+  height: 8px;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bias-factors__value {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  min-width: 32px;
+}
+
+.bias-factors__indicators h5 {
+  color: #111827;
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bias-factors__indicator-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bias-factors__indicator {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.bias-factors__indicator-type {
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.bias-factors__indicator-description {
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.bias-factors__indicator-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bias-factors__evidence-item {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-style: italic;
+}
+
+/* Education Styles */
+.bias-education__header {
+  margin-bottom: 24px;
+}
+
+.bias-education__header h4 {
+  color: #111827;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bias-education__header p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 14px;
+}
+
+.bias-education__section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.bias-education__section h5 {
+  color: #1f2937;
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.bias-education__section h6 {
+  color: #374151;
+  margin: 16px 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bias-education__section h6:first-of-type {
+  margin-top: 0;
+}
+
+.bias-education__section p {
+  color: #4b5563;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.bias-education__section ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.bias-education__source-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bias-education__source {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.bias-education__recommendations {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.bias-education__recommendations h5 {
+  color: #0c4a6e;
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bias-education__recommendation-section {
+  margin-bottom: 16px;
+}
+
+.bias-education__recommendation-section:last-child {
+  margin-bottom: 0;
+}
+
+.bias-education__recommendation-section h6 {
+  color: #0369a1;
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bias-education__recommendation-section ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #164e63;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Footer Styles */
+.bias-visualization__footer {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.bias-visualization__processing-info {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.bias-visualization__disclaimer {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.4;
+  text-align: right;
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .bias-visualization {
+    padding: 16px;
+    margin: 12px 0;
+  }
+
+  .bias-visualization__tabs {
+    flex-direction: column;
+  }
+
+  .bias-spectrum__labels {
+    font-size: 10px;
+  }
+
+  .bias-factors__factor {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .bias-factors__label {
+    flex: none;
+  }
+
+  .bias-visualization__footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bias-visualization__disclaimer {
+    text-align: left;
+  }
+}
+
+/* Animation and Transitions */
+.bias-visualization__content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bias-factors__bar {
+  animation: growBar 0.8s ease-out;
+}
+
+@keyframes growBar {
+  from {
+    width: 0;
+  }
+}

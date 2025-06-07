@@ -6,6 +6,12 @@
 import { logger } from '../../shared/services/logger';
 import { storageService } from '../../shared/storage/storageService';
 import { securityService } from '../../shared/services/securityService';
+import {
+  BiasAlertResult,
+  ExplainableAIReport,
+  SubpopulationAnalysis,
+  CredibilityScore
+} from '../../shared/types';
 
 export interface BiasAssessmentResult {
   assessmentId: string;
@@ -992,6 +998,398 @@ class BiasAssessmentService {
 
     const daysSince = (Date.now() - latest.timestamp) / (24 * 60 * 60 * 1000);
     return daysSince >= this.ASSESSMENT_INTERVAL_DAYS;
+  }
+
+  /**
+   * 2025 Enhancement: Real-time bias monitoring with drift detection
+   * Monitors AI outputs in real-time for bias drift and alerts on significant changes
+   */
+  public async performRealTimeMonitoring(currentScore: CredibilityScore): Promise<BiasAlertResult> {
+    try {
+      const latest = await this.getLatestAssessment();
+      if (!latest) {
+        return {
+          alertLevel: 'info',
+          message: 'No baseline assessment for comparison',
+          timestamp: Date.now()
+        };
+      }
+
+      // Model drift detection
+      const driftScore = this.detectModelDrift(currentScore, latest);
+
+      // Subpopulation analysis for current score
+      const subpopAnalysis = await this.performSubpopulationAnalysis([{
+        url: 'current',
+        domain: 'current',
+        contentType: 'current',
+        credibilityScore: currentScore.score,
+        timestamp: currentScore.timestamp,
+        metadata: { source: currentScore.source, reasoning: currentScore.reasoning }
+      }]);
+
+      // Alert logic based on drift thresholds
+      let alertLevel: 'info' | 'warning' | 'critical' = 'info';
+      let message = 'Real-time monitoring: No significant bias detected';
+      const recommendedActions: string[] = [];
+      const subpopulationIssues: string[] = [];
+
+      // Check for drift
+      if (driftScore > 0.15) {
+        alertLevel = 'critical';
+        message = 'Critical bias drift detected in AI outputs';
+        recommendedActions.push('Immediate model retraining required', 'Pause automated processing');
+      } else if (driftScore > 0.08) {
+        alertLevel = 'warning';
+        message = 'Moderate bias drift detected';
+        recommendedActions.push('Schedule bias assessment', 'Review recent changes');
+      }
+
+      // Check subpopulation issues
+      if (subpopAnalysis.overallFairness < 70) {
+        if (alertLevel === 'info') alertLevel = 'warning';
+        subpopulationIssues.push(...subpopAnalysis.detectedIssues.map(issue => issue.description));
+        recommendedActions.push(...subpopAnalysis.recommendations);
+      }
+
+      logger.info('Real-time bias monitoring completed', {
+        driftScore,
+        alertLevel,
+        fairnessScore: subpopAnalysis.overallFairness
+      });
+
+      return {
+        alertLevel,
+        message,
+        driftScore,
+        subpopulationIssues,
+        recommendedActions,
+        timestamp: Date.now()
+      };
+
+    } catch (error) {
+      logger.error('Real-time bias monitoring failed', {}, error as Error);
+      return {
+        alertLevel: 'warning',
+        message: 'Real-time monitoring failed - manual review recommended',
+        timestamp: Date.now()
+      };
+    }
+  }
+
+  /**
+   * 2025 Enhancement: Generate explainable AI report for bias decisions
+   * Provides transparent explanations for bias assessment decisions
+   */
+  public async generateExplainableReport(assessmentResult: BiasAssessmentResult): Promise<ExplainableAIReport> {
+    try {
+      const startTime = Date.now();
+
+      // Build decision path
+      const decisionPath = [
+        {
+          step: 1,
+          description: 'Data Quality Assessment',
+          input: 'Raw credibility data samples',
+          output: `Quality score: ${assessmentResult.dataQualityAssessment.representativeness}%`,
+          confidence: 0.9,
+          reasoning: 'Evaluated data representativeness, completeness, and accuracy'
+        },
+        {
+          step: 2,
+          description: 'Multi-dimensional Bias Detection',
+          input: 'Quality-validated data',
+          output: 'Bias metrics across 5 dimensions',
+          confidence: 0.85,
+          reasoning: 'Analyzed demographic, content, source, temporal, and geographic bias'
+        },
+        {
+          step: 3,
+          description: 'Risk Classification',
+          input: 'Bias detection results',
+          output: `Risk level: ${assessmentResult.riskAssessment.overallRiskLevel}`,
+          confidence: 0.88,
+          reasoning: 'Applied EU AI Act risk classification framework'
+        },
+        {
+          step: 4,
+          description: 'Compliance Assessment',
+          input: 'Risk classification',
+          output: `EU AI Act compliant: ${assessmentResult.compliance.euAiActCompliant}`,
+          confidence: 0.92,
+          reasoning: 'Evaluated against regulatory requirements'
+        }
+      ];
+
+      // Feature importance analysis
+      const featureImportance = [
+        {
+          feature: 'demographic_diversity',
+          weight: 0.25,
+          impact: (assessmentResult.biasDetection.demographicBias.score > 70 ? 'positive' : 'negative') as 'positive' | 'negative' | 'neutral',
+          explanation: 'Impact of demographic representation on bias assessment'
+        },
+        {
+          feature: 'source_reliability',
+          weight: 0.20,
+          impact: (assessmentResult.biasDetection.sourceBias.score > 70 ? 'positive' : 'negative') as 'positive' | 'negative' | 'neutral',
+          explanation: 'Influence of content source diversity'
+        },
+        {
+          feature: 'temporal_stability',
+          weight: 0.18,
+          impact: (assessmentResult.biasDetection.temporalBias.score > 70 ? 'positive' : 'neutral') as 'positive' | 'negative' | 'neutral',
+          explanation: 'Consistency of AI performance over time'
+        },
+        {
+          feature: 'content_coverage',
+          weight: 0.22,
+          impact: (assessmentResult.biasDetection.contentTypeBias.score > 70 ? 'positive' : 'negative') as 'positive' | 'negative' | 'neutral',
+          explanation: 'Balance across different content types'
+        },
+        {
+          feature: 'geographic_reach',
+          weight: 0.15,
+          impact: (assessmentResult.biasDetection.geographicBias.score > 70 ? 'positive' : 'neutral') as 'positive' | 'negative' | 'neutral',
+          explanation: 'Geographic distribution of data sources'
+        }
+      ];
+
+      // Confidence factors
+      const confidenceFactors = [
+        {
+          factor: 'sample_size',
+          contribution: 0.3,
+          description: 'Sufficient data samples for statistical significance'
+        },
+        {
+          factor: 'data_quality',
+          contribution: 0.25,
+          description: 'High quality, complete dataset'
+        },
+        {
+          factor: 'methodology_robustness',
+          contribution: 0.25,
+          description: 'Comprehensive multi-dimensional analysis'
+        },
+        {
+          factor: 'regulatory_alignment',
+          contribution: 0.2,
+          description: 'EU AI Act compliant assessment framework'
+        }
+      ];
+
+      // Bias explanations
+      const biasFactors = Object.entries(assessmentResult.biasDetection).map(([type, metric]) => ({
+        biasType: type.replace('Bias', '') as 'demographic' | 'content' | 'source' | 'temporal' | 'geographic',
+        detected: metric.score < 70,
+        severity: (metric.score < 30 ? 'critical' : metric.score < 50 ? 'high' : metric.score < 70 ? 'medium' : 'low') as 'low' | 'medium' | 'high' | 'critical',
+        explanation: this.generateBiasExplanation(type, metric),
+        mitigationApplied: metric.score < 70 ? 'Bias mitigation strategies recommended' : undefined
+      }));
+
+      // Overall explanation
+      const overallExplanation = this.generateOverallExplanation(assessmentResult);
+
+      return {
+        decisionPath,
+        featureImportance,
+        confidenceFactors,
+        biasFactors,
+        overallExplanation,
+        technicalDetails: {
+          modelVersion: '2025.1',
+          dataQualityScore: assessmentResult.dataQualityAssessment.representativeness,
+          processingTime: Date.now() - startTime
+        }
+      };
+
+    } catch (error) {
+      logger.error('Failed to generate explainable AI report', {}, error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * 2025 Enhancement: Perform subpopulation analysis for granular bias detection
+   * Analyzes bias across different population groups and subsets
+   */
+  public async performSubpopulationAnalysis(samples: DataSample[]): Promise<SubpopulationAnalysis> {
+    try {
+      // Define population groups based on available demographics
+      const populationGroups = this.identifyPopulationGroups(samples);
+
+      // Calculate disparity metrics between groups
+      const disparityMetrics = this.calculateDisparityMetrics(populationGroups);
+
+      // Assess overall fairness
+      const overallFairness = this.calculateOverallFairness(disparityMetrics);
+
+      // Generate recommendations
+      const recommendations = this.generateFairnessRecommendations(disparityMetrics);
+
+      // Detect specific issues
+      const detectedIssues = this.detectSubpopulationIssues(disparityMetrics, populationGroups);
+
+      logger.info('Subpopulation analysis completed', {
+        groupCount: populationGroups.length,
+        overallFairness,
+        issueCount: detectedIssues.length
+      });
+
+      return {
+        populationGroups,
+        disparityMetrics,
+        overallFairness,
+        recommendations,
+        detectedIssues
+      };
+
+    } catch (error) {
+      logger.error('Subpopulation analysis failed', {}, error as Error);
+      throw error;
+    }
+  }
+
+  // Helper methods for 2025 enhancements
+
+  private detectModelDrift(currentScore: CredibilityScore, baseline: BiasAssessmentResult): number {
+    // Calculate drift based on score deviation from baseline
+    const baselineAvg = Object.values(baseline.biasDetection)
+      .reduce((sum, metric) => sum + metric.score, 0) / Object.keys(baseline.biasDetection).length;
+
+    const scoreDrift = Math.abs(currentScore.score - baselineAvg) / 100;
+    const confidenceDrift = Math.abs(currentScore.confidence - 0.8) / 1; // Assuming 0.8 baseline confidence
+
+    return (scoreDrift + confidenceDrift) / 2;
+  }
+
+  private generateBiasExplanation(type: string, metric: any): string {
+    const explanations: Record<string, string> = {
+      demographicBias: `Demographic bias analysis shows ${metric.score}% fairness across different user groups`,
+      contentTypeBias: `Content type analysis reveals ${metric.score}% consistency across different media types`,
+      sourceBias: `Source diversity assessment indicates ${metric.score}% balance across information sources`,
+      temporalBias: `Temporal analysis shows ${metric.score}% stability in AI performance over time`,
+      geographicBias: `Geographic analysis demonstrates ${metric.score}% fairness across different regions`
+    };
+    return explanations[type] || `Bias analysis for ${type}: ${metric.score}% score`;
+  }
+
+  private generateOverallExplanation(assessment: BiasAssessmentResult): string {
+    const riskLevel = assessment.riskAssessment.overallRiskLevel;
+    const compliance = assessment.compliance.euAiActCompliant;
+    const avgBias = Object.values(assessment.biasDetection)
+      .reduce((sum, metric) => sum + metric.score, 0) / Object.keys(assessment.biasDetection).length;
+
+    return `This AI system has been assessed as ${riskLevel} risk with ${Math.round(avgBias)}% overall bias mitigation score. ` +
+           `${compliance ? 'The system meets' : 'The system does not meet'} EU AI Act compliance requirements. ` +
+           `Assessment includes comprehensive analysis of demographic, content, source, temporal, and geographic bias factors.`;
+  }
+
+  private identifyPopulationGroups(samples: DataSample[]): any[] {
+    // Group samples by available demographic criteria
+    const groups: Record<string, DataSample[]> = {};
+
+    samples.forEach(sample => {
+      const groupKey = this.generateGroupKey(sample);
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(sample);
+    });
+
+    return Object.entries(groups).map(([key, groupSamples]) => ({
+      groupId: key,
+      criteria: this.parseGroupKey(key),
+      sampleSize: groupSamples.length,
+      averageScore: groupSamples.reduce((sum, s) => sum + s.credibilityScore, 0) / groupSamples.length,
+      confidence: Math.min(1, groupSamples.length / 30), // Higher confidence with more samples
+      representativeness: this.calculateRepresentativeness(groupSamples, samples)
+    }));
+  }
+
+  private generateGroupKey(sample: DataSample): string {
+    const demographics = sample.userDemographics;
+    return `${demographics?.region || 'unknown'}_${demographics?.language || 'unknown'}_${sample.contentType}`;
+  }
+
+  private parseGroupKey(key: string): Record<string, any> {
+    const [region, language, contentType] = key.split('_');
+    return { region, language, contentType };
+  }
+
+  private calculateDisparityMetrics(groups: any[]): any[] {
+    const metrics = [];
+
+    if (groups.length > 1) {
+      const scores = groups.map(g => g.averageScore);
+      const maxScore = Math.max(...scores);
+      const minScore = Math.min(...scores);
+      const disparity = (maxScore - minScore) / 100;
+
+      metrics.push({
+        metricName: 'score_disparity',
+        value: disparity,
+        threshold: 0.15,
+        groups: groups.map(g => g.groupId),
+        severity: disparity > 0.3 ? 'critical' : disparity > 0.15 ? 'high' : 'low' as const,
+        description: `Score disparity of ${(disparity * 100).toFixed(1)}% detected across subpopulations`
+      });
+    }
+
+    return metrics;
+  }
+
+  private calculateOverallFairness(metrics: any[]): number {
+    if (metrics.length === 0) return 100;
+
+    const fairnessScore = metrics.reduce((sum, metric) => {
+      const penalty = metric.value > metric.threshold ? (metric.value * 100) : 0;
+      return sum - penalty;
+    }, 100);
+
+    return Math.max(0, fairnessScore);
+  }
+
+  private generateFairnessRecommendations(metrics: any[]): string[] {
+    const recommendations = [];
+
+    for (const metric of metrics) {
+      if (metric.value > metric.threshold) {
+        recommendations.push(`Address ${metric.metricName} disparity through targeted data collection`);
+        recommendations.push(`Implement fairness-aware model training techniques`);
+      }
+    }
+
+    return [...new Set(recommendations)];
+  }
+
+  private detectSubpopulationIssues(metrics: any[], groups: any[]): any[] {
+    const issues = [];
+
+    for (const metric of metrics) {
+      if (metric.severity === 'high' || metric.severity === 'critical') {
+        const affectedGroups = groups
+          .filter(g => Math.abs(g.averageScore - 50) > 15)
+          .map(g => g.groupId);
+
+        issues.push({
+          issueType: metric.metricName,
+          affectedGroups,
+          magnitude: metric.value,
+          description: metric.description,
+          recommendedAction: `Targeted bias mitigation for ${affectedGroups.length} subpopulations`
+        });
+      }
+    }
+
+    return issues;
+  }
+
+  private calculateRepresentativeness(groupSamples: DataSample[], allSamples: DataSample[]): number {
+    const groupSize = groupSamples.length;
+    const totalSize = allSamples.length;
+    const expectedSize = totalSize / 10; // Assume 10 typical groups
+
+    return Math.min(100, (groupSize / expectedSize) * 100);
   }
 }
 

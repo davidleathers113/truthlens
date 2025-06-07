@@ -1,0 +1,400 @@
+/* Bias Detection Panel Styles - 2025 Design Standards */
+
+.bias-detection-panel {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.bias-detection-panel--loading,
+.bias-detection-panel--error,
+.bias-detection-panel--no-content,
+.bias-detection-panel--premium-required {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: 40px 20px;
+}
+
+/* Header Styles */
+.bias-detection-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 0;
+  background: white;
+}
+
+.bias-detection-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bias-detection-panel__title h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bias-detection-panel__badge {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.bias-detection-panel__content-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bias-detection-panel__url {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.bias-detection-panel__refresh-btn {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.bias-detection-panel__refresh-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.bias-detection-panel__refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading State */
+.bias-detection-panel__spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #6b7280;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error State */
+.bias-detection-panel__error {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  max-width: 300px;
+}
+
+.bias-detection-panel__error-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.bias-detection-panel__error-content h4 {
+  margin: 0 0 8px 0;
+  color: #dc2626;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bias-detection-panel__error-content p {
+  margin: 0 0 16px 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.bias-detection-panel__retry-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.bias-detection-panel__retry-btn:hover {
+  background: #b91c1c;
+}
+
+/* No Content State */
+.bias-detection-panel__placeholder {
+  text-align: center;
+  color: #6b7280;
+}
+
+.bias-detection-panel__placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.bias-detection-panel__placeholder h4 {
+  margin: 0 0 8px 0;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bias-detection-panel__placeholder p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Premium Required State */
+.bias-detection-panel__premium-prompt {
+  text-align: center;
+  max-width: 320px;
+}
+
+.bias-detection-panel__premium-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.bias-detection-panel__premium-prompt h3 {
+  margin: 0 0 16px 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.bias-detection-panel__features {
+  margin-bottom: 24px;
+}
+
+.bias-detection-panel__features ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.bias-detection-panel__features li {
+  color: #374151;
+  font-size: 14px;
+  padding: 6px 0;
+  position: relative;
+  padding-left: 24px;
+}
+
+.bias-detection-panel__features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #059669;
+  font-weight: bold;
+}
+
+.bias-detection-panel__upgrade-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.bias-detection-panel__upgrade-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.3);
+}
+
+.bias-detection-panel__trial-info {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* Educational Note */
+.bias-detection-panel__educational-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px;
+  margin-bottom: 20px;
+}
+
+.bias-detection-panel__note-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.bias-detection-panel__note-content {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #92400e;
+}
+
+.bias-detection-panel__note-content strong {
+  font-weight: 600;
+  color: #78350f;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .bias-detection-panel__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 16px 0 16px;
+  }
+
+  .bias-detection-panel__content-info {
+    align-self: stretch;
+    justify-content: space-between;
+  }
+
+  .bias-detection-panel__premium-prompt {
+    max-width: none;
+    padding: 0 16px;
+  }
+
+  .bias-detection-panel__educational-note {
+    margin: 16px;
+    margin-bottom: 16px;
+  }
+
+  .bias-detection-panel--loading,
+  .bias-detection-panel--error,
+  .bias-detection-panel--no-content,
+  .bias-detection-panel--premium-required {
+    padding: 32px 16px;
+    min-height: 160px;
+  }
+}
+
+/* Animation */
+.bias-detection-panel {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .bias-detection-panel {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-color: #374151;
+  }
+
+  .bias-detection-panel__header {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .bias-detection-panel__title h3 {
+    color: #f9fafb;
+  }
+
+  .bias-detection-panel__url {
+    background: #374151;
+    color: #d1d5db;
+  }
+
+  .bias-detection-panel__refresh-btn {
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+
+  .bias-detection-panel__refresh-btn:hover:not(:disabled) {
+    background: #374151;
+    border-color: #6b7280;
+    color: #f3f4f6;
+  }
+
+  .bias-detection-panel__placeholder h4,
+  .bias-detection-panel__premium-prompt h3 {
+    color: #f9fafb;
+  }
+
+  .bias-detection-panel__features ul {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .bias-detection-panel__features li {
+    color: #d1d5db;
+  }
+
+  .bias-detection-panel__educational-note {
+    background: #451a03;
+    border-color: #78350f;
+  }
+
+  .bias-detection-panel__note-content {
+    color: #fbbf24;
+  }
+
+  .bias-detection-panel__note-content strong {
+    color: #fcd34d;
+  }
+}

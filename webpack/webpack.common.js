@@ -14,13 +14,13 @@ module.exports = {
     popup: path.join(srcDir, 'popup', 'index.tsx'),
     options: path.join(srcDir, 'options', 'index.tsx')
   },
-  
+
   output: {
     path: distDir,
     filename: '[name].js',
     clean: true
   },
-  
+
   module: {
     rules: [
       {
@@ -45,7 +45,7 @@ module.exports = {
       }
     ]
   },
-  
+
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
@@ -57,30 +57,39 @@ module.exports = {
       '@shared': path.join(srcDir, 'shared'),
       '@assets': path.join(srcDir, 'assets')
     }
-  }
-};
+  },
 
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
         { from: publicDir, to: distDir },
-        { from: path.join(srcDir, 'assets', 'icons'), to: path.join(distDir, 'icons') }
+        {
+          from: path.join(srcDir, 'assets', 'icons', '**/*'),
+          to: path.join(distDir, 'icons'),
+          globOptions: {
+            dot: false,
+            ignore: ['**/.DS_Store']
+          },
+          noErrorOnMissing: true
+        }
       ]
     }),
-    
+
     new HtmlWebpackPlugin({
       template: path.join(srcDir, 'popup', 'index.html'),
       filename: 'popup.html',
       chunks: ['popup']
     }),
-    
+
     new HtmlWebpackPlugin({
       template: path.join(srcDir, 'options', 'index.html'),
       filename: 'options.html',
       chunks: ['options']
     }),
-    
+
     new MiniCssExtractPlugin({
-      filename: '[name].css'
+      filename: '[name].css',
+      runtime: false // Chrome extension specific: disable runtime for popup compatibility
     })
   ]
+};

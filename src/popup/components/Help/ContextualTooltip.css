@@ -1,0 +1,456 @@
+/**
+ * Contextual Tooltip Styles - 2025 Design Standards
+ *
+ * Features:
+ * - Gen Z focused design with emoji integration
+ * - Micro-interactions and smooth animations
+ * - Mobile-first responsive design
+ * - Dark theme support
+ * - Accessibility compliance (WCAG 2.1 AA)
+ * - Reduced motion support
+ */
+
+/* Base Tooltip Styles */
+.contextual-tooltip {
+  position: fixed;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.95) translateY(-4px);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  max-width: 280px;
+  min-width: 200px;
+  word-wrap: break-word;
+  z-index: 10000;
+}
+
+.contextual-tooltip--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+.contextual-tooltip--animating {
+  transition-duration: 0.2s;
+}
+
+/* Theme Variants */
+.contextual-tooltip--dark {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+.contextual-tooltip--light {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #374151;
+}
+
+/* Auto theme follows system preference */
+@media (prefers-color-scheme: dark) {
+  .contextual-tooltip--auto {
+    background: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Arrow Styles */
+.contextual-tooltip__arrow {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: inherit;
+  border: inherit;
+  border-width: 1px;
+  transform: rotate(45deg);
+  z-index: -1;
+}
+
+.contextual-tooltip--top .contextual-tooltip__arrow {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -5px;
+  border-top: none;
+  border-left: none;
+}
+
+.contextual-tooltip--bottom .contextual-tooltip__arrow {
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  border-bottom: none;
+  border-right: none;
+}
+
+.contextual-tooltip--left .contextual-tooltip__arrow {
+  right: -5px;
+  top: 50%;
+  margin-top: -5px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.contextual-tooltip--right .contextual-tooltip__arrow {
+  left: -5px;
+  top: 50%;
+  margin-top: -5px;
+  border-right: none;
+  border-top: none;
+}
+
+/* Content Area */
+.contextual-tooltip__content {
+  padding: 16px;
+}
+
+/* Header with emoji and title */
+.contextual-tooltip__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.contextual-tooltip__emoji {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: none;
+  user-select: none;
+}
+
+.contextual-tooltip__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: inherit;
+  line-height: 1.3;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__title {
+  color: #f9fafb;
+}
+
+/* Main text content */
+.contextual-tooltip__text {
+  margin: 0 0 12px 0;
+  color: inherit;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__text {
+  color: #d1d5db;
+}
+
+/* Learn more link */
+.contextual-tooltip__learn-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  transition: color 0.15s ease;
+}
+
+.contextual-tooltip__learn-more:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__learn-more {
+  color: #60a5fa;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__learn-more:hover {
+  color: #93c5fd;
+}
+
+/* Actions container */
+.contextual-tooltip__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* Action button */
+.contextual-tooltip__action-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  flex: 1;
+  justify-content: center;
+}
+
+.contextual-tooltip__action-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.3);
+}
+
+.contextual-tooltip__action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px -1px rgba(59, 130, 246, 0.3);
+}
+
+.contextual-tooltip__action-btn--secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.contextual-tooltip__action-btn--secondary:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.contextual-tooltip__action-btn--text {
+  background: transparent;
+  color: #3b82f6;
+  border: none;
+  padding: 8px 12px;
+}
+
+.contextual-tooltip__action-btn--text:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.contextual-tooltip--dark .contextual-tooltip__action-btn--secondary {
+  background: #374151;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__action-btn--secondary:hover {
+  background: #4b5563;
+  border-color: #6b7280;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__action-btn--text {
+  color: #60a5fa;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__action-btn--text:hover {
+  background: rgba(96, 165, 250, 0.1);
+}
+
+/* Dismiss button */
+.contextual-tooltip__dismiss-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.contextual-tooltip__dismiss-btn:hover {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__dismiss-btn {
+  color: #6b7280;
+}
+
+.contextual-tooltip--dark .contextual-tooltip__dismiss-btn:hover {
+  background: #374151;
+  color: #9ca3af;
+}
+
+/* Animation Variants */
+.contextual-tooltip--fade {
+  transition-property: opacity, visibility, transform;
+}
+
+.contextual-tooltip--slide.contextual-tooltip--top {
+  transform: scale(0.95) translateY(8px);
+}
+
+.contextual-tooltip--slide.contextual-tooltip--bottom {
+  transform: scale(0.95) translateY(-8px);
+}
+
+.contextual-tooltip--slide.contextual-tooltip--left {
+  transform: scale(0.95) translateX(8px);
+}
+
+.contextual-tooltip--slide.contextual-tooltip--right {
+  transform: scale(0.95) translateX(-8px);
+}
+
+.contextual-tooltip--slide.contextual-tooltip--visible {
+  transform: scale(1) translate(0, 0);
+}
+
+.contextual-tooltip--bounce {
+  transition-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.contextual-tooltip--none {
+  transition: none !important;
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 480px) {
+  .contextual-tooltip {
+    max-width: calc(100vw - 32px);
+    min-width: 240px;
+    font-size: 13px;
+  }
+
+  .contextual-tooltip__content {
+    padding: 12px;
+  }
+
+  .contextual-tooltip__header {
+    margin-bottom: 8px;
+  }
+
+  .contextual-tooltip__emoji {
+    font-size: 18px;
+  }
+
+  .contextual-tooltip__title {
+    font-size: 15px;
+  }
+
+  .contextual-tooltip__text {
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  .contextual-tooltip__actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .contextual-tooltip__action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contextual-tooltip__dismiss-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .contextual-tooltip {
+    border-width: 2px;
+    border-color: #000000;
+  }
+
+  .contextual-tooltip--dark {
+    border-color: #ffffff;
+  }
+
+  .contextual-tooltip__action-btn {
+    border: 2px solid transparent;
+  }
+
+  .contextual-tooltip__action-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .contextual-tooltip,
+  .contextual-tooltip__action-btn,
+  .contextual-tooltip__dismiss-btn,
+  .contextual-tooltip__learn-more {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .contextual-tooltip--visible {
+    transform: none !important;
+  }
+}
+
+/* Focus Management */
+.contextual-tooltip__action-btn:focus,
+.contextual-tooltip__dismiss-btn:focus,
+.contextual-tooltip__learn-more:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+  .contextual-tooltip {
+    display: none !important;
+  }
+}
+
+/* Hover states for better touch support */
+@media (hover: hover) {
+  .contextual-tooltip__action-btn:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (hover: none) {
+  .contextual-tooltip__action-btn:hover {
+    transform: none;
+  }
+
+  .contextual-tooltip__action-btn:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Special positioning adjustments for small screens */
+@media (max-height: 600px) {
+  .contextual-tooltip {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  .contextual-tooltip__content {
+    padding: 10px 12px;
+  }
+}

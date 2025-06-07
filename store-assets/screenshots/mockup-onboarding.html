@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthLens Onboarding - Screenshot Mockup</title>
+    <style>
+        /* Screenshot 2: Gen Z Onboarding Experience */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .screenshot-container {
+            width: 1280px;
+            height: 800px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mobile-First Design */
+        .phone-mockup {
+            width: 320px;
+            height: 640px;
+            background: #000;
+            border-radius: 32px;
+            padding: 8px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Onboarding Content */
+        .onboarding-content {
+            padding: 40px 24px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .logo-animation {
+            margin-bottom: 32px;
+        }
+
+        .truthlens-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            backdrop-filter: blur(10px);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .hero-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            background: linear-gradient(45deg, #ffffff, #f0f9ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0 0 32px 0;
+        }
+
+        /* Value Props with Gen Z Appeal */
+        .value-props {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 32px 0;
+        }
+
+        .value-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            transform: translateX(-20px);
+            opacity: 0;
+            animation: slideInLeft 0.6s ease-out forwards;
+        }
+
+        .value-item:nth-child(1) { animation-delay: 0.2s; }
+        .value-item:nth-child(2) { animation-delay: 0.4s; }
+        .value-item:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes slideInLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .value-emoji {
+            font-size: 24px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .value-text {
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+        }
+
+        /* CTA Buttons */
+        .cta-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cta-primary {
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1f2937;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .cta-secondary {
+            padding: 12px 20px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        .dot.active {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.2);
+        }
+
+        /* Desktop Context */
+        .desktop-context {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            right: 50px;
+            height: 120px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .feature-highlights {
+            position: absolute;
+            right: 50px;
+            top: 200px;
+            bottom: 200px;
+            width: 300px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            color: #1f2937;
+        }
+
+        .highlight-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            color: #3B82F6;
+        }
+
+        .highlight-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .highlight-emoji {
+            font-size: 20px;
+        }
+
+        .highlight-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Gen Z Authenticity */
+        .authenticity-badge {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            animation: pulse 2s infinite;
+        }
+
+        .community-trust {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="screenshot-container">
+        <!-- Desktop Context -->
+        <div class="desktop-context">
+            🌐 Works seamlessly across all your favorite sites
+        </div>
+
+        <!-- Mobile-First Onboarding -->
+        <div class="phone-mockup">
+            <div class="phone-screen">
+                <div class="onboarding-content">
+                    <div class="logo-animation">
+                        <div class="truthlens-icon">🛡️</div>
+                        <h1 class="hero-title">TruthLens</h1>
+                        <p class="hero-subtitle">Your AI fact-checking companion</p>
+                    </div>
+
+                    <div class="value-props">
+                        <div class="value-item">
+                            <span class="value-emoji">⚡</span>
+                            <span class="value-text">Instant credibility scores</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-emoji">🧠</span>
+                            <span class="value-text">AI-powered analysis</span>
+                        </div>
+                        <div class="value-item">
+                            <span class="value-emoji">🔒</span>
+                            <span class="value-text">Privacy-first design</span>
+                        </div>
+                    </div>
+
+                    <div class="cta-section">
+                        <button class="cta-primary">
+                            <span>Get Started</span>
+                            <span>🚀</span>
+                        </button>
+                        <button class="cta-secondary">Skip & Explore</button>
+
+                        <div class="progress-dots">
+                            <div class="dot active"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Highlights -->
+        <div class="feature-highlights">
+            <h3 class="highlight-title">Why Gen Z Trusts TruthLens</h3>
+
+            <div class="highlight-item">
+                <span class="highlight-emoji">🤝</span>
+                <div class="highlight-text">Community-driven verification</div>
+            </div>
+
+            <div class="highlight-item">
+                <span class="highlight-emoji">📱</span>
+                <div class="highlight-text">Mobile-optimized experience</div>
+            </div>
+
+            <div class="highlight-item">
+                <span class="highlight-emoji">⚡</span>
+                <div class="highlight-text">Under 3-second analysis</div>
+            </div>
+
+            <div class="highlight-item">
+                <span class="highlight-emoji">🎯</span>
+                <div class="highlight-text">No clickbait, just facts</div>
+            </div>
+
+            <div class="highlight-item">
+                <span class="highlight-emoji">🌈</span>
+                <div class="highlight-text">Authentic, transparent tools</div>
+            </div>
+        </div>
+
+        <!-- Authenticity Badges -->
+        <div class="authenticity-badge">✨ Built by Gen Z, for Gen Z</div>
+        <div class="community-trust">🏆 50K+ verified users</div>
+    </div>
+</body>
+</html>

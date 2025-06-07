@@ -1,0 +1,249 @@
+/**
+ * Accessibility Utilities - WCAG 2.1 AA Compliance
+ * 2025 Best Practices for Chrome Extension Interfaces
+ */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+}
+
+/* Skip navigation links */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+  border-radius: 4px;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Focus indicators - WCAG 2.1 AA compliant */
+.focus-visible,
+*:focus-visible {
+  outline: 2px solid #005fcc !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(0, 95, 204, 0.25) !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .credibility-card,
+  .quick-actions,
+  .action-button {
+    border: 2px solid !important;
+    font-weight: bold !important;
+  }
+
+  .focus-visible,
+  *:focus-visible {
+    outline-width: 3px !important;
+    box-shadow: 0 0 0 6px rgba(0, 95, 204, 0.5) !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark mode accessibility adjustments */
+@media (prefers-color-scheme: dark) {
+  .focus-visible,
+  *:focus-visible {
+    outline-color: #7dd3fc !important;
+    box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.25) !important;
+  }
+}
+
+/* Forced colors mode (Windows High Contrast) */
+@media (forced-colors: active) {
+  .credibility-card,
+  .action-button {
+    border: 2px solid ButtonText !important;
+    background: ButtonFace !important;
+    color: ButtonText !important;
+    forced-color-adjust: none !important;
+  }
+
+  .focus-visible,
+  *:focus-visible {
+    outline: 3px solid Highlight !important;
+    background: Highlight !important;
+    color: HighlightText !important;
+  }
+}
+
+/* Touch target compliance - minimum 44x44px */
+.action-button,
+button {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  touch-action: manipulation !important;
+}
+
+/* Semantic heading styles for proper hierarchy */
+.credibility-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: inherit;
+}
+
+.score-heading,
+.level-heading,
+.confidence-heading,
+.error-heading {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Loading state accessibility */
+.loading-spinner[role="status"] {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+}
+
+/* Error state styling */
+.error-container[role="alert"] {
+  padding: 1rem;
+  border-radius: 4px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.retry-button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.retry-button:hover {
+  background: #b91c1c;
+}
+
+.retry-button:focus {
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+}
+
+/* Proper spacing between interactive elements */
+.action-button + .action-button,
+button + button {
+  margin-left: 8px;
+}
+
+/* ARIA live region styling */
+[aria-live] {
+  position: relative;
+}
+
+/* Group styling for related content */
+[role="group"] {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Ensure sufficient color contrast for all text */
+.score-description,
+.confidence-description {
+  color: #374151;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .score-description,
+  .confidence-description {
+    color: #d1d5db;
+  }
+
+  .error-container[role="alert"] {
+    background: #450a0a;
+    border-color: #7f1d1d;
+    color: #fca5a5;
+  }
+}
+
+/* Zoom support - maintain usability up to 200% zoom */
+@media (min-resolution: 2dppx) {
+  .credibility-card,
+  .quick-actions {
+    padding: 1rem;
+  }
+
+  .action-button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+/* Keyboard navigation indicators */
+.keyboard-focused {
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 95, 204, 0.25);
+}
+
+/* Ensure interactive elements are keyboard accessible */
+[tabindex="0"],
+[tabindex="-1"]:focus {
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+}
+
+/* Status indicator accessibility */
+.status-indicator[role="status"] {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Progress indicator accessibility */
+.progress[role="progressbar"] {
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar {
+    transition: none;
+  }
+}

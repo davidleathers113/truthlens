@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive Media Literacy & Digital Critical Thinking - Master fact-checking and spot misinformation">
+    <title>TruthLens Education Hub - Digital Literacy for the Future</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="./styles/education.css">
+
+    <!-- SEO and Social Meta -->
+    <meta property="og:title" content="TruthLens Education Hub">
+    <meta property="og:description" content="Learn digital literacy and critical thinking skills for the modern world">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://truthlens.docs/education">
+
+    <!-- 2025 Web Standards -->
+    <meta name="theme-color" content="#10b981">
+    <meta name="color-scheme" content="light dark">
+
+    <!-- Accessibility -->
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="TruthLens Education Team">
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">📚 TruthLens</div>
+                    <span class="tagline">Education Hub</span>
+                </div>
+
+                <nav class="main-nav" aria-label="Main navigation">
+                    <ul class="nav-list">
+                        <li><a href="../index.html" class="nav-link">📖 Docs</a></li>
+                        <li><a href="#modules" class="nav-link">🎓 Learn</a></li>
+                        <li><a href="#quiz" class="nav-link">🧠 Quiz</a></li>
+                        <li><a href="#progress" class="nav-link">📊 Progress</a></li>
+                    </ul>
+                </nav>
+
+                <div class="header-actions">
+                    <button class="progress-btn" aria-label="View learning progress" type="button">
+                        📈 Progress
+                    </button>
+                    <button class="theme-toggle" aria-label="Toggle dark mode" type="button">
+                        🌙
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="hero-emoji">🧠</span>
+                        Master Digital Literacy
+                    </h1>
+                    <p class="hero-description">
+                        Interactive learning designed for Gen Z. Master critical thinking,
+                        spot misinformation, and become a digital detective! 🕵️‍♂️
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#assessment" class="btn btn-primary">
+                            🚀 Start Learning Journey
+                        </a>
+                        <a href="#modules" class="btn btn-secondary">
+                            📚 Browse Modules
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number">95%</span>
+                            <span class="stat-label">Success Rate</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">8s</span>
+                            <span class="stat-label">Per Concept</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">Interactive</span>
+                            <span class="stat-label">Learning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Learning Assessment -->
+        <section id="assessment" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">🎯 Find Your Learning Path</h2>
+                    <p class="section-description">Quick 2-minute assessment to personalize your journey</p>
+                </div>
+
+                <div class="assessment-container">
+                    <div class="assessment-card" id="assessment-quiz">
+                        <div class="assessment-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text">Question 1 of 5</span>
+                        </div>
+
+                        <div class="question-container">
+                            <h3 class="question-title">🤔 How confident are you at spotting fake news?</h3>
+                            <div class="answer-options">
+                                <button class="answer-btn" data-value="beginner">😅 Just starting out</button>
+                                <button class="answer-btn" data-value="intermediate">🧐 Pretty good, but want to improve</button>
+                                <button class="answer-btn" data-value="advanced">🔍 I'm already a fact-checking pro</button>
+                            </div>
+                        </div>
+
+                        <div class="assessment-nav">
+                            <button class="assessment-back" disabled>← Back</button>
+                            <button class="assessment-next" disabled>Next →</button>
+                        </div>
+                    </div>
+
+                    <div class="assessment-result" id="assessment-result" hidden>
+                        <div class="result-celebration">🎉</div>
+                        <h3 class="result-title">Your Personalized Learning Path</h3>
+                        <p class="result-description">Based on your responses, we've created the perfect learning journey for you!</p>
+                        <div class="result-path">
+                            <div class="path-level">
+                                <span class="path-icon">🎯</span>
+                                <span class="path-text">Level: <strong id="user-level">Intermediate</strong></span>
+                            </div>
+                            <div class="path-duration">
+                                <span class="path-icon">⏱️</span>
+                                <span class="path-text">Estimated time: <strong id="estimated-time">25 minutes</strong></span>
+                            </div>
+                            <div class="path-modules">
+                                <span class="path-icon">📚</span>
+                                <span class="path-text">Recommended modules: <strong id="module-count">4</strong></span>
+                            </div>
+                        </div>
+                        <button class="result-start-btn">🚀 Start My Journey</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Learning Modules -->
+        <section id="modules" class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">🎓 Interactive Learning Modules</h2>
+                    <p class="section-description">Bite-sized lessons designed for maximum engagement</p>
+                </div>
+
+                <div class="modules-grid">
+                    <!-- Module 1: Credibility Fundamentals -->
+                    <div class="module-card" data-module="credibility-basics">
+                        <div class="module-header">
+                            <div class="module-icon">🎯</div>
+                            <div class="module-badge">Beginner</div>
+                        </div>
+                        <div class="module-content">
+                            <h3 class="module-title">Credibility Basics</h3>
+                            <p class="module-description">Learn how to evaluate sources and understand credibility scores</p>
+                            <div class="module-stats">
+                                <span class="module-duration">⏱️ 8 minutes</span>
+                                <span class="module-interactive">🎮 Interactive</span>
+                            </div>
+                            <div class="module-progress">
+                                <div class="progress-bar mini">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-label">Not started</span>
+                            </div>
+                        </div>
+                        <div class="module-preview">
+                            <div class="preview-items">
+                                <span class="preview-item">📊 Score interpretation</span>
+                                <span class="preview-item">🔍 Source evaluation</span>
+                                <span class="preview-item">✅ Quick assessment</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Module 2: Bias Detection -->
+                    <div class="module-card" data-module="bias-detection">
+                        <div class="module-header">
+                            <div class="module-icon">⚖️</div>
+                            <div class="module-badge">Intermediate</div>
+                        </div>
+                        <div class="module-content">
+                            <h3 class="module-title">Spotting Bias</h3>
+                            <p class="module-description">Identify political lean, perspective, and media bias patterns</p>
+                            <div class="module-stats">
+                                <span class="module-duration">⏱️ 12 minutes</span>
+                                <span class="module-interactive">🎯 Choose-Your-Path</span>
+                            </div>
+                            <div class="module-progress">
+                                <div class="progress-bar mini">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-label">Not started</span>
+                            </div>
+                        </div>
+                        <div class="module-preview">
+                            <div class="preview-items">
+                                <span class="preview-item">🔴 Political lean indicators</span>
+                                <span class="preview-item">📰 Media perspective analysis</span>
+                                <span class="preview-item">🎮 Interactive scenarios</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Module 3: Verification Strategies -->
+                    <div class="module-card" data-module="verification-strategies">
+                        <div class="module-header">
+                            <div class="module-icon">🔍</div>
+                            <div class="module-badge">Intermediate</div>
+                        </div>
+                        <div class="module-content">
+                            <h3 class="module-title">Verification Toolkit</h3>
+                            <p class="module-description">Master cross-referencing, fact-checking, and source validation</p>
+                            <div class="module-stats">
+                                <span class="module-duration">⏱️ 15 minutes</span>
+                                <span class="module-interactive">🕵️ Detective Mode</span>
+                            </div>
+                            <div class="module-progress">
+                                <div class="progress-bar mini">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-label">Not started</span>
+                            </div>
+                        </div>
+                        <div class="module-preview">
+                            <div class="preview-items">
+                                <span class="preview-item">🔗 Cross-referencing techniques</span>
+                                <span class="preview-item">📚 Fact-checking resources</span>
+                                <span class="preview-item">🎯 Real-world practice</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Module 4: TruthLens Mastery -->
+                    <div class="module-card" data-module="truthlens-mastery">
+                        <div class="module-header">
+                            <div class="module-icon">🚀</div>
+                            <div class="module-badge">Advanced</div>
+                        </div>
+                        <div class="module-content">
+                            <h3 class="module-title">TruthLens Pro</h3>
+                            <p class="module-description">Advanced features, bulk checking, and research workflows</p>
+                            <div class="module-stats">
+                                <span class="module-duration">⏱️ 10 minutes</span>
+                                <span class="module-interactive">⚡ Power User</span>
+                            </div>
+                            <div class="module-progress">
+                                <div class="progress-bar mini">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-label">Not started</span>
+                            </div>
+                        </div>
+                        <div class="module-preview">
+                            <div class="preview-items">
+                                <span class="preview-item">⚡ Bulk analysis</span>
+                                <span class="preview-item">🔧 Custom filters</span>
+                                <span class="preview-item">📊 Research workflows</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Module 5: Digital Critical Thinking -->
+                    <div class="module-card" data-module="critical-thinking">
+                        <div class="module-header">
+                            <div class="module-icon">🧠</div>
+                            <div class="module-badge">Advanced</div>
+                        </div>
+                        <div class="module-content">
+                            <h3 class="module-title">Critical Thinking</h3>
+                            <p class="module-description">Develop systematic approaches to evaluating digital information</p>
+                            <div class="module-stats">
+                                <span class="module-duration">⏱️ 18 minutes</span>
+                                <span class="module-interactive">🧩 Problem Solving</span>
+                            </div>
+                            <div class="module-progress">
+                                <div class="progress-bar mini">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-label">Not started</span>
+                            </div>
+                        </div>
+                        <div class="module-preview">
+                            <div class="preview-items">
+                                <span class="preview-item">🤔 Logical reasoning</span>
+                                <span class="preview-item">🔗 Evidence evaluation</span>
+                                <span class="preview-item">⭐ Decision frameworks</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Module 6: Misinformation Patterns -->
+                    <div class="module-card" data-module="misinformation-patterns">
+                        <div class="module-header">
+                            <div class="module-icon">🚨</div>
+                            <div class="module-badge">Expert</div>
+                        </div>
+                        <div class="module-content">
+                            <h3 class="module-title">Misinformation Patterns</h3>
+                            <p class="module-description">Recognize common tactics, deepfakes, and manipulation techniques</p>
+                            <div class="module-stats">
+                                <span class="module-duration">⏱️ 20 minutes</span>
+                                <span class="module-interactive">🔬 Investigation Lab</span>
+                            </div>
+                            <div class="module-progress">
+                                <div class="progress-bar mini">
+                                    <div class="progress-fill" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-label">Not started</span>
+                            </div>
+                        </div>
+                        <div class="module-preview">
+                            <div class="preview-items">
+                                <span class="preview-item">🎭 Deepfake detection</span>
+                                <span class="preview-item">📈 Manipulation tactics</span>
+                                <span class="preview-item">🛡️ Defense strategies</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Quiz Section -->
+        <section id="quiz" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">🧠 Test Your Knowledge</h2>
+                    <p class="section-description">Interactive quizzes to reinforce your learning</p>
+                </div>
+
+                <div class="quiz-grid">
+                    <div class="quiz-card" data-quiz="quick-check">
+                        <div class="quiz-icon">⚡</div>
+                        <h3 class="quiz-title">Quick Fact-Check</h3>
+                        <p class="quiz-description">2-minute speed test on credibility basics</p>
+                        <div class="quiz-stats">
+                            <span class="quiz-questions">5 questions</span>
+                            <span class="quiz-time">⏱️ 2 min</span>
+                        </div>
+                        <button class="quiz-start-btn">Start Quiz</button>
+                    </div>
+
+                    <div class="quiz-card" data-quiz="bias-detective">
+                        <div class="quiz-icon">🕵️</div>
+                        <h3 class="quiz-title">Bias Detective</h3>
+                        <p class="quiz-description">Spot bias in real news articles</p>
+                        <div class="quiz-stats">
+                            <span class="quiz-questions">8 questions</span>
+                            <span class="quiz-time">⏱️ 5 min</span>
+                        </div>
+                        <button class="quiz-start-btn">Start Quiz</button>
+                    </div>
+
+                    <div class="quiz-card" data-quiz="misinformation-master">
+                        <div class="quiz-icon">🎓</div>
+                        <h3 class="quiz-title">Misinformation Master</h3>
+                        <p class="quiz-description">Advanced scenario-based challenges</p>
+                        <div class="quiz-stats">
+                            <span class="quiz-questions">12 questions</span>
+                            <span class="quiz-time">⏱️ 8 min</span>
+                        </div>
+                        <button class="quiz-start-btn">Start Quiz</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Tracking -->
+        <section id="progress" class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">📊 Your Learning Journey</h2>
+                    <p class="section-description">Track your progress and celebrate achievements</p>
+                </div>
+
+                <div class="progress-dashboard">
+                    <div class="progress-overview">
+                        <div class="overview-card">
+                            <div class="overview-icon">🎯</div>
+                            <div class="overview-content">
+                                <span class="overview-number">0%</span>
+                                <span class="overview-label">Overall Progress</span>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="overview-icon">⏱️</div>
+                            <div class="overview-content">
+                                <span class="overview-number">0m</span>
+                                <span class="overview-label">Time Invested</span>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="overview-icon">🏆</div>
+                            <div class="overview-content">
+                                <span class="overview-number">0</span>
+                                <span class="overview-label">Badges Earned</span>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="overview-icon">🔥</div>
+                            <div class="overview-content">
+                                <span class="overview-number">0</span>
+                                <span class="overview-label">Day Streak</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="achievements-section">
+                        <h3 class="achievements-title">🏆 Achievements</h3>
+                        <div class="achievements-grid">
+                            <div class="achievement-badge locked" data-achievement="first-module">
+                                <div class="badge-icon">🎯</div>
+                                <div class="badge-info">
+                                    <span class="badge-name">First Steps</span>
+                                    <span class="badge-desc">Complete your first module</span>
+                                </div>
+                            </div>
+
+                            <div class="achievement-badge locked" data-achievement="quiz-master">
+                                <div class="badge-icon">🧠</div>
+                                <div class="badge-info">
+                                    <span class="badge-name">Quiz Master</span>
+                                    <span class="badge-desc">Score 100% on any quiz</span>
+                                </div>
+                            </div>
+
+                            <div class="achievement-badge locked" data-achievement="week-warrior">
+                                <div class="badge-icon">🔥</div>
+                                <div class="badge-info">
+                                    <span class="badge-name">Week Warrior</span>
+                                    <span class="badge-desc">Learn for 7 days straight</span>
+                                </div>
+                            </div>
+
+                            <div class="achievement-badge locked" data-achievement="truth-seeker">
+                                <div class="badge-icon">🕵️</div>
+                                <div class="badge-info">
+                                    <span class="badge-name">Truth Seeker</span>
+                                    <span class="badge-desc">Complete all modules</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Community Section -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">👥 Join the Community</h2>
+                    <p class="section-description">Connect with fellow truth-seekers and share insights</p>
+                </div>
+
+                <div class="community-grid">
+                    <div class="community-card">
+                        <div class="community-icon">💬</div>
+                        <h3 class="community-title">Discussion Forum</h3>
+                        <p class="community-description">Ask questions and share fact-checking experiences</p>
+                        <button class="community-btn">Join Discussion</button>
+                    </div>
+
+                    <div class="community-card">
+                        <div class="community-icon">📱</div>
+                        <h3 class="community-title">Discord Server</h3>
+                        <p class="community-description">Real-time chat with the TruthLens community</p>
+                        <button class="community-btn">Join Discord</button>
+                    </div>
+
+                    <div class="community-card">
+                        <div class="community-icon">📚</div>
+                        <h3 class="community-title">Study Groups</h3>
+                        <p class="community-description">Collaborative learning with peers</p>
+                        <button class="community-btn">Find Groups</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Learning Module Modal -->
+    <div class="module-modal" id="module-modal" hidden>
+        <div class="module-overlay"></div>
+        <div class="module-container">
+            <div class="module-modal-header">
+                <h3 class="module-modal-title">Module Title</h3>
+                <button class="module-close" aria-label="Close module" type="button">✕</button>
+            </div>
+            <div class="module-modal-content">
+                <!-- Module content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div class="quiz-modal" id="quiz-modal" hidden>
+        <div class="quiz-overlay"></div>
+        <div class="quiz-container">
+            <div class="quiz-modal-header">
+                <h3 class="quiz-modal-title">Quiz Title</h3>
+                <button class="quiz-close" aria-label="Close quiz" type="button">✕</button>
+            </div>
+            <div class="quiz-modal-content">
+                <!-- Quiz content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4 class="footer-title">🎓 Education Hub</h4>
+                    <p class="footer-description">
+                        Empowering digital literacy for the next generation.
+                    </p>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-title">Learning</h4>
+                    <ul class="footer-links">
+                        <li><a href="#modules">Interactive Modules</a></li>
+                        <li><a href="#quiz">Knowledge Quizzes</a></li>
+                        <li><a href="#progress">Progress Tracking</a></li>
+                        <li><a href="./certificates/">Certificates</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-title">Community</h4>
+                    <ul class="footer-links">
+                        <li><a href="#forum">Discussion Forum</a></li>
+                        <li><a href="#discord">Discord Server</a></li>
+                        <li><a href="#study-groups">Study Groups</a></li>
+                        <li><a href="#mentorship">Mentorship</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-title">Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="../index.html">Documentation</a></li>
+                        <li><a href="../videos/">Video Tutorials</a></li>
+                        <li><a href="#downloads">Downloads</a></li>
+                        <li><a href="#research">Research Papers</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="footer-copyright">
+                    © 2025 TruthLens Education. Building digital literacy for the future. 🎓
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../scripts/search.js"></script>
+    <script src="../scripts/theme.js"></script>
+    <script src="../scripts/main.js"></script>
+    <script src="./scripts/education.js"></script>
+    <script src="./scripts/assessment.js"></script>
+    <script src="./scripts/modules.js"></script>
+    <script src="./scripts/quiz.js"></script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 // Chrome Built-in AI Service
 // Integrates with Gemini Nano for local AI processing
 
-import { CredibilityScore, ContentAnalysis } from '@shared/types';
+import { CredibilityScore, ContentAnalysis, BiasAlertResult } from '@shared/types';
+import { biasAssessmentService } from './biasAssessmentService';
+import { domainReputationService } from '../services/domainReputationService';
 
 export class AIService {
   private languageModel: AILanguageModelSession | null = null;
@@ -72,17 +74,69 @@ Be concise, accurate, and focus on verifiable signals.`;
     if (!this.isInitialized || !this.languageModel) {
       await this.initialize();
       if (!this.languageModel) {
-        return this.getFallbackAnalysis(content);
+        return await this.getFallbackAnalysis(content);
       }
     }
 
     try {
       const prompt = this.buildAnalysisPrompt(content);
       const response = await this.languageModel.prompt(prompt);
-      return this.parseAIResponse(response);
+      const credibilityScore = await this.parseAIResponse(response);
+
+      // 2025 Enhancement: Real-time bias monitoring
+      await this.performBiasMonitoring(credibilityScore);
+
+      return credibilityScore;
     } catch (error) {
       console.error('AI analysis failed:', error);
-      return this.getFallbackAnalysis(content);
+      return await this.getFallbackAnalysis(content);
+    }
+  }
+
+  /**
+   * 2025 Enhancement: Perform real-time bias monitoring on AI outputs
+   */
+  private async performBiasMonitoring(score: CredibilityScore): Promise<void> {
+    try {
+      const biasAlert = await biasAssessmentService.performRealTimeMonitoring(score);
+
+      if (biasAlert.alertLevel === 'warning' || biasAlert.alertLevel === 'critical') {
+        console.warn('Bias alert detected:', {
+          level: biasAlert.alertLevel,
+          message: biasAlert.message,
+          driftScore: biasAlert.driftScore,
+          recommendedActions: biasAlert.recommendedActions
+        });
+
+        // Store bias alert for reporting
+        await this.storeBiasAlert(biasAlert);
+      }
+    } catch (error) {
+      console.error('Bias monitoring failed:', error);
+    }
+  }
+
+  /**
+   * Store bias alert for compliance reporting
+   */
+  private async storeBiasAlert(alert: BiasAlertResult): Promise<void> {
+    try {
+      const alertKey = `bias_alert_${alert.timestamp}`;
+      await chrome.storage.local.set({ [alertKey]: alert });
+
+      // Update alert summary
+      const summary = await chrome.storage.local.get('bias_alert_summary');
+      const currentSummary = summary.bias_alert_summary || { totalAlerts: 0, lastAlert: 0 };
+
+      await chrome.storage.local.set({
+        bias_alert_summary: {
+          totalAlerts: currentSummary.totalAlerts + 1,
+          lastAlert: alert.timestamp,
+          lastAlertLevel: alert.alertLevel
+        }
+      });
+    } catch (error) {
+      console.error('Failed to store bias alert:', error);
     }
   }
 
@@ -99,7 +153,7 @@ Content excerpt: ${content.content?.substring(0, 500) || 'N/A'}
 Provide credibility assessment in JSON format.`;
   }
 
-  private parseAIResponse(response: string): CredibilityScore {
+  private async parseAIResponse(response: string): Promise<CredibilityScore> {
     try {
       const parsed = JSON.parse(response);
       return {
@@ -112,7 +166,7 @@ Provide credibility assessment in JSON format.`;
       };
     } catch (error) {
       console.error('Failed to parse AI response:', error);
-      return this.getFallbackAnalysis();
+      return await this.getFallbackAnalysis();
     }
   }
 
@@ -121,33 +175,67 @@ Provide credibility assessment in JSON format.`;
     return validLevels.includes(level) ? level as any : 'unknown';
   }
 
-  private getFallbackAnalysis(content?: ContentAnalysis): CredibilityScore {
-    // Basic heuristic analysis when AI is unavailable
+  private async getFallbackAnalysis(content?: ContentAnalysis): Promise<CredibilityScore> {
+    // Advanced domain reputation analysis when AI is unavailable
     let score = 50;
     let level: 'high' | 'medium' | 'low' | 'unknown' = 'unknown';
+    let reasoning = 'Basic domain analysis (AI unavailable)';
+    let confidence = 0.5;
 
     if (content?.url) {
-      const domain = new URL(content.url).hostname;
-      
-      // Simple domain-based heuristics
-      const trustedDomains = ['reuters.com', 'apnews.com', 'bbc.com', 'npr.org'];
-      const untrustedPatterns = ['fake', 'hoax', 'conspiracy'];
-      
-      if (trustedDomains.some(trusted => domain.includes(trusted))) {
-        score = 85;
-        level = 'high';
-      } else if (untrustedPatterns.some(pattern => domain.includes(pattern))) {
-        score = 20;
-        level = 'low';
+      try {
+        // Use domain reputation service for accurate scoring
+        const domainReputation = await domainReputationService.getDomainReputation(content.url);
+
+        score = domainReputation.score;
+        confidence = domainReputation.confidence;
+
+        // Map score to level using 2025 standards
+        if (score >= 80) {
+          level = 'high';
+        } else if (score >= 60) {
+          level = 'medium';
+        } else if (score >= 40) {
+          level = 'low';
+        } else {
+          level = 'unknown';
+        }
+
+        // Enhanced reasoning with domain context
+        reasoning = `Domain reputation analysis: ${domainReputation.domain} (${domainReputation.category})`;
+
+        if (domainReputation.biasOrientation) {
+          reasoning += ` with ${domainReputation.biasOrientation} bias orientation`;
+        }
+
+        reasoning += `. Source: ${domainReputation.source}`;
+
+      } catch (error) {
+        console.error('Domain reputation lookup failed:', error);
+
+        // Fallback to basic pattern analysis
+        const domain = new URL(content.url).hostname;
+        const trustedPatterns = ['reuters.com', 'apnews.com', 'bbc.com', 'npr.org'];
+        const untrustedPatterns = ['fake', 'hoax', 'conspiracy'];
+
+        if (trustedPatterns.some(trusted => domain.includes(trusted))) {
+          score = 85;
+          level = 'high';
+          reasoning = 'Trusted domain pattern match (fallback)';
+        } else if (untrustedPatterns.some(pattern => domain.includes(pattern))) {
+          score = 20;
+          level = 'low';
+          reasoning = 'Untrusted domain pattern detected (fallback)';
+        }
       }
     }
 
     return {
       score,
       level,
-      confidence: 0.5,
-      reasoning: 'Basic domain analysis (AI unavailable)',
-      source: 'fallback',
+      confidence,
+      reasoning,
+      source: 'domain-reputation',
       timestamp: Date.now(),
     };
   }

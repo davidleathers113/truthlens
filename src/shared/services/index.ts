@@ -5,6 +5,25 @@
 
 // Core services
 export * from '../storage/storageService';
+export * from './subscriptionManager';
+export * from './subscriptionLifecycleManager';
+export * from './usageTracker';
+export * from './featureGate';
+export * from './upgradePromptManager';
+
+// Freemium Business Model Services (Task 29 - 2025 Implementation)
+export * from './analyticsService';
+export * from './notificationService';
+export * from './gdprComplianceManager';
+export * from './extensionPayService';
+
+// AI and Bias Detection Services (2025 Premium Feature)
+export { biasDetectionService } from '../../background/ai/biasDetectionService';
+
+// User Feedback System (2025 Implementation)
+export { feedbackService } from './feedbackService';
+export { feedbackAntiSpamService } from './feedbackAntiSpamService';
+export { feedbackStorageService } from './feedbackStorageService';
 
 // Security and Privacy Services (2025 Implementation)
 export * from './securityService';

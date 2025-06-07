@@ -11,7 +11,7 @@ export interface CredibilityScore {
   level: 'high' | 'medium' | 'low' | 'unknown';
   confidence: number; // 0-1
   reasoning?: string;
-  source: 'ai' | 'api' | 'fallback';
+  source: 'ai' | 'api' | 'fallback' | 'domain-reputation';
   timestamp: number;
 }
 
@@ -218,8 +218,121 @@ export interface DashboardData {
 // Subscription Types
 export type SubscriptionTier = 'free' | 'premium' | 'enterprise';
 
+export type SubscriptionStatus = 'active' | 'grace_period' | 'expired' | 'free_tier' | 'cancelled';
+
 export interface UserSubscription {
   tier: SubscriptionTier;
+  status: SubscriptionStatus;
   expiresAt?: number;
   features: string[];
+  lastValidated?: number;
+  validationInterval?: number; // ms, default 30 days
+  gracePeriodStart?: number;
+  gracePeriodDuration?: number; // ms, default 30 days
+  paymentMethod?: string;
+  subscriptionId?: string;
+}
+
+export interface SubscriptionValidationResult {
+  isValid: boolean;
+  status: SubscriptionStatus;
+  expiresAt?: number;
+  gracePeriodEnd?: number;
+  error?: string;
+  lastChecked: number;
+}
+
+export interface UsageTracker {
+  dailyChecks: number;
+  lastReset: number; // timestamp of last UTC midnight reset
+  totalChecks: number;
+  weeklyChecks: number;
+  monthlyChecks: number;
+}
+
+// 2025 Bias Assessment Enhancement Types
+export interface BiasAlertResult {
+  alertLevel: 'info' | 'warning' | 'critical';
+  message: string;
+  driftScore?: number;
+  subpopulationIssues?: string[];
+  recommendedActions?: string[];
+  timestamp: number;
+}
+
+export interface ExplainableAIReport {
+  decisionPath: DecisionNode[];
+  featureImportance: FeatureWeight[];
+  confidenceFactors: ConfidenceFactor[];
+  biasFactors: BiasExplanation[];
+  overallExplanation: string;
+  technicalDetails: {
+    modelVersion: string;
+    dataQualityScore: number;
+    processingTime: number;
+  };
+}
+
+export interface DecisionNode {
+  step: number;
+  description: string;
+  input: string;
+  output: string;
+  confidence: number;
+  reasoning: string;
+}
+
+export interface FeatureWeight {
+  feature: string;
+  weight: number;
+  impact: 'positive' | 'negative' | 'neutral';
+  explanation: string;
+}
+
+export interface ConfidenceFactor {
+  factor: string;
+  contribution: number;
+  description: string;
+}
+
+export interface BiasExplanation {
+  biasType: 'demographic' | 'content' | 'source' | 'temporal' | 'geographic';
+  detected: boolean;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  explanation: string;
+  mitigationApplied?: string;
+}
+
+export interface SubpopulationAnalysis {
+  populationGroups: PopulationGroup[];
+  disparityMetrics: DisparityMetric[];
+  overallFairness: number;
+  recommendations: string[];
+  detectedIssues: SubpopulationIssue[];
+}
+
+export interface PopulationGroup {
+  groupId: string;
+  criteria: Record<string, any>;
+  sampleSize: number;
+  averageScore: number;
+  confidence: number;
+  representativeness: number;
+}
+
+export interface DisparityMetric {
+  metricName: string;
+  value: number;
+  threshold: number;
+  groups: string[];
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+}
+
+export interface SubpopulationIssue {
+  issueType: string;
+  affectedGroups: string[];
+  magnitude: number;
+  description: string;
+  recommendedAction: string;
 }

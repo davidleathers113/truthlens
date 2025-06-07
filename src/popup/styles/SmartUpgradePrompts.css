@@ -1,0 +1,465 @@
+/**
+ * Smart Upgrade Prompts Styles
+ * Following 2025 design patterns with micro-interactions and accessibility
+ */
+
+.smart-upgrade-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+}
+
+/* Entrance animations */
+.smart-upgrade-prompt.entering {
+  animation-name: promptSlideIn;
+}
+
+.smart-upgrade-prompt.exiting {
+  animation-name: promptSlideOut;
+}
+
+@keyframes promptSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes promptSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+}
+
+/* Background overlay */
+.prompt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 300ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Main container */
+.prompt-container {
+  position: relative;
+  background: var(--popup-bg, white);
+  border-radius: 16px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 400px;
+  width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  overflow: hidden;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* Intensity-based styling */
+.smart-upgrade-prompt.intensity-low .prompt-container {
+  border-left: 4px solid var(--blue-500, #3b82f6);
+}
+
+.smart-upgrade-prompt.intensity-medium .prompt-container {
+  border-left: 4px solid var(--orange-500, #f97316);
+}
+
+.smart-upgrade-prompt.intensity-high .prompt-container {
+  border-left: 4px solid var(--red-500, #ef4444);
+  box-shadow:
+    0 25px 50px -12px rgba(239, 68, 68, 0.25),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.smart-upgrade-prompt.urgent .prompt-container {
+  animation: urgentPulse 2s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% {
+    box-shadow:
+      0 25px 50px -12px rgba(239, 68, 68, 0.25),
+      0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 25px 50px -12px rgba(239, 68, 68, 0.4),
+      0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Header */
+.prompt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+}
+
+.prompt-icon-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prompt-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* Pulse ring for high intensity */
+.pulse-ring {
+  position: absolute;
+  border: 2px solid var(--red-500, #ef4444);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: pulse 1.5s infinite;
+  opacity: 0.6;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.prompt-dismiss {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 200ms ease;
+  line-height: 1;
+}
+
+.prompt-dismiss:hover {
+  background: var(--hover-bg, #f3f4f6);
+  color: var(--text-primary, #111827);
+  transform: scale(1.1);
+}
+
+/* Content */
+.prompt-content {
+  padding: 0 24px 20px;
+}
+
+.prompt-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.prompt-message {
+  font-size: 14px;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+/* Loss aversion message */
+.loss-aversion-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--warning-bg, #fef3c7);
+  border: 1px solid var(--warning-border, #fcd34d);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.loss-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.loss-text {
+  font-size: 13px;
+  color: var(--warning-text, #92400e);
+  font-weight: 500;
+}
+
+/* Social proof */
+.social-proof {
+  margin-bottom: 16px;
+}
+
+.social-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.social-stats .stat {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.social-stats .stat strong {
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+}
+
+/* Feature highlights */
+.feature-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feature-check {
+  color: var(--green-500, #10b981);
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.feature-name {
+  font-size: 13px;
+  color: var(--text-secondary, #6b7280);
+  font-weight: 500;
+}
+
+/* Actions */
+.prompt-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 24px 20px;
+  flex-direction: column;
+}
+
+.upgrade-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 200ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.upgrade-button.primary {
+  background: var(--primary-500, #3b82f6);
+  color: white;
+}
+
+.upgrade-button.primary:hover {
+  background: var(--primary-600, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.upgrade-button.urgent {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  animation: buttonGlow 2s infinite;
+}
+
+@keyframes buttonGlow {
+  0%, 100% { box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6); }
+}
+
+.urgency-indicator {
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.secondary-button {
+  padding: 10px 20px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  background: var(--popup-bg, white);
+  color: var(--text-secondary, #6b7280);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.secondary-button:hover {
+  background: var(--hover-bg, #f9fafb);
+  border-color: var(--border-hover, #d1d5db);
+  color: var(--text-primary, #111827);
+}
+
+/* Footer */
+.prompt-footer {
+  padding: 12px 24px 20px;
+  border-top: 1px solid var(--border-color, #f3f4f6);
+}
+
+.analytics-hint {
+  font-size: 11px;
+  color: var(--text-tertiary, #9ca3af);
+  text-align: center;
+  display: block;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .prompt-container {
+    width: calc(100vw - 16px);
+    margin: 8px;
+    border-radius: 12px;
+  }
+
+  .prompt-header,
+  .prompt-content,
+  .prompt-actions {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .prompt-title {
+    font-size: 18px;
+  }
+
+  .prompt-actions {
+    gap: 8px;
+  }
+
+  .social-stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .prompt-container {
+    background: var(--popup-bg-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .prompt-title {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .prompt-message {
+    color: var(--text-secondary-dark, #d1d5db);
+  }
+
+  .prompt-dismiss {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .prompt-dismiss:hover {
+    background: var(--hover-bg-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .secondary-button {
+    background: var(--popup-bg-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-secondary-dark, #d1d5db);
+  }
+
+  .secondary-button:hover {
+    background: var(--hover-bg-dark, #374151);
+    border-color: var(--border-hover-dark, #4b5563);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .loss-aversion-message {
+    background: var(--warning-bg-dark, #451a03);
+    border-color: var(--warning-border-dark, #92400e);
+  }
+
+  .loss-text {
+    color: var(--warning-text-dark, #fbbf24);
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .smart-upgrade-prompt,
+  .prompt-overlay,
+  .pulse-ring,
+  .upgrade-button,
+  .prompt-dismiss,
+  .urgency-indicator {
+    animation: none;
+    transition: none;
+  }
+
+  .upgrade-button:hover,
+  .prompt-dismiss:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .prompt-container {
+    border-width: 2px;
+  }
+
+  .upgrade-button.primary {
+    border: 2px solid var(--primary-700, #1d4ed8);
+  }
+
+  .secondary-button {
+    border-width: 2px;
+  }
+}

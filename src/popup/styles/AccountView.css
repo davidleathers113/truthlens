@@ -1,0 +1,843 @@
+/* AccountView.css - 2025 Account Management Interface */
+
+/* CSS Custom Properties - Account Management Theme */
+:root {
+  /* Primary account colors */
+  --account-primary: #1a73e8;
+  --account-secondary: #ea4335;
+  --account-success: #34a853;
+  --account-warning: #fbbc04;
+  --account-danger: #ea4335;
+
+  /* Surface colors */
+  --account-bg: #ffffff;
+  --account-surface: #f8f9fa;
+  --account-surface-elevated: #ffffff;
+  --account-border: #e8eaed;
+  --account-text: #202124;
+  --account-text-secondary: #5f6368;
+  --account-text-muted: #9aa0a6;
+
+  /* Interactive states */
+  --account-hover: #f1f3f4;
+  --account-active: #e8f0fe;
+  --account-focus: #1a73e8;
+
+  /* Spacing and sizing */
+  --account-space-xs: 0.25rem;
+  --account-space-sm: 0.5rem;
+  --account-space-md: 1rem;
+  --account-space-lg: 1.5rem;
+  --account-space-xl: 2rem;
+  --account-space-xxl: 3rem;
+
+  /* Animation and timing */
+  --account-transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --account-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --account-spring: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Shadows and effects */
+  --account-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  --account-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  --account-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+
+  /* Border radius */
+  --account-radius: 1rem;
+  --account-radius-sm: 0.5rem;
+  --account-radius-lg: 1.5rem;
+}
+
+/* Dark mode support */
+[data-theme="dark"] {
+  --account-bg: #1f1f1f;
+  --account-surface: #2d2d2d;
+  --account-surface-elevated: #383838;
+  --account-border: #404040;
+  --account-text: #ffffff;
+  --account-text-secondary: #e0e0e0;
+  --account-text-muted: #a0a0a0;
+  --account-hover: #404040;
+  --account-active: #2d2d2d;
+}
+
+/* Main container */
+.account-view {
+  width: 100%;
+  height: 100%;
+  background: var(--account-bg);
+  color: var(--account-text);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all var(--account-spring);
+}
+
+.account-view.animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Header */
+.account-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--account-space-md) var(--account-space-lg);
+  border-bottom: 1px solid var(--account-border);
+  background: var(--account-surface-elevated);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: var(--account-space-sm);
+  background: transparent;
+  border: none;
+  color: var(--account-primary);
+  cursor: pointer;
+  padding: var(--account-space-sm) var(--account-space-md);
+  border-radius: var(--account-radius-sm);
+  transition: all var(--account-transition);
+  font-weight: 500;
+}
+
+.back-button:hover {
+  background: var(--account-hover);
+  transform: translateX(-2px);
+}
+
+.back-icon {
+  font-size: 1.2rem;
+  transition: transform var(--account-transition);
+}
+
+.back-button:hover .back-icon {
+  transform: translateX(-2px);
+}
+
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--account-text);
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--account-space-sm);
+}
+
+.settings-button {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius-sm);
+  cursor: pointer;
+  transition: all var(--account-transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.settings-button:hover {
+  background: var(--account-hover);
+  transform: scale(1.05);
+  border-color: var(--account-primary);
+}
+
+/* Content */
+.account-content {
+  flex: 1;
+  padding: var(--account-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--account-space-lg);
+  overflow-y: auto;
+}
+
+/* Profile Section */
+.profile-section {
+  animation: slideInUp var(--account-spring) ease-out;
+}
+
+.profile-card {
+  background: var(--account-surface-elevated);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius);
+  padding: var(--account-space-lg);
+  box-shadow: var(--account-shadow-sm);
+  transition: all var(--account-transition);
+  display: flex;
+  gap: var(--account-space-lg);
+  align-items: flex-start;
+}
+
+.profile-card:hover {
+  box-shadow: var(--account-shadow-md);
+  transform: translateY(-2px);
+}
+
+.avatar-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--account-primary), var(--account-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: white;
+  box-shadow: var(--account-shadow-md);
+  transition: all var(--account-transition);
+}
+
+.avatar:hover {
+  transform: scale(1.05);
+  box-shadow: var(--account-shadow-lg);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--account-surface-elevated);
+  background: var(--account-success);
+}
+
+.status-indicator.online {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-display .profile-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 var(--account-space-xs) 0;
+  color: var(--account-text);
+}
+
+.profile-display .profile-email {
+  font-size: 0.95rem;
+  color: var(--account-text-secondary);
+  margin: 0 0 var(--account-space-md) 0;
+}
+
+.profile-meta {
+  display: flex;
+  gap: var(--account-space-lg);
+  flex-wrap: wrap;
+}
+
+.profile-meta span {
+  font-size: 0.875rem;
+  color: var(--account-text-muted);
+  background: var(--account-surface);
+  padding: var(--account-space-xs) var(--account-space-sm);
+  border-radius: var(--account-radius-sm);
+  border: 1px solid var(--account-border);
+}
+
+/* Profile editing */
+.profile-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--account-space-md);
+}
+
+.profile-input {
+  width: 100%;
+  padding: var(--account-space-md);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius-sm);
+  background: var(--account-surface);
+  color: var(--account-text);
+  font-size: 0.95rem;
+  transition: all var(--account-transition);
+}
+
+.profile-input:focus {
+  outline: none;
+  border-color: var(--account-primary);
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: var(--account-space-sm);
+}
+
+.save-button, .cancel-button {
+  padding: var(--account-space-sm) var(--account-space-md);
+  border-radius: var(--account-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--account-transition);
+  border: 1px solid;
+}
+
+.save-button {
+  background: var(--account-primary);
+  color: white;
+  border-color: var(--account-primary);
+}
+
+.save-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--account-shadow-md);
+}
+
+.cancel-button {
+  background: transparent;
+  color: var(--account-text-secondary);
+  border-color: var(--account-border);
+}
+
+.cancel-button:hover {
+  background: var(--account-hover);
+}
+
+/* Subscription Section */
+.subscription-section {
+  animation: slideInUp var(--account-spring) ease-out;
+  animation-delay: 100ms;
+  animation-fill-mode: backwards;
+}
+
+.subscription-card {
+  background: var(--account-surface-elevated);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius);
+  padding: var(--account-space-lg);
+  box-shadow: var(--account-shadow-sm);
+  transition: all var(--account-transition);
+}
+
+.subscription-card:hover {
+  box-shadow: var(--account-shadow-md);
+  transform: translateY(-1px);
+}
+
+.subscription-header {
+  display: flex;
+  align-items: center;
+  gap: var(--account-space-md);
+  margin-bottom: var(--account-space-lg);
+}
+
+.subscription-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: var(--account-surface);
+  border-radius: var(--account-radius-sm);
+  border: 1px solid var(--account-border);
+}
+
+.subscription-info h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 var(--account-space-xs) 0;
+  color: var(--account-text);
+}
+
+.subscription-info p {
+  font-size: 0.9rem;
+  color: var(--account-text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.trial-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--account-space-sm);
+  background: linear-gradient(135deg, var(--account-warning), #ff9800);
+  color: white;
+  padding: var(--account-space-md);
+  border-radius: var(--account-radius-sm);
+  margin-bottom: var(--account-space-lg);
+  font-weight: 500;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.subscription-features h5 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 var(--account-space-md) 0;
+  color: var(--account-text);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--account-space-sm);
+  margin-bottom: var(--account-space-lg);
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--account-space-sm);
+  padding: var(--account-space-sm);
+  background: var(--account-surface);
+  border-radius: var(--account-radius-sm);
+  border: 1px solid var(--account-border);
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideInRight var(--account-spring) ease-out forwards;
+  animation-delay: var(--animation-delay, 0ms);
+}
+
+.feature-icon {
+  color: var(--account-success);
+  font-weight: bold;
+}
+
+.feature-text {
+  font-size: 0.875rem;
+  color: var(--account-text-secondary);
+  text-transform: capitalize;
+}
+
+.upgrade-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--account-space-md) var(--account-space-lg);
+  background: linear-gradient(135deg, var(--account-primary), var(--account-secondary));
+  color: white;
+  border: none;
+  border-radius: var(--account-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--account-transition);
+  box-shadow: var(--account-shadow-sm);
+}
+
+.upgrade-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--account-shadow-lg);
+}
+
+.button-arrow {
+  font-size: 1.2rem;
+  transition: transform var(--account-transition);
+}
+
+.upgrade-button:hover .button-arrow {
+  transform: translateX(4px);
+}
+
+.subscription-management {
+  display: flex;
+  gap: var(--account-space-sm);
+  flex-wrap: wrap;
+}
+
+.manage-button, .cancel-button.secondary {
+  padding: var(--account-space-sm) var(--account-space-md);
+  border-radius: var(--account-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--account-transition);
+  border: 1px solid;
+  flex: 1;
+  min-width: 120px;
+}
+
+.manage-button {
+  background: var(--account-primary);
+  color: white;
+  border-color: var(--account-primary);
+}
+
+.cancel-button.secondary {
+  background: transparent;
+  color: var(--account-danger);
+  border-color: var(--account-danger);
+}
+
+.manage-button:hover, .cancel-button.secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--account-shadow-sm);
+}
+
+/* Actions Section */
+.actions-section {
+  animation: slideInUp var(--account-spring) ease-out;
+  animation-delay: 200ms;
+  animation-fill-mode: backwards;
+}
+
+.actions-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 var(--account-space-md) 0;
+  color: var(--account-text);
+}
+
+.actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--account-space-sm);
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: var(--account-space-md);
+  padding: var(--account-space-md);
+  background: var(--account-surface-elevated);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius-sm);
+  color: var(--account-text);
+  cursor: pointer;
+  transition: all var(--account-transition);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideInUp var(--account-spring) ease-out forwards;
+  animation-delay: var(--animation-delay, 0ms);
+}
+
+.action-button:hover {
+  background: var(--account-hover);
+  transform: translateY(-1px) translateX(4px);
+  box-shadow: var(--account-shadow-sm);
+}
+
+.action-button.danger {
+  color: var(--account-danger);
+  border-color: rgba(234, 67, 53, 0.2);
+}
+
+.action-button.danger:hover {
+  background: rgba(234, 67, 53, 0.05);
+  border-color: var(--account-danger);
+}
+
+.action-icon {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.action-label {
+  flex: 1;
+  font-weight: 500;
+}
+
+.action-arrow {
+  color: var(--account-text-muted);
+  font-size: 1.2rem;
+  transition: transform var(--account-transition);
+}
+
+.action-button:hover .action-arrow {
+  transform: translateX(4px);
+}
+
+/* Stats Preview */
+.stats-preview {
+  animation: slideInUp var(--account-spring) ease-out;
+  animation-delay: 300ms;
+  animation-fill-mode: backwards;
+}
+
+.stats-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 var(--account-space-md) 0;
+  color: var(--account-text);
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--account-space-md);
+  margin-bottom: var(--account-space-lg);
+}
+
+.stat-item {
+  text-align: center;
+  padding: var(--account-space-md);
+  background: var(--account-surface-elevated);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius-sm);
+  transition: all var(--account-transition);
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--account-shadow-sm);
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--account-primary);
+  margin-bottom: var(--account-space-xs);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--account-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.view-stats-button {
+  width: 100%;
+  padding: var(--account-space-sm) var(--account-space-md);
+  background: transparent;
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius-sm);
+  color: var(--account-primary);
+  cursor: pointer;
+  transition: all var(--account-transition);
+  font-weight: 500;
+}
+
+.view-stats-button:hover {
+  background: var(--account-hover);
+  transform: translateY(-1px);
+}
+
+/* Confirmation Dialog */
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  backdrop-filter: blur(8px);
+}
+
+.confirm-dialog {
+  background: var(--account-surface-elevated);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius);
+  padding: var(--account-space-xl);
+  max-width: 90%;
+  width: 320px;
+  box-shadow: var(--account-shadow-lg);
+  animation: scaleIn 0.3s var(--account-bounce);
+}
+
+.confirm-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 var(--account-space-md) 0;
+  color: var(--account-text);
+}
+
+.confirm-message {
+  font-size: 0.9rem;
+  color: var(--account-text-secondary);
+  margin: 0 0 var(--account-space-xl) 0;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: var(--account-space-sm);
+}
+
+.confirm-button {
+  flex: 1;
+  padding: var(--account-space-md);
+  border-radius: var(--account-radius-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--account-transition);
+  border: 1px solid;
+}
+
+.confirm-button.primary {
+  background: var(--account-danger);
+  color: white;
+  border-color: var(--account-danger);
+}
+
+.confirm-button.secondary {
+  background: transparent;
+  color: var(--account-text-secondary);
+  border-color: var(--account-border);
+}
+
+.confirm-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--account-shadow-sm);
+}
+
+/* Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .account-content {
+    padding: var(--account-space-md);
+    gap: var(--account-space-md);
+  }
+
+  .profile-card {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--account-space-md);
+  }
+
+  .avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5rem;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+    gap: var(--account-space-sm);
+  }
+
+  .subscription-management {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 320px) {
+  .account-header {
+    padding: var(--account-space-sm) var(--account-space-md);
+  }
+
+  .header-title {
+    font-size: 1.1rem;
+  }
+
+  .profile-meta {
+    flex-direction: column;
+    gap: var(--account-space-sm);
+  }
+
+  .features-grid {
+    gap: var(--account-space-xs);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .account-view {
+    border: 2px solid;
+  }
+
+  .action-button:focus,
+  .upgrade-button:focus,
+  .back-button:focus {
+    outline: 3px solid var(--account-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .account-view:hover,
+  .action-button:hover,
+  .upgrade-button:hover {
+    transform: none;
+  }
+}

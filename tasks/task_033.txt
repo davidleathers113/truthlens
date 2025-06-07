@@ -3,9 +3,9 @@
 # Status: pending
 # Dependencies: 3, 4, 7
 # Priority: medium
-# Description: Develop a specialized content extractor for YouTube that captures video descriptions, comments, channel information, and metadata to support analysis of Gen Z video content consumption.
+# Description: Develop a specialized content extractor for YouTube's desktop web interface that captures video descriptions, comments, channel information, and metadata to support analysis of Gen Z video content consumption.
 # Details:
-Implement a YouTube-specific content extractor (src/content/extractors/youtubeExtractor.ts) with the following components:
+Implement a YouTube-specific content extractor (src/content/extractors/youtubeExtractor.ts) targeting the desktop web interface with the following components:
 
 1. Video Metadata Extraction:
    - Title, upload date, view count, likes/dislikes
@@ -42,14 +42,15 @@ Implement a YouTube-specific content extractor (src/content/extractors/youtubeEx
 
 The extractor should integrate with the existing content script infrastructure and follow the ContentExtractor interface defined in the shared types. It should detect YouTube-specific pages and activate only when appropriate.
 
-Implementation should account for YouTube's frequent UI changes by using robust selectors and fallback mechanisms. The extractor should handle both desktop and mobile YouTube layouts.
+Implementation should account for YouTube's frequent UI changes by using robust selectors and fallback mechanisms. The extractor should handle YouTube's desktop responsive design at different browser window sizes.
 
 # Test Strategy:
 1. Manual Testing:
    - Create a test suite with various YouTube video types (standard videos, shorts, premieres, live streams)
    - Verify extraction on videos with different characteristics (long/short descriptions, many/few comments)
    - Test on channels with varying amounts of information and metadata
-   - Validate extraction works on different YouTube layouts and UI versions
+   - Validate extraction works on different YouTube desktop layouts and UI versions
+   - Test at various browser window sizes to verify handling of responsive design
 
 2. Automated Tests:
    - Write unit tests for each extraction component (metadata, description, comments)
@@ -68,49 +69,49 @@ Implementation should account for YouTube's frequent UI changes by using robust 
    - Monitor memory usage during extraction of complex pages
    - Verify the extractor doesn't significantly impact page load time or responsiveness
 
-5. Cross-browser Compatibility:
+5. Cross-browser Desktop Compatibility:
    - Test on Chrome, Firefox, and Edge to ensure consistent extraction
-   - Verify mobile YouTube extraction works correctly
+   - Verify extraction works correctly across different desktop browser versions
 
 6. Integration Verification:
    - Confirm extracted data properly integrates with the analysis pipeline
    - Validate that all required fields are correctly populated in the ContentAnalysis interface
    - Test communication between the extractor and the background service worker
+   - Verify compatibility with Chrome extension content script capabilities
 
 # Subtasks:
 ## 1. Implement YouTube Page Detection and Base Extractor Structure [pending]
 ### Dependencies: None
 ### Description: Create the foundation for the YouTube extractor by implementing page detection logic and setting up the base class structure that follows the ContentExtractor interface.
 ### Details:
-Create src/content/extractors/youtubeExtractor.ts with a class that implements the ContentExtractor interface. Implement methods to detect YouTube pages (watch pages, shorts, channel pages) using URL patterns and DOM structure. Set up the basic structure with placeholder methods for each extraction component. Include configuration options for different extraction modes and throttling parameters.
+Create src/content/extractors/youtubeExtractor.ts with a class that implements the ContentExtractor interface. Implement methods to detect YouTube desktop web pages (watch pages, shorts, channel pages) using URL patterns and DOM structure. Set up the basic structure with placeholder methods for each extraction component. Include configuration options for different extraction modes and throttling parameters.
 
 ## 2. Implement Video Metadata and Description Extraction [pending]
 ### Dependencies: None
 ### Description: Extract core video metadata (title, views, likes, channel info) and parse video descriptions including timestamps, links, and sponsored content markers.
 ### Details:
-Use querySelector/querySelectorAll with robust selectors to extract video metadata. Implement regex patterns to parse description text for timestamps, links, and sponsored content markers. Create helper functions to categorize links (affiliate, social, etc.) and identify chapter markers in descriptions. Store extracted data in a structured format following the ContentExtractor interface requirements.
+Use querySelector/querySelectorAll with robust selectors to extract video metadata from the desktop web interface. Implement regex patterns to parse description text for timestamps, links, and sponsored content markers. Create helper functions to categorize links (affiliate, social, etc.) and identify chapter markers in descriptions. Store extracted data in a structured format following the ContentExtractor interface requirements.
 
 ## 3. Implement Comment Section Extraction Logic [pending]
 ### Dependencies: None
 ### Description: Create the logic to extract comments, including metadata, replies, and handling of paginated comment loading.
 ### Details:
-Implement methods to locate and extract comment elements from the DOM. Create functions to parse comment metadata (author, date, likes) and identify special comments (pinned, highlighted). Implement a throttled approach to handle large comment sections, processing comments in batches. Add logic to detect when more comments are loaded and trigger additional extraction.
+Implement methods to locate and extract comment elements from the desktop web DOM. Create functions to parse comment metadata (author, date, likes) and identify special comments (pinned, highlighted). Implement a throttled approach to handle large comment sections, processing comments in batches. Add logic to detect when more comments are loaded and trigger additional extraction.
 
 ## 4. Implement Channel Information Extraction [pending]
 ### Dependencies: None
 ### Description: Extract channel details including about section, social media links, and channel statistics to provide context about content creators.
 ### Details:
-Create methods to navigate to and extract data from channel pages when needed. Implement extraction of channel statistics (subscriber count, total views, join date). Parse about section text and extract social media links. Create a caching mechanism to store channel data to avoid redundant extraction when processing multiple videos from the same creator.
+Create methods to navigate to and extract data from channel pages on the desktop web interface when needed. Implement extraction of channel statistics (subscriber count, total views, join date). Parse about section text and extract social media links. Create a caching mechanism to store channel data to avoid redundant extraction when processing multiple videos from the same creator.
 
 ## 5. Implement Dynamic Content Handling with MutationObserver [pending]
 ### Dependencies: None
 ### Description: Create a robust system to handle YouTube's dynamic content loading and SPA navigation using MutationObserver.
 ### Details:
-Implement a MutationObserver to detect when video content, comments, or page structure changes. Create logic to re-trigger appropriate extraction methods when relevant content updates. Handle YouTube's SPA navigation by detecting URL changes and page transitions. Implement debouncing to prevent excessive processing during rapid DOM changes. Add fallback mechanisms for when primary selectors fail due to YouTube UI changes.
+Implement a MutationObserver to detect when video content, comments, or page structure changes on the desktop web interface. Create logic to re-trigger appropriate extraction methods when relevant content updates. Handle YouTube's SPA navigation by detecting URL changes and page transitions. Implement debouncing to prevent excessive processing during rapid DOM changes. Add fallback mechanisms for when primary selectors fail due to YouTube UI changes.
 
 ## 6. Optimize Performance and Integrate with Content Script Infrastructure [pending]
 ### Dependencies: None
-### Description: Optimize the extractor for performance and integrate it with the existing content script infrastructure.
+### Description: Optimize the extractor for desktop browser performance and integrate it with the existing content script infrastructure.
 ### Details:
-Implement progressive loading for large comment sections to avoid UI freezing. Add caching mechanisms to prevent redundant processing of unchanged content. Optimize selectors and DOM traversal for better performance. Integrate the extractor with the content script infrastructure by registering it with the appropriate factory or manager class. Add comprehensive error handling and logging. Implement feature flags to enable/disable specific extraction components.
-
+Implement progressive loading for large comment sections to avoid UI freezing in desktop browsers. Add caching mechanisms to prevent redundant processing of unchanged content. Optimize selectors and DOM traversal for better performance in desktop web environments. Integrate the extractor with the content script infrastructure by registering it with the appropriate factory or manager class. Add comprehensive error handling and logging. Implement feature flags to enable/disable specific extraction components. Ensure compatibility with Chrome extension content script capabilities for desktop browsers.

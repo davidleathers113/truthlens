@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TruthLens User Guide - Learn how to verify information credibility with our Chrome extension">
+    <title>TruthLens Documentation - User Guide & Help</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./assets/favicon.ico">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/components.css">
+
+    <!-- SEO and Social Meta -->
+    <meta property="og:title" content="TruthLens Documentation">
+    <meta property="og:description" content="Complete user guide for TruthLens - Learn to verify information credibility">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://truthlens.docs">
+
+    <!-- Accessibility -->
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="TruthLens Team">
+
+    <!-- 2025 Web Standards -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="color-scheme" content="light dark">
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">🔍 TruthLens</div>
+                    <span class="tagline">User Documentation</span>
+                </div>
+
+                <nav class="main-nav" aria-label="Main navigation">
+                    <ul class="nav-list">
+                        <li><a href="#getting-started" class="nav-link">🚀 Get Started</a></li>
+                        <li><a href="#features" class="nav-link">✨ Features</a></li>
+                        <li><a href="#troubleshooting" class="nav-link">🔧 Help</a></li>
+                        <li><a href="#education" class="nav-link">📚 Learn</a></li>
+                    </ul>
+                </nav>
+
+                <div class="header-actions">
+                    <button class="search-btn" aria-label="Search documentation" type="button">
+                        🔍 Search
+                    </button>
+                    <button class="theme-toggle" aria-label="Toggle dark mode" type="button">
+                        🌙
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Modal -->
+    <div class="search-modal" id="search-modal" hidden>
+        <div class="search-overlay"></div>
+        <div class="search-container">
+            <div class="search-header">
+                <input type="text" class="search-input" placeholder="🔍 Search documentation..." aria-label="Search">
+                <button class="search-close" aria-label="Close search" type="button">✕</button>
+            </div>
+            <div class="search-results" id="search-results">
+                <div class="search-empty">
+                    <div class="search-empty-icon">🤔</div>
+                    <p>Start typing to search documentation...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">
+                        <span class="hero-emoji">🎯</span>
+                        Welcome to TruthLens
+                    </h1>
+                    <p class="hero-description">
+                        Learn how to verify information credibility and spot misinformation with our powerful Chrome extension.
+                        Get started in under 2 minutes! ⚡
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#quick-start" class="btn btn-primary">
+                            🚀 Quick Start Guide
+                        </a>
+                        <a href="#installation" class="btn btn-secondary">
+                            📥 Install Extension
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number">95%</span>
+                            <span class="stat-label">Accuracy Rate</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">2min</span>
+                            <span class="stat-label">Setup Time</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">Gen Z</span>
+                            <span class="stat-label">Optimized</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start Section -->
+        <section id="quick-start" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">🚀 Quick Start Guide</h2>
+                    <p class="section-description">Get up and running with TruthLens in 3 simple steps</p>
+                </div>
+
+                <div class="quick-start-grid">
+                    <div class="quick-start-step">
+                        <div class="step-number">1</div>
+                        <div class="step-icon">📥</div>
+                        <h3 class="step-title">Install Extension</h3>
+                        <p class="step-description">
+                            Add TruthLens to Chrome from the Web Store. Takes just 30 seconds!
+                        </p>
+                        <a href="#installation" class="step-link">Install Now →</a>
+                    </div>
+
+                    <div class="quick-start-step">
+                        <div class="step-number">2</div>
+                        <div class="step-icon">⚙️</div>
+                        <h3 class="step-title">Configure Settings</h3>
+                        <p class="step-description">
+                            Customize your credibility checking preferences in just a few clicks.
+                        </p>
+                        <a href="#settings" class="step-link">Setup Guide →</a>
+                    </div>
+
+                    <div class="quick-start-step">
+                        <div class="step-number">3</div>
+                        <div class="step-icon">🔍</div>
+                        <h3 class="step-title">Start Fact-Checking</h3>
+                        <p class="step-description">
+                            Browse any website and see credibility scores appear automatically!
+                        </p>
+                        <a href="#features" class="step-link">Learn Features →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Grid -->
+        <section class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">📚 Documentation</h2>
+                    <p class="section-description">Everything you need to master TruthLens</p>
+                </div>
+
+                <div class="doc-grid">
+                    <a href="#installation" class="doc-card">
+                        <div class="doc-card-icon">📥</div>
+                        <h3 class="doc-card-title">Installation</h3>
+                        <p class="doc-card-description">
+                            Step-by-step installation guide for Chrome
+                        </p>
+                        <span class="doc-card-time">⏱️ 2 min read</span>
+                    </a>
+
+                    <a href="#features" class="doc-card">
+                        <div class="doc-card-icon">✨</div>
+                        <h3 class="doc-card-title">Features Guide</h3>
+                        <p class="doc-card-description">
+                            Complete overview of all TruthLens features
+                        </p>
+                        <span class="doc-card-time">⏱️ 5 min read</span>
+                    </a>
+
+                    <a href="#credibility-scores" class="doc-card">
+                        <div class="doc-card-icon">🎯</div>
+                        <h3 class="doc-card-title">Credibility Scores</h3>
+                        <p class="doc-card-description">
+                            Understanding how our scoring system works
+                        </p>
+                        <span class="doc-card-time">⏱️ 3 min read</span>
+                    </a>
+
+                    <a href="#bias-detection" class="doc-card">
+                        <div class="doc-card-icon">⚖️</div>
+                        <h3 class="doc-card-title">Bias Detection</h3>
+                        <p class="doc-card-description">
+                            Learn about bias analysis and media perspective
+                        </p>
+                        <span class="doc-card-time">⏱️ 4 min read</span>
+                    </a>
+
+                    <a href="#troubleshooting" class="doc-card">
+                        <div class="doc-card-icon">🔧</div>
+                        <h3 class="doc-card-title">Troubleshooting</h3>
+                        <p class="doc-card-description">
+                            Common issues and solutions
+                        </p>
+                        <span class="doc-card-time">⏱️ 3 min read</span>
+                    </a>
+
+                    <a href="#privacy" class="doc-card">
+                        <div class="doc-card-icon">🔒</div>
+                        <h3 class="doc-card-title">Privacy & Security</h3>
+                        <p class="doc-card-description">
+                            How we protect your data and privacy
+                        </p>
+                        <span class="doc-card-time">⏱️ 4 min read</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">❓ Frequently Asked Questions</h2>
+                    <p class="section-description">Quick answers to common questions</p>
+                </div>
+
+                <div class="faq-grid">
+                    <div class="faq-category">
+                        <h3 class="faq-category-title">🚀 Getting Started</h3>
+                        <div class="faq-list">
+                            <details class="faq-item">
+                                <summary class="faq-question">How do I install TruthLens?</summary>
+                                <div class="faq-answer">
+                                    <p>Installing TruthLens is super easy! Just visit the Chrome Web Store, search for "TruthLens", and click "Add to Chrome". The whole process takes less than 30 seconds! 🎉</p>
+                                </div>
+                            </details>
+
+                            <details class="faq-item">
+                                <summary class="faq-question">Is TruthLens free to use?</summary>
+                                <div class="faq-answer">
+                                    <p>Yes! TruthLens offers a generous free tier that includes basic credibility checking. We also offer premium features for advanced users who need more detailed analysis. 💎</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div class="faq-category">
+                        <h3 class="faq-category-title">🎯 How It Works</h3>
+                        <div class="faq-list">
+                            <details class="faq-item">
+                                <summary class="faq-question">How accurate are credibility scores?</summary>
+                                <div class="faq-answer">
+                                    <p>Our AI-powered system achieves 95% accuracy by analyzing multiple factors including source reputation, fact-checking history, and content analysis. We're constantly improving! 🤖</p>
+                                </div>
+                            </details>
+
+                            <details class="faq-item">
+                                <summary class="faq-question">What websites does TruthLens work on?</summary>
+                                <div class="faq-answer">
+                                    <p>TruthLens works on all major news sites, social media platforms (Twitter, Facebook, Instagram), and millions of other websites. If it's on the web, we can analyze it! 🌐</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Help & Support */
+        <section class="section section-alt">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">🆘 Need Help?</h2>
+                    <p class="section-description">We're here to help you get the most out of TruthLens</p>
+                </div>
+
+                <div class="help-grid">
+                    <div class="help-card">
+                        <div class="help-icon">💬</div>
+                        <h3 class="help-title">Live Chat</h3>
+                        <p class="help-description">Get instant help from our support team</p>
+                        <button class="help-btn">Start Chat</button>
+                    </div>
+
+                    <div class="help-card">
+                        <div class="help-icon">📧</div>
+                        <h3 class="help-title">Email Support</h3>
+                        <p class="help-description">Send us a detailed question</p>
+                        <button class="help-btn">Send Email</button>
+                    </div>
+
+                    <div class="help-card">
+                        <div class="help-icon">📖</div>
+                        <h3 class="help-title">Knowledge Base</h3>
+                        <p class="help-description">Browse our comprehensive guides</p>
+                        <button class="help-btn">Browse Docs</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4 class="footer-title">🔍 TruthLens</h4>
+                    <p class="footer-description">
+                        Empowering digital literacy and critical thinking for the next generation.
+                    </p>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-title">Documentation</h4>
+                    <ul class="footer-links">
+                        <li><a href="#quick-start">Quick Start</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#troubleshooting">Troubleshooting</a></li>
+                        <li><a href="#education">Education</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-title">Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="#help">Help Center</a></li>
+                        <li><a href="#contact">Contact Us</a></li>
+                        <li><a href="#privacy">Privacy Policy</a></li>
+                        <li><a href="#terms">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-title">Community</h4>
+                    <ul class="footer-links">
+                        <li><a href="#discord">Discord</a></li>
+                        <li><a href="#twitter">Twitter</a></li>
+                        <li><a href="#github">GitHub</a></li>
+                        <li><a href="#feedback">Feedback</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="footer-copyright">
+                    © 2025 TruthLens. Made with ❤️ for digital literacy.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="./scripts/search.js"></script>
+    <script src="./scripts/theme.js"></script>
+    <script src="./scripts/main.js"></script>
+</body>
+</html>

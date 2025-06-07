@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthLens Extension Popup - Screenshot Mockup</title>
+    <style>
+        /* Screenshot 1: Extension Popup Interface */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .screenshot-container {
+            width: 1280px;
+            height: 800px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        /* Browser Chrome */
+        .browser-chrome {
+            height: 80px;
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .browser-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .control-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .close { background: #ff5f57; }
+        .minimize { background: #ffbd2e; }
+        .maximize { background: #28ca42; }
+
+        .address-bar {
+            flex: 1;
+            margin: 0 40px;
+            height: 36px;
+            background: #f8f9fa;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .extension-icon {
+            position: absolute;
+            right: 20px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #3B82F6, #1E40AF);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Website Content */
+        .website-content {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .fake-article {
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .article-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 16px 0;
+            line-height: 1.2;
+        }
+
+        .article-meta {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .article-content {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* TruthLens Popup */
+        .truthlens-popup {
+            position: absolute;
+            top: 120px;
+            right: 40px;
+            width: 380px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+            overflow: hidden;
+            z-index: 1000;
+            animation: popupSlideIn 0.3s ease-out;
+        }
+
+        @keyframes popupSlideIn {
+            from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .popup-header {
+            background: linear-gradient(135deg, #3B82F6, #1E40AF);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .popup-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .popup-logo .icon {
+            width: 24px;
+            height: 24px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .popup-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin: 4px 0 0 0;
+        }
+
+        .credibility-score {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: conic-gradient(#10B981 0deg 252deg, #f3f4f6 252deg 360deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-inner {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #10B981;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .score-description {
+            font-size: 16px;
+            font-weight: 600;
+            color: #10B981;
+            margin-bottom: 8px;
+        }
+
+        .score-details {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .analysis-section {
+            padding: 0 24px 24px;
+        }
+
+        .analysis-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .analysis-item:last-child {
+            border-bottom: none;
+        }
+
+        .analysis-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .check-icon { background: #dcfce7; }
+        .warning-icon { background: #fef3c7; }
+        .info-icon { background: #dbeafe; }
+
+        .analysis-content {
+            flex: 1;
+        }
+
+        .analysis-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0 0 4px 0;
+        }
+
+        .analysis-desc {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+
+        .popup-actions {
+            padding: 16px 24px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .primary-btn {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .secondary-btn {
+            background: white;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Credibility Indicator on Page */
+        .page-indicator {
+            position: absolute;
+            top: 200px;
+            left: 60px;
+            width: 48px;
+            height: 48px;
+            background: #10B981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); }
+        }
+
+        /* Gen Z Authentic Elements */
+        .authenticity-badge {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #666;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .community-count {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="screenshot-container">
+        <!-- Browser Chrome -->
+        <div class="browser-chrome">
+            <div class="browser-controls">
+                <div class="control-btn close"></div>
+                <div class="control-btn minimize"></div>
+                <div class="control-btn maximize"></div>
+            </div>
+            <div class="address-bar">
+                🔒 https://example-news-site.com/breaking-news-story
+            </div>
+            <div class="extension-icon">🛡️</div>
+        </div>
+
+        <!-- Website Content -->
+        <div class="website-content">
+            <div class="fake-article">
+                <div class="article-header">
+                    <h1>Breaking: Major Tech Company Announces Revolutionary AI Breakthrough</h1>
+                    <div class="article-meta">
+                        Published 2 hours ago • Technology News
+                    </div>
+                </div>
+                <div class="article-content">
+                    <p>In a surprising announcement today, a major technology company claims to have achieved a significant breakthrough in artificial intelligence research that could change the industry forever...</p>
+                </div>
+            </div>
+
+            <!-- Credibility Indicator on Page -->
+            <div class="page-indicator">✓</div>
+        </div>
+
+        <!-- TruthLens Popup -->
+        <div class="truthlens-popup">
+            <div class="popup-header">
+                <div class="popup-logo">
+                    <div class="icon">🔍</div>
+                    <div>
+                        <div class="popup-title">TruthLens</div>
+                        <div class="popup-subtitle">AI-Powered Fact Checking</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="credibility-score">
+                <div class="score-circle">
+                    <div class="score-inner">
+                        <div class="score-number">87</div>
+                        <div class="score-label">SCORE</div>
+                    </div>
+                </div>
+                <div class="score-description">High Credibility</div>
+                <div class="score-details">Sources verified • No red flags detected</div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-item">
+                    <div class="analysis-icon check-icon">✓</div>
+                    <div class="analysis-content">
+                        <div class="analysis-title">Source Verification</div>
+                        <div class="analysis-desc">3 reputable sources confirm this story</div>
+                    </div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-icon warning-icon">⚠️</div>
+                    <div class="analysis-content">
+                        <div class="analysis-title">Missing Context</div>
+                        <div class="analysis-desc">Some technical details need verification</div>
+                    </div>
+                </div>
+                <div class="analysis-item">
+                    <div class="analysis-icon info-icon">📊</div>
+                    <div class="analysis-content">
+                        <div class="analysis-title">Community Consensus</div>
+                        <div class="analysis-desc">89% of users rate this as credible</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="popup-actions">
+                <button class="action-btn secondary-btn">Details</button>
+                <button class="action-btn primary-btn">Share Analysis</button>
+            </div>
+        </div>
+
+        <!-- Gen Z Authentic Elements -->
+        <div class="community-count">🤝 2.1K community verifications</div>
+        <div class="authenticity-badge">✨ Real-time AI analysis</div>
+    </div>
+</body>
+</html>

@@ -76,6 +76,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         return () => mediaQuery.removeListener(handleChange);
       }
     }
+
+    // No cleanup needed when theme is not auto or window is undefined
+    return undefined;
   }, [themeState.theme]);
 
   // Load saved theme from storage

@@ -1,0 +1,319 @@
+/**
+ * Subscription Status Badge Styles
+ * Following 2025 design patterns with modern CSS features
+ */
+
+.subscription-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid;
+  min-height: 3rem;
+  background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  overflow: hidden;
+}
+
+/* Tier-specific styling */
+.subscription-badge.tier-free {
+  --bg-gradient-start: #f8fafc;
+  --bg-gradient-end: #f1f5f9;
+  --border-color: #cbd5e1;
+  --text-primary: #334155;
+  --text-secondary: #64748b;
+  --accent-color: #0ea5e9;
+}
+
+.subscription-badge.tier-premium {
+  --bg-gradient-start: #fef3c7;
+  --bg-gradient-end: #fde68a;
+  --border-color: #f59e0b;
+  --text-primary: #92400e;
+  --text-secondary: #a16207;
+  --accent-color: #f59e0b;
+}
+
+.subscription-badge.tier-enterprise {
+  --bg-gradient-start: #ddd6fe;
+  --bg-gradient-end: #c4b5fd;
+  --border-color: #8b5cf6;
+  --text-primary: #5b21b6;
+  --text-secondary: #6d28d9;
+  --accent-color: #8b5cf6;
+}
+
+.subscription-badge {
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Status-specific styling */
+.subscription-badge.status-active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(59, 130, 246, 0.1);
+}
+
+.subscription-badge.status-grace-period {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(245, 158, 11, 0.2);
+  animation: pulse-warning 2s infinite;
+}
+
+.subscription-badge.status-expired,
+.subscription-badge.status-cancelled {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(239, 68, 68, 0.2);
+  opacity: 0.8;
+}
+
+.subscription-badge.invalid {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(239, 68, 68, 0.3);
+  animation: pulse-error 1.5s infinite;
+}
+
+/* Interactive states */
+.subscription-badge.clickable {
+  cursor: pointer;
+}
+
+.subscription-badge.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--accent-color);
+}
+
+.subscription-badge.clickable:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.subscription-badge.clickable:active {
+  transform: translateY(0);
+}
+
+/* Compact variant */
+.subscription-badge.compact {
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  font-size: 0.8125rem;
+}
+
+.subscription-badge.compact .tier-description {
+  display: none;
+}
+
+/* Badge sections */
+.badge-tier {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.tier-icon {
+  font-size: 1.25rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.tier-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.tier-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.tier-description {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge-status {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+}
+
+.status-icon {
+  font-size: 0.875rem;
+}
+
+.status-text {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+}
+
+/* Expiry warning */
+.expiry-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #92400e;
+  white-space: nowrap;
+}
+
+.warning-icon {
+  font-size: 0.75rem;
+}
+
+/* Invalid overlay */
+.invalid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  backdrop-filter: blur(2px);
+}
+
+.invalid-icon {
+  font-size: 0.875rem;
+}
+
+/* Click indicator */
+.click-indicator {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.clickable:hover .click-indicator {
+  opacity: 1;
+}
+
+.chevron {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Animations */
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(245, 158, 11, 0.4);
+  }
+}
+
+@keyframes pulse-error {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(239, 68, 68, 0.5);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .subscription-badge.tier-free {
+    --bg-gradient-start: #1e293b;
+    --bg-gradient-end: #334155;
+    --border-color: #475569;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+  }
+
+  .subscription-badge.tier-premium {
+    --bg-gradient-start: #92400e;
+    --bg-gradient-end: #a16207;
+    --border-color: #f59e0b;
+    --text-primary: #fef3c7;
+    --text-secondary: #fde68a;
+  }
+
+  .subscription-badge.tier-enterprise {
+    --bg-gradient-start: #5b21b6;
+    --bg-gradient-end: #6d28d9;
+    --border-color: #8b5cf6;
+    --text-primary: #ddd6fe;
+    --text-secondary: #c4b5fd;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .subscription-badge {
+    padding: 0.625rem 0.875rem;
+    gap: 0.625rem;
+    font-size: 0.8125rem;
+  }
+
+  .subscription-badge.compact {
+    padding: 0.5rem 0.625rem;
+    gap: 0.5rem;
+  }
+
+  .tier-description {
+    font-size: 0.6875rem;
+  }
+
+  .expiry-warning {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.375rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .subscription-badge {
+    border-width: 2px;
+    font-weight: 600;
+  }
+
+  .tier-label {
+    font-weight: 700;
+  }
+
+  .status-text {
+    font-weight: 600;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .subscription-badge,
+  .click-indicator {
+    transition: none;
+  }
+
+  .subscription-badge.clickable:hover {
+    transform: none;
+  }
+
+  @keyframes pulse-warning,
+  @keyframes pulse-error {
+    from, to {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px var(--border-color);
+    }
+  }
+}

@@ -1,6 +1,6 @@
 # Task ID: 12
 # Title: Develop Credibility Scoring Algorithm
-# Status: pending
+# Status: done
 # Dependencies: 6, 7
 # Priority: high
 # Description: Create the core algorithm for calculating content credibility scores, ensuring compliance with 2025 AI regulations (GDPR AI Act).
@@ -99,39 +99,37 @@ Test scoring algorithm with known credible and non-credible content. Verify scor
 ### Details:
 
 
-## 12-9. Implement bias assessment module [pending]
+## 12-9. Implement bias assessment module [done]
 ### Dependencies: None
 ### Description: Develop and integrate a bias detection and mitigation system to ensure compliance with GDPR AI Act.
 ### Details:
 
 
-## 12-10. Add explainable AI features [pending]
+## 12-10. Add explainable AI features [done]
 ### Dependencies: None
 ### Description: Provide transparent, user-facing explanations for each credibility score and its contributing factors.
 ### Details:
 
 
-## 12-11. Integrate human review checkpoints [pending]
+## 12-11. Integrate human review checkpoints [done]
 ### Dependencies: None
 ### Description: Enable human-in-the-loop review for flagged or borderline credibility cases.
 ### Details:
 
 
-## 12-12. Document audit trails [pending]
+## 12-12. Document audit trails [done]
 ### Dependencies: None
 ### Description: Log all scoring decisions, input data, and rationale for regulatory auditability.
 ### Details:
 
 
-## 12-13. Implement real-time monitoring [pending]
+## 12-13. Implement real-time monitoring [done]
 ### Dependencies: None
 ### Description: Monitor scoring operations for compliance, performance, and anomalies in real time.
 ### Details:
 
 
-## 12-14. Performance and compliance testing [pending]
+## 12-14. Performance and compliance testing [done]
 ### Dependencies: None
 ### Description: Test system for 95% accuracy, <1 second response time, and regulatory compliance.
 ### Details:
-
-

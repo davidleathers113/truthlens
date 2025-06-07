@@ -1,135 +1,176 @@
 # Task ID: 29
 # Title: Implement Freemium Business Model Logic
-# Status: pending
+# Status: done
 # Dependencies: 5, 15
 # Priority: high
-# Description: Implement the core freemium business model including usage limits for free users, premium feature gating, subscription management, payment integration, and usage analytics tracking.
+# Description: Implement the core freemium business model using a hybrid architecture where the Chrome extension handles client-side operations and an external backend service manages server-side operations including payment processing, subscription management, and data persistence.
 # Details:
-Develop the freemium business model implementation with the following components:
+Develop the freemium business model implementation with a hybrid architecture approach:
 
 1. Usage Limitation System:
-   - Implement a daily check counter that limits free users to 50 checks per day
+   - Implement a client-side daily check counter in the extension that tracks free users' usage (limit: 50 checks per day)
    - Create a rolling window mechanism to reset counters at midnight in user's local timezone
    - Design graceful degradation when limits are reached with clear upgrade messaging
+   - Sync usage data with backend service periodically to prevent manipulation
 
 2. Subscription Management:
-   - Integrate with payment processor (Stripe recommended) for handling subscriptions
-   - Implement webhook handlers for subscription events (created, updated, canceled)
-   - Create secure token-based verification system for subscription status
-   - Design subscription data model with plan types, billing periods, and status tracking
+   - Backend service: Integrate with payment processor (Stripe recommended) for handling subscriptions
+   - Backend service: Implement webhook handlers for subscription events (created, updated, canceled)
+   - Create secure token-based verification system for subscription status validation in the extension
+   - Design subscription data model with plan types, billing periods, and status tracking in the backend
 
 3. Premium Feature Gating:
-   - Develop a feature flag system to control access to premium features
-   - Implement permission checks before premium operations
+   - Develop a feature flag system in the extension to control access to premium features
+   - Implement permission checks before premium operations with backend validation
    - Create upgrade prompts with clear value proposition when free users attempt premium actions
    - Design feature discovery mechanisms to showcase premium capabilities
 
 4. Usage Analytics:
-   - Track key metrics: daily checks, premium feature attempts, conversion rates
-   - Implement event logging for user journey analysis
-   - Create dashboard data endpoints for business intelligence
+   - Track key metrics in the extension: daily checks, premium feature attempts, conversion rates
+   - Send anonymized analytics events to backend service for processing and storage
+   - Create dashboard data endpoints for business intelligence in the backend service
    - Set up conversion funnel tracking with defined stages
 
 5. Technical Implementation:
-   - Extend the storage service to persist usage data and subscription status
-   - Implement secure server-side validation of subscription status
-   - Create background processes to sync subscription data
-   - Design the system to work offline with periodic online validation
+   - Extension: Implement local storage for temporary usage data with periodic backend synchronization
+   - Backend service: Provide secure API endpoints for subscription validation and data persistence
+   - Extension: Implement secure API calls to backend service compliant with Manifest V3 requirements
+   - Design the system to work offline with periodic online validation when connection is restored
 
 6. User Experience:
-   - Develop clear UI indicators for usage limits and premium features
-   - Create seamless upgrade flows with minimal friction
-   - Implement account management interfaces for subscription control
+   - Develop clear UI indicators in the extension for usage limits and premium features
+   - Create seamless upgrade flows that redirect to external payment pages with minimal friction
+   - Implement account management interfaces in the extension that communicate with the backend
    - Design notification system for approaching limits and renewal reminders
+
+7. Security & Compliance:
+   - Implement secure communication between extension and backend using proper authentication
+   - Ensure GDPR compliance for data handling between extension and backend service
+   - Follow Chrome extension Manifest V3 security requirements
+   - Implement proper data minimization practices
 
 The implementation should be modular and extensible to support future pricing tiers and promotional offers.
 
 # Test Strategy:
 1. Unit Testing:
-   - Write tests for the usage counter logic with various scenarios (new user, approaching limit, at limit)
-   - Test subscription validation with mocked payment provider responses
+   - Write tests for the extension's usage counter logic with various scenarios (new user, approaching limit, at limit)
+   - Test subscription validation with mocked backend API responses
    - Verify feature gating logic correctly identifies and restricts premium features
    - Test timezone handling for usage reset functionality
+   - Test backend service API endpoints with mocked requests
 
 2. Integration Testing:
-   - Verify storage service correctly persists and retrieves usage data
-   - Test the complete subscription flow from purchase to activation
-   - Validate webhook handling for all subscription events
-   - Ensure analytics events are properly captured and formatted
+   - Verify extension-to-backend communication for data synchronization
+   - Test the complete subscription flow from purchase initiation to activation
+   - Validate webhook handling for all subscription events in the backend service
+   - Ensure analytics events are properly captured in the extension and transmitted to the backend
 
 3. End-to-End Testing:
    - Create test accounts with various subscription states
-   - Verify the complete user journey from free to premium
-   - Test upgrade prompts appear at appropriate times
+   - Verify the complete user journey from free to premium across extension and backend
+   - Test upgrade prompts appear at appropriate times in the extension
    - Validate limit reset functionality over multiple days
+   - Test the system's behavior during network interruptions
 
 4. Performance Testing:
    - Measure impact of tracking and validation on extension performance
    - Test system behavior under high usage conditions
    - Verify offline functionality works as expected
+   - Test backend service API response times under load
 
 5. User Acceptance Testing:
-   - Create test scenarios for common user journeys
+   - Create test scenarios for common user journeys across the hybrid architecture
    - Validate clarity of messaging around limits and premium features
    - Test with different browser environments and settings
    - Verify accessibility of upgrade flows and subscription management
 
 6. Analytics Validation:
-   - Confirm all conversion events are properly tracked
+   - Confirm all conversion events are properly tracked in the extension and transmitted to backend
    - Verify accuracy of usage metrics and reporting
    - Test dashboard data for consistency and completeness
+   - Validate data synchronization between extension and backend
 
 7. Payment Processing:
    - Test with Stripe test mode for all subscription scenarios
    - Verify handling of failed payments and retries
    - Test subscription cancellation and reactivation flows
+   - Validate the secure redirect flow to external payment pages
+
+8. Security Testing:
+   - Test authentication between extension and backend service
+   - Verify data encryption in transit and at rest
+   - Test for common vulnerabilities in the API endpoints
+   - Validate GDPR compliance mechanisms
 
 # Subtasks:
-## 1. Implement Usage Limitation Counter System [pending]
+## 1. Implement Usage Limitation Counter System [done]
 ### Dependencies: None
 ### Description: Create the core usage tracking system that counts and limits free users to 50 checks per day with timezone-aware reset functionality.
 ### Details:
 Develop a database schema for storing user usage data with fields for user_id, check_count, last_reset_date, and timezone. Implement a service layer that handles incrementing counters, checking limits, and resetting counters at midnight in the user's local timezone. Use a background job scheduler for the reset process. Include methods for getUsageCount(), incrementUsage(), checkLimitReached(), and resetDailyCounter().
 
-## 2. Develop Feature Flag and Permission System [pending]
+## 2. Develop Feature Flag and Permission System [done]
 ### Dependencies: None
 ### Description: Create a system to gate premium features and implement permission checks before allowing access to premium functionality.
 ### Details:
 Design a feature flag configuration system with a database table mapping features to subscription tiers. Implement a FeatureGateService with methods like canAccessFeature(userId, featureId) that checks the user's subscription status against feature requirements. Create middleware/interceptors to apply these checks automatically for protected API endpoints or UI components. Include graceful handling for unauthorized access attempts.
 
-## 3. Integrate Stripe Payment Processing [pending]
+## 3. Integrate Stripe Payment Processing [done]
 ### Dependencies: None
 ### Description: Set up Stripe integration for handling subscription payments, including API client configuration and secure handling of payment information.
 ### Details:
 Implement a PaymentService that wraps the Stripe API client. Create methods for createSubscription(), updateSubscription(), cancelSubscription(), and getSubscriptionStatus(). Set up secure handling of API keys using environment variables. Implement proper error handling for payment failures and API issues. Use Stripe's test mode for development and testing.
 
-## 4. Implement Subscription Data Model and Management [pending]
+## 4. Implement Subscription Data Model and Management [done]
 ### Dependencies: 29.3
 ### Description: Create the data model and service layer for managing user subscriptions, including plan types, billing periods, and status tracking.
 ### Details:
 Design database tables for subscription_plans (with tiers, prices, features) and user_subscriptions (with user_id, plan_id, status, start_date, end_date, payment_id). Implement a SubscriptionService with methods to create, retrieve, update, and cancel subscriptions. Include logic for handling trial periods, renewals, and grace periods. Ensure proper indexing for efficient queries.
 
-## 5. Create Webhook Handlers for Subscription Events [pending]
+## 5. Create Webhook Handlers for Subscription Events [done]
 ### Dependencies: 29.3, 29.4
 ### Description: Implement webhook endpoints to receive and process subscription-related events from Stripe, ensuring the application state stays in sync with payment processor events.
 ### Details:
 Create secure webhook endpoints for events like subscription.created, subscription.updated, subscription.deleted, payment_failed, etc. Implement signature verification using Stripe's webhook secrets. Process events asynchronously using a queue system if possible. Update the local subscription database based on webhook events. Log all webhook events for debugging and auditing.
 
-## 6. Implement Usage Analytics Tracking [pending]
+## 6. Implement Usage Analytics Tracking [done]
 ### Dependencies: 29.1, 29.2
 ### Description: Develop a system to track and analyze user usage patterns, conversion rates, and feature engagement to inform business decisions.
 ### Details:
 Create a database schema for analytics events with fields for user_id, event_type, timestamp, and metadata. Implement an AnalyticsService with methods like trackEvent(), getConversionRate(), and getUserJourney(). Set up scheduled jobs to aggregate daily/weekly/monthly statistics. Create endpoints for retrieving analytics data for dashboards. Focus on tracking key events: feature usage, limit reached, upgrade prompt shown, subscription started/canceled.
 
-## 7. Develop Upgrade Flow and Premium Feature UI [pending]
+## 7. Develop Upgrade Flow and Premium Feature UI [done]
 ### Dependencies: 29.1, 29.2, 29.4
 ### Description: Create user interface components for displaying usage limits, premium feature indicators, and seamless upgrade flows with clear value propositions.
 ### Details:
 Implement UI components for: usage limit indicators (progress bar showing daily usage), premium feature badges/locks, upgrade modal dialogs, and subscription management screens. Create clear messaging for when limits are reached or premium features are attempted. Design a frictionless upgrade flow that clearly communicates the value proposition. Implement account settings pages for managing subscription details.
 
-## 8. Implement Notification System for Limits and Renewals [pending]
+## 8. Implement Notification System for Limits and Renewals [done]
 ### Dependencies: 29.1, 29.4, 29.5
 ### Description: Create a notification system to alert users about approaching usage limits, successful/failed payments, and subscription renewals or expirations.
 ### Details:
 Design a notification service that supports multiple channels (in-app, email, push). Implement triggers for key events: approaching usage limit (80% used), limit reached, payment success/failure, subscription renewal, subscription expiring soon. Create notification templates with personalized content. Implement user preference settings for notification types. Set up a queuing system for reliable notification delivery.
 
+## 9. Design Backend Service Architecture [done]
+### Dependencies: None
+### Description: Design and implement the backend service architecture that will handle server-side operations for the freemium business model.
+### Details:
+Create a scalable backend service architecture that handles: subscription management, payment processing, data persistence, analytics processing, and secure API endpoints for the extension. Implement proper authentication and authorization for API access. Design database schemas for user data, subscription information, and usage analytics. Ensure the architecture follows best practices for security, scalability, and maintainability. Document API endpoints for extension integration.
+
+## 10. Implement Extension-to-Backend Integration [done]
+### Dependencies: 29.9
+### Description: Create secure communication channels between the Chrome extension and backend service compliant with Manifest V3 requirements.
+### Details:
+Implement secure API client in the extension for communicating with the backend service. Create authentication mechanism using JWT or similar token-based approach. Implement retry logic and offline queue for operations during connectivity issues. Design efficient synchronization protocols to minimize data transfer. Ensure all communication follows Manifest V3 requirements for fetch API usage. Implement proper error handling for API failures.
+
+## 11. Implement GDPR Compliance Mechanisms [done]
+### Dependencies: 29.9, 29.10
+### Description: Ensure the freemium model implementation complies with GDPR and other privacy regulations for data handling between extension and backend.
+### Details:
+Implement data minimization practices in both extension and backend. Create mechanisms for users to export their data. Implement proper consent management for analytics tracking. Design data retention policies and automatic deletion processes. Create privacy policy documentation specific to the freemium model. Implement audit logging for data access and modifications. Ensure all data transfers between extension and backend are properly secured.
+
+## 12. Implement Offline Functionality [done]
+### Dependencies: 29.1, 29.2, 29.10
+### Description: Design and implement offline functionality for the extension to continue working with limited capabilities when disconnected from the backend service.
+### Details:
+Implement local storage in the extension for caching subscription status and usage data. Create synchronization logic to update backend when connection is restored. Design graceful degradation of premium features during extended offline periods. Implement local usage tracking that syncs with backend when online. Create clear user messaging about limited functionality during offline mode. Ensure security measures prevent manipulation of offline cached data.

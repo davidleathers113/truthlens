@@ -40,12 +40,12 @@ export class StorageService {
   async getCachedCredibility(url: string): Promise<CredibilityScore | null> {
     const key = `cache_${this.hashUrl(url)}`;
     const result = await chrome.storage.local.get(key);
-    
+
     if (result[key]) {
       const cached = result[key];
       const settings = await this.getSettings();
       const maxAge = settings.privacy.cacheDuration * 60 * 60 * 1000; // Convert hours to ms
-      
+
       if (Date.now() - cached.timestamp < maxAge) {
         return cached;
       } else {
@@ -53,7 +53,7 @@ export class StorageService {
         await chrome.storage.local.remove(key);
       }
     }
-    
+
     return null;
   }
 
@@ -66,7 +66,11 @@ export class StorageService {
     const result = await chrome.storage.sync.get('subscription');
     return result.subscription || {
       tier: 'free',
-      features: ['basic'],
+      status: 'free_tier',
+      features: ['basic_credibility', 'visual_indicators', 'limited_checks'],
+      lastValidated: Date.now(),
+      validationInterval: 30 * 24 * 60 * 60 * 1000, // 30 days
+      gracePeriodDuration: 30 * 24 * 60 * 60 * 1000, // 30 days
     };
   }
 
@@ -99,7 +103,7 @@ export class StorageService {
       timestamp: Date.now(),
       id: crypto.randomUUID()
     };
-    
+
     const key = `security_event_${securityEvent.id}`;
     await chrome.storage.local.set({ [key]: securityEvent });
   }
@@ -116,7 +120,7 @@ export class StorageService {
       }
       return false;
     });
-    
+
     if (oldEventKeys.length > 0) {
       await chrome.storage.local.remove(oldEventKeys);
     }
@@ -169,7 +173,7 @@ export class StorageService {
   async storeComplianceReport(report: any): Promise<void> {
     const key = `compliance_report_${report.timestamp}`;
     await chrome.storage.local.set({ [key]: report });
-    
+
     // Keep only last 30 reports
     await this.cleanupComplianceReports();
   }
@@ -186,7 +190,7 @@ export class StorageService {
         timestamp: parseInt(key.replace('compliance_report_', ''))
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
-    
+
     if (reportKeys.length > 30) {
       const oldKeys = reportKeys.slice(30).map(r => r.key);
       await chrome.storage.local.remove(oldKeys);
@@ -205,11 +209,11 @@ export class StorageService {
         const timestampB = parseInt(b.replace('compliance_report_', ''));
         return timestampB - timestampA;
       });
-    
+
     if (reportKeys.length > 0) {
       return items[reportKeys[0]];
     }
-    
+
     return null;
   }
 
@@ -263,7 +267,7 @@ export class StorageService {
       remoteProcessingEvents: current.remoteProcessingEvents + (updates.remoteProcessingEvents || 0),
       timestamp: Date.now()
     };
-    
+
     await this.storeAIProcessingMetrics(updated);
   }
 
@@ -297,11 +301,11 @@ export class StorageService {
    */
   async cleanupExpiredData(retentionPeriodMs: number): Promise<void> {
     const cutoff = Date.now() - retentionPeriodMs;
-    
+
     // Clean up expired cache entries
     const items = await chrome.storage.local.get();
     const expiredKeys: string[] = [];
-    
+
     Object.keys(items).forEach(key => {
       const item = items[key];
       if (item && item.timestamp && item.timestamp < cutoff) {
@@ -311,7 +315,7 @@ export class StorageService {
         }
       }
     });
-    
+
     if (expiredKeys.length > 0) {
       await chrome.storage.local.remove(expiredKeys);
     }
@@ -323,12 +327,12 @@ export class StorageService {
   async cleanupExpiredSessions(sessionTimeoutMs: number): Promise<void> {
     const cutoff = Date.now() - sessionTimeoutMs;
     const items = await chrome.storage.session?.get() || {};
-    
+
     const expiredSessionKeys = Object.keys(items).filter(key => {
       const session = items[key];
       return session && session.timestamp && session.timestamp < cutoff;
     });
-    
+
     if (expiredSessionKeys.length > 0 && chrome.storage.session) {
       await chrome.storage.session.remove(expiredSessionKeys);
     }
@@ -352,7 +356,7 @@ export class StorageService {
       this.getPrivacyMetrics(),
       this.getAIProcessingMetrics()
     ]);
-    
+
     return {
       settings,
       subscription,
@@ -373,17 +377,17 @@ export class StorageService {
       chrome.storage.sync.clear(),
       chrome.storage.session?.clear() || Promise.resolve()
     ]);
-    
+
     // Log the deletion event
     const deletionEvent = {
       event: 'user_data_deleted',
       timestamp: Date.now(),
       metadata: { completeWipe: true }
     };
-    
+
     // Store deletion event temporarily for audit
-    await chrome.storage.local.set({ 
-      data_deletion_event: deletionEvent 
+    await chrome.storage.local.set({
+      data_deletion_event: deletionEvent
     });
   }
 
@@ -392,12 +396,12 @@ export class StorageService {
    */
   async storeAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
     const consent = await this.getConsentData();
-    
+
     // Only store if user has consented to analytics
     if (consent?.analyticsConsent) {
       const key = `analytics_${Date.now()}_${crypto.randomUUID()}`;
       await chrome.storage.local.set({ [key]: event });
-      
+
       // Clean up old analytics events periodically
       await this.cleanupOldAnalyticsEvents();
     }
@@ -410,7 +414,7 @@ export class StorageService {
     const items = await chrome.storage.local.get();
     const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     const cutoff = Date.now() - maxAge;
-    
+
     const oldAnalyticsKeys = Object.keys(items).filter(key => {
       if (key.startsWith('analytics_')) {
         const timestamp = parseInt(key.split('_')[1]);
@@ -418,7 +422,7 @@ export class StorageService {
       }
       return false;
     });
-    
+
     if (oldAnalyticsKeys.length > 0) {
       await chrome.storage.local.remove(oldAnalyticsKeys);
     }
@@ -437,18 +441,18 @@ export class StorageService {
       chrome.storage.sync.getBytesInUse(),
       chrome.storage.session?.getBytesInUse?.() || Promise.resolve(0)
     ]);
-    
+
     return {
-      local: { 
-        bytesInUse: localStats, 
+      local: {
+        bytesInUse: localStats,
         quota: chrome.storage.local.QUOTA_BYTES || 5242880 // 5MB default
       },
-      sync: { 
-        bytesInUse: syncStats, 
+      sync: {
+        bytesInUse: syncStats,
         quota: chrome.storage.sync.QUOTA_BYTES || 102400 // 100KB default
       },
-      session: { 
-        bytesInUse: sessionStats 
+      session: {
+        bytesInUse: sessionStats
       }
     };
   }
@@ -460,14 +464,14 @@ export class StorageService {
    */
   async get<T = any>(key: string, area: 'local' | 'sync' | 'session' = 'local'): Promise<T | null> {
     try {
-      const storage = area === 'sync' ? chrome.storage.sync : 
-                    area === 'session' ? chrome.storage.session : 
+      const storage = area === 'sync' ? chrome.storage.sync :
+                    area === 'session' ? chrome.storage.session :
                     chrome.storage.local;
-      
+
       if (!storage) {
         throw new Error(`Storage area '${area}' not available`);
       }
-      
+
       const result = await storage.get(key);
       return result[key] || null;
     } catch (error) {
@@ -481,14 +485,14 @@ export class StorageService {
    */
   async set<T = any>(key: string, value: T, area: 'local' | 'sync' | 'session' = 'local'): Promise<void> {
     try {
-      const storage = area === 'sync' ? chrome.storage.sync : 
-                    area === 'session' ? chrome.storage.session : 
+      const storage = area === 'sync' ? chrome.storage.sync :
+                    area === 'session' ? chrome.storage.session :
                     chrome.storage.local;
-      
+
       if (!storage) {
         throw new Error(`Storage area '${area}' not available`);
       }
-      
+
       await storage.set({ [key]: value });
     } catch (error) {
       console.error(`Failed to set ${key} in ${area} storage:`, error);
@@ -501,14 +505,14 @@ export class StorageService {
    */
   async getMultiple<T = Record<string, any>>(keys: string[], area: 'local' | 'sync' | 'session' = 'local'): Promise<T> {
     try {
-      const storage = area === 'sync' ? chrome.storage.sync : 
-                    area === 'session' ? chrome.storage.session : 
+      const storage = area === 'sync' ? chrome.storage.sync :
+                    area === 'session' ? chrome.storage.session :
                     chrome.storage.local;
-      
+
       if (!storage) {
         throw new Error(`Storage area '${area}' not available`);
       }
-      
+
       const result = await storage.get(keys);
       return result as T;
     } catch (error) {
@@ -522,14 +526,14 @@ export class StorageService {
    */
   async setMultiple(items: Record<string, any>, area: 'local' | 'sync' | 'session' = 'local'): Promise<void> {
     try {
-      const storage = area === 'sync' ? chrome.storage.sync : 
-                    area === 'session' ? chrome.storage.session : 
+      const storage = area === 'sync' ? chrome.storage.sync :
+                    area === 'session' ? chrome.storage.session :
                     chrome.storage.local;
-      
+
       if (!storage) {
         throw new Error(`Storage area '${area}' not available`);
       }
-      
+
       await storage.set(items);
     } catch (error) {
       console.error(`Failed to set multiple items in ${area} storage:`, error);
@@ -542,14 +546,14 @@ export class StorageService {
    */
   async remove(key: string | string[], area: 'local' | 'sync' | 'session' = 'local'): Promise<void> {
     try {
-      const storage = area === 'sync' ? chrome.storage.sync : 
-                    area === 'session' ? chrome.storage.session : 
+      const storage = area === 'sync' ? chrome.storage.sync :
+                    area === 'session' ? chrome.storage.session :
                     chrome.storage.local;
-      
+
       if (!storage) {
         throw new Error(`Storage area '${area}' not available`);
       }
-      
+
       await storage.remove(key);
     } catch (error) {
       console.error(`Failed to remove ${key} from ${area} storage:`, error);
@@ -569,11 +573,274 @@ export class StorageService {
         .filter(item => item.data && typeof item.data.timestamp === 'number')
         .sort((a, b) => b.data.timestamp - a.data.timestamp)
         .slice(0, limit);
-      
+
       return credibilityKeys.map(item => item.data);
     } catch (error) {
       console.error('Failed to get recent credibility analyses:', error);
       return [];
+    }
+  }
+
+  // Additional Security and Compliance Methods for 2025
+
+  /**
+   * Store vulnerability assessment results
+   */
+  async storeVulnerabilityAssessment(assessment: any): Promise<void> {
+    try {
+      const key = `vulnerability_assessment_${assessment.timestamp || Date.now()}`;
+      await chrome.storage.local.set({ [key]: assessment });
+
+      // Keep only the latest 10 assessments
+      await this.cleanupVulnerabilityAssessments();
+    } catch (error) {
+      console.error('Failed to store vulnerability assessment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clean up old vulnerability assessments
+   */
+  private async cleanupVulnerabilityAssessments(): Promise<void> {
+    try {
+      const items = await chrome.storage.local.get();
+      const assessmentKeys = Object.keys(items)
+        .filter(key => key.startsWith('vulnerability_assessment_'))
+        .map(key => ({
+          key,
+          timestamp: parseInt(key.replace('vulnerability_assessment_', ''))
+        }))
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+      if (assessmentKeys.length > 10) {
+        const oldKeys = assessmentKeys.slice(10).map(a => a.key);
+        await chrome.storage.local.remove(oldKeys);
+      }
+    } catch (error) {
+      console.error('Failed to cleanup vulnerability assessments:', error);
+    }
+  }
+
+  /**
+   * Store cross-jurisdictional compliance report
+   */
+  async storeCrossJurisdictionalComplianceReport(report: any): Promise<void> {
+    try {
+      const key = `cross_jurisdictional_compliance_${report.timestamp || Date.now()}`;
+      await chrome.storage.local.set({ [key]: report });
+
+      // Keep only the latest 20 reports
+      await this.cleanupCrossJurisdictionalReports();
+    } catch (error) {
+      console.error('Failed to store cross-jurisdictional compliance report:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clean up old cross-jurisdictional compliance reports
+   */
+  private async cleanupCrossJurisdictionalReports(): Promise<void> {
+    try {
+      const items = await chrome.storage.local.get();
+      const reportKeys = Object.keys(items)
+        .filter(key => key.startsWith('cross_jurisdictional_compliance_'))
+        .map(key => ({
+          key,
+          timestamp: parseInt(key.replace('cross_jurisdictional_compliance_', ''))
+        }))
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+      if (reportKeys.length > 20) {
+        const oldKeys = reportKeys.slice(20).map(r => r.key);
+        await chrome.storage.local.remove(oldKeys);
+      }
+    } catch (error) {
+      console.error('Failed to cleanup cross-jurisdictional reports:', error);
+    }
+  }
+
+  /**
+   * Store CCPA compliance report
+   */
+  async storeCCPAComplianceReport(report: any): Promise<void> {
+    try {
+      const key = `ccpa_compliance_${report.timestamp || Date.now()}`;
+      await chrome.storage.local.set({ [key]: report });
+
+      // Keep only the latest 20 reports
+      await this.cleanupCCPAReports();
+    } catch (error) {
+      console.error('Failed to store CCPA compliance report:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get latest CCPA compliance report
+   */
+  async getLatestCCPAComplianceReport(): Promise<any | null> {
+    try {
+      const items = await chrome.storage.local.get();
+      const reportKeys = Object.keys(items)
+        .filter(key => key.startsWith('ccpa_compliance_'))
+        .sort((a, b) => {
+          const timestampA = parseInt(a.replace('ccpa_compliance_', ''));
+          const timestampB = parseInt(b.replace('ccpa_compliance_', ''));
+          return timestampB - timestampA;
+        });
+
+      if (reportKeys.length > 0) {
+        return items[reportKeys[0]];
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Failed to get latest CCPA compliance report:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Clean up old CCPA compliance reports
+   */
+  private async cleanupCCPAReports(): Promise<void> {
+    try {
+      const items = await chrome.storage.local.get();
+      const reportKeys = Object.keys(items)
+        .filter(key => key.startsWith('ccpa_compliance_'))
+        .map(key => ({
+          key,
+          timestamp: parseInt(key.replace('ccpa_compliance_', ''))
+        }))
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+      if (reportKeys.length > 20) {
+        const oldKeys = reportKeys.slice(20).map(r => r.key);
+        await chrome.storage.local.remove(oldKeys);
+      }
+    } catch (error) {
+      console.error('Failed to cleanup CCPA reports:', error);
+    }
+  }
+
+  /**
+   * Get last breach response test
+   */
+  async getLastBreachResponseTest(): Promise<{ timestamp: number } | null> {
+    try {
+      const result = await chrome.storage.local.get('last_breach_response_test');
+      return result.last_breach_response_test || null;
+    } catch (error) {
+      console.error('Failed to get last breach response test:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Store breach response test result
+   */
+  async storeBreachResponseTest(test: { timestamp: number; results: any }): Promise<void> {
+    try {
+      await chrome.storage.local.set({ last_breach_response_test: test });
+    } catch (error) {
+      console.error('Failed to store breach response test:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Store jurisdiction identification data
+   */
+  async storeJurisdictionData(data: {
+    detectedJurisdictions: string[];
+    userLocation?: string;
+    timestamp: number
+  }): Promise<void> {
+    try {
+      await chrome.storage.local.set({ jurisdiction_data: data });
+    } catch (error) {
+      console.error('Failed to store jurisdiction data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get jurisdiction data
+   */
+  async getJurisdictionData(): Promise<{
+    detectedJurisdictions: string[];
+    userLocation?: string;
+    timestamp: number;
+  } | null> {
+    try {
+      const result = await chrome.storage.local.get('jurisdiction_data');
+      return result.jurisdiction_data || null;
+    } catch (error) {
+      console.error('Failed to get jurisdiction data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Store GDPR assessment result
+   */
+  async storeGDPRAssessment(assessment: any): Promise<void> {
+    try {
+      await chrome.storage.local.set({ latest_gdpr_assessment: assessment });
+    } catch (error) {
+      console.error('Failed to store GDPR assessment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get latest GDPR assessment
+   */
+  async getLatestGDPRAssessment(): Promise<any | null> {
+    try {
+      const result = await chrome.storage.local.get('latest_gdpr_assessment');
+      return result.latest_gdpr_assessment || null;
+    } catch (error) {
+      console.error('Failed to get latest GDPR assessment:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Store UK GDPR assessment result
+   */
+  async storeUKGDPRAssessment(assessment: any): Promise<void> {
+    try {
+      await chrome.storage.local.set({ latest_uk_gdpr_assessment: assessment });
+    } catch (error) {
+      console.error('Failed to store UK GDPR assessment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Store PIPEDA assessment result
+   */
+  async storePIPEDAAssessment(assessment: any): Promise<void> {
+    try {
+      await chrome.storage.local.set({ latest_pipeda_assessment: assessment });
+    } catch (error) {
+      console.error('Failed to store PIPEDA assessment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Store LGPD assessment result
+   */
+  async storeLGPDAssessment(assessment: any): Promise<void> {
+    try {
+      await chrome.storage.local.set({ latest_lgpd_assessment: assessment });
+    } catch (error) {
+      console.error('Failed to store LGPD assessment:', error);
+      throw error;
     }
   }
 }

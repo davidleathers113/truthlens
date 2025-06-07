@@ -9,19 +9,19 @@ export class InitializationHandler {
    */
   static async initialize(details?: chrome.runtime.InstalledDetails): Promise<void> {
     console.log('TruthLens extension initializing...', details?.reason || 'startup');
-    
+
     try {
       // Set up initial extension state
       await this.setupInitialState();
-      
+
       // Register event listeners
       this.registerEventListeners();
-      
+
       // Handle specific installation/update logic
       if (details) {
         await this.handleInstallationDetails(details);
       }
-      
+
       console.log('TruthLens extension initialized successfully');
     } catch (error) {
       console.error('Failed to initialize extension:', error);
@@ -33,11 +33,30 @@ export class InitializationHandler {
    */
   private static async handleInstallationDetails(details: chrome.runtime.InstalledDetails): Promise<void> {
     if (details.reason === 'install') {
-      console.log('First time installation');
-      // Could open welcome page or show onboarding
+      console.log('🎉 First time installation - triggering onboarding');
+
+      // Mark that onboarding should be shown
+      await chrome.storage.local.set({
+        onboarding_completed: false,
+        first_install_timestamp: Date.now(),
+        installation_reason: 'install'
+      });
+
+      // Track installation for analytics
+      console.log('📊 New user installation tracked');
+
     } else if (details.reason === 'update') {
-      console.log('Extension updated to version:', chrome.runtime.getManifest().version);
-      // Could show update notes or migrate settings
+      console.log('🔄 Extension updated to version:', chrome.runtime.getManifest().version);
+
+      // For updates, preserve existing onboarding status
+      const result = await chrome.storage.local.get('onboarding_completed');
+      if (result.onboarding_completed === undefined) {
+        // If onboarding status is unknown, assume it's completed for existing users
+        await chrome.storage.local.set({ onboarding_completed: true });
+      }
+
+      // Track update for analytics
+      console.log('📊 Extension update tracked');
     }
   }
 
@@ -79,7 +98,7 @@ export class InitializationHandler {
   private static registerEventListeners(): void {
     // Handle extension install/update
     chrome.runtime.onInstalled.addListener(this.handleInstalled);
-    
+
     // Handle extension startup
     chrome.runtime.onStartup.addListener(this.handleStartup);
   }
@@ -89,7 +108,7 @@ export class InitializationHandler {
    */
   private static handleInstalled(details: chrome.runtime.InstalledDetails): void {
     console.log('Extension installed/updated:', details.reason);
-    
+
     if (details.reason === 'install') {
       console.log('First time installation');
       // Could open welcome page or show onboarding

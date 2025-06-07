@@ -1,0 +1,472 @@
+/**
+ * Usage Counter Component Styles
+ * Following 2025 design patterns with smooth animations and accessibility
+ */
+
+.usage-counter {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Status-based styling */
+.usage-counter.normal {
+  border-color: #10b981;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(16, 185, 129, 0.1);
+}
+
+.usage-counter.nearing-limit {
+  border-color: #f59e0b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(245, 158, 11, 0.2);
+  animation: pulse-warning 3s infinite;
+}
+
+.usage-counter.limit-reached {
+  border-color: #ef4444;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(239, 68, 68, 0.2);
+  animation: pulse-error 2s infinite;
+}
+
+/* Compact variant */
+.usage-counter.compact {
+  padding: 0.75rem;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.usage-counter.compact .counter-header {
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.usage-counter.compact .reset-time {
+  display: none;
+}
+
+/* Header section */
+.counter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.counter-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.status-icon {
+  font-size: 1.125rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.title-text {
+  font-size: 0.9375rem;
+  letter-spacing: -0.025em;
+}
+
+.urgent-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  animation: pulse-urgent 1s infinite;
+}
+
+.reset-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.reset-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.reset-value {
+  font-size: 0.875rem;
+  color: #1f2937;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Usage statistics */
+.usage-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.usage-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.usage-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  transition: color 0.2s ease;
+}
+
+.usage-separator {
+  font-size: 1.25rem;
+  color: #94a3b8;
+  margin: 0 0.125rem;
+}
+
+.usage-limit {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.usage-unit {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-left: 0.25rem;
+  font-weight: 500;
+}
+
+.usage-remaining {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.remaining-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.remaining-value {
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Progress bar */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progress-track {
+  position: relative;
+  height: 0.75rem;
+  background: #f1f5f9;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, currentColor, color-mix(in srgb, currentColor 80%, white));
+  border-radius: 0.375rem;
+  position: relative;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.progress-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: shine 2s infinite;
+}
+
+.warning-threshold {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #f59e0b;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.5);
+  z-index: 1;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.progress-percentage {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status message */
+.status-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.limit-reached .status-message {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.message-icon {
+  font-size: 1rem;
+  margin-top: 0.125rem;
+}
+
+.message-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.message-text {
+  font-size: 0.875rem;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.upgrade-button {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.upgrade-button:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.upgrade-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.upgrade-button:active {
+  transform: translateY(0);
+}
+
+/* Compact reset time */
+.compact-reset {
+  text-align: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.compact-reset-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Animations */
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(245, 158, 11, 0.4);
+  }
+}
+
+@keyframes pulse-error {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(239, 68, 68, 0.4);
+  }
+}
+
+@keyframes pulse-urgent {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Animation state */
+.usage-counter.animating .usage-current {
+  animation: number-change 0.3s ease;
+}
+
+@keyframes number-change {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+    color: #3b82f6;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .usage-counter {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    border-color: #475569;
+    color: #f1f5f9;
+  }
+
+  .counter-title,
+  .usage-current,
+  .remaining-value,
+  .reset-value {
+    color: #f1f5f9;
+  }
+
+  .reset-label,
+  .remaining-label,
+  .usage-limit,
+  .usage-unit,
+  .progress-percentage {
+    color: #cbd5e1;
+  }
+
+  .progress-track {
+    background: #374151;
+  }
+
+  .message-text {
+    color: #e5e7eb;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .usage-counter {
+    padding: 0.875rem;
+    gap: 0.875rem;
+  }
+
+  .counter-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .usage-stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .usage-remaining {
+    align-items: flex-start;
+  }
+
+  .usage-current {
+    font-size: 1.375rem;
+  }
+
+  .message-content {
+    gap: 0.625rem;
+  }
+
+  .upgrade-button {
+    align-self: stretch;
+    text-align: center;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .usage-counter {
+    border-width: 2px;
+  }
+
+  .progress-track {
+    box-shadow: inset 0 0 0 1px #000;
+  }
+
+  .warning-threshold {
+    width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .usage-counter,
+  .progress-fill,
+  .upgrade-button {
+    transition: none;
+  }
+
+  .progress-shine {
+    animation: none;
+  }
+
+  @keyframes pulse-warning,
+  @keyframes pulse-error,
+  @keyframes pulse-urgent,
+  @keyframes number-change {
+    from, to {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}

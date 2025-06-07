@@ -1,6 +1,6 @@
 # Task ID: 25
 # Title: Implement Security Hardening and Compliance
-# Status: in-progress
+# Status: done
 # Dependencies: 1, 2, 3, 5
 # Priority: high
 # Description: Enhance extension security and ensure compliance with privacy regulations, including 2025 requirements for AI and data privacy.

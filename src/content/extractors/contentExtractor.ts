@@ -3,6 +3,7 @@ import { GenericExtractor } from './genericExtractor';
 import { TwitterExtractor } from './twitterExtractor';
 import { TikTokExtractor } from './tiktokExtractor';
 import { InstagramExtractor } from './instagramExtractor';
+import { isNewsUrl } from '@shared/utils/urlMatcher';
 
 /**
  * Extraction strategy interface for different content types
@@ -221,18 +222,9 @@ export class ContentExtractor {
       }
 
       // Check for news site patterns
-      const newsSitePatterns = [
-        /\.(com|org|net)\/(news|article|story|post)/,
-        /\/(20\d{2})\/\d{2}\/\d{2}\//,  // Date-based URLs
-        /\/(articles?|stories|posts?)\//,
-      ];
-
-      for (const pattern of newsSitePatterns) {
-        if (pattern.test(url)) {
-          confidence = Math.max(confidence, 0.7);
-          indicators.push(`News site URL pattern detected: ${pattern.source}`);
-          break;
-        }
+      if (isNewsUrl(url)) {
+        confidence = Math.max(confidence, 0.7);
+        indicators.push('News site URL pattern detected');
       }
     }
 

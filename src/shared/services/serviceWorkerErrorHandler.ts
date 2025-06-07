@@ -213,7 +213,7 @@ class ServiceWorkerErrorHandler {
   private async handleMessage(
     message: any,
     _sender: chrome.runtime.MessageSender,
-    sendResponse: Function
+    sendResponse: (response?: any) => void
   ): Promise<void> {
     try {
       switch (message.type) {

@@ -45,7 +45,7 @@ class OfflineHandler {
   private context: ExtensionContextType;
   private isOnline: boolean;
   private networkStats: NetworkStats;
-  private eventListeners: Map<string, Set<Function>> = new Map();
+  private eventListeners: Map<string, Set<(data: any) => void>> = new Map();
   private pollingTimer: number | null = null;
   private operationQueue: QueuedOperation[] = [];
   private retryTimer: number | null = null;
@@ -446,14 +446,14 @@ class OfflineHandler {
 
   // Event System
 
-  public on(event: string, listener: Function): void {
+  public on(event: string, listener: (data: any) => void): void {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, new Set());
     }
     this.eventListeners.get(event)!.add(listener);
   }
 
-  public off(event: string, listener: Function): void {
+  public off(event: string, listener: (data: any) => void): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       listeners.delete(listener);

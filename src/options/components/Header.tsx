@@ -1,6 +1,9 @@
 import React from 'react';
 
-interface HeaderProps {}
+interface HeaderProps {
+  // Empty interface for future props - allows extensibility
+  [key: string]: never;
+}
 
 export const Header: React.FC<HeaderProps> = () => {
   return (

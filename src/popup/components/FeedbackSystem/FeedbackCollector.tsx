@@ -130,7 +130,7 @@ export const FeedbackCollector: React.FC<FeedbackCollectorProps> = ({
     try {
       // Modern browser screenshot API
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { mediaSource: 'screen' as any }
+        video: true
       });
 
       const video = document.createElement('video');

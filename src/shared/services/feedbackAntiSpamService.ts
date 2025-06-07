@@ -182,7 +182,7 @@ class FeedbackAntiSpamService {
   /**
    * Naive Bayes classification (2025 implementation)
    */
-  private calculateNaiveBayesScore(content: FeedbackContent, analysis: any): number {
+  private calculateNaiveBayesScore(content: FeedbackContent, _analysis: any): number {
     // Feature extraction
     const features = {
       wordCount: content.text.split(' ').length,

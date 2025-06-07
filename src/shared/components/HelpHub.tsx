@@ -72,20 +72,26 @@ interface HelpHubProps {
   onClose: () => void;
   context: UserContext & EnvironmentContext & SystemContext;
   onContextUpdate: (context: Partial<UserContext>) => void;
+  embedded?: boolean;
+  showCloseButton?: boolean;
 }
 
 const HelpHub: React.FC<HelpHubProps> = ({
   isOpen,
   onClose,
   context,
-  onContextUpdate
+  onContextUpdate,
+  embedded: _embedded = false,
+  showCloseButton: _showCloseButton = true
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<HelpContent[]>([]);
   const [contextualSuggestions, setContextualSuggestions] = useState<HelpContent[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'contextual' | 'search' | 'education'>('contextual');
   const [isLoading, setIsLoading] = useState(false);
-  const [userMemory, setUserMemory] = useState<Map<string, any>>(new Map());
+  // @ts-ignore - userMemory reserved for future personalization features
+  const [userMemory] = useState<Map<string, any>>(new Map());
+  userMemory;
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const helpHubRef = useRef<HTMLDivElement>(null);
@@ -362,8 +368,7 @@ const HelpHub: React.FC<HelpHubProps> = ({
     // Update user context based on interaction
     onContextUpdate({
       lastActivity: new Date(),
-      helpInteractions: context.helpInteractions + 1,
-      preferredHelpType: content.type
+      preferredHelpType: content.type === 'video' ? 'video' : content.type === 'interactive' ? 'interactive' : 'text'
     });
 
     // Open content based on type

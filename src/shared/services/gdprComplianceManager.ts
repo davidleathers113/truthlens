@@ -167,7 +167,7 @@ export class GDPRComplianceManager {
       logger.info('GDPR Compliance Manager initialized');
     } catch (error) {
       await this.auditLog('gdpr_service_initialization_failed', 'failure', undefined, error instanceof Error ? error.message : 'Unknown error');
-      logger.error('Failed to initialize GDPR Compliance Manager:', error);
+      logger.error('Failed to initialize GDPR Compliance Manager:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       throw error;
     }
   }
@@ -565,7 +565,7 @@ export class GDPRComplianceManager {
     }
   }
 
-  private async collectUserData(userId: string): Promise<any> {
+  private async collectUserData(_userId: string): Promise<any> {
     const data: any = {};
 
     // Collect subscription data
@@ -573,7 +573,7 @@ export class GDPRComplianceManager {
       const { subscriptionManager } = await import('./subscriptionManager');
       data.subscriptionData = await subscriptionManager.getSubscriptionSummary();
     } catch (error) {
-      logger.warn('Failed to collect subscription data for export:', error);
+      logger.warn('Failed to collect subscription data for export:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
 
     // Collect analytics data (if consent given)
@@ -582,7 +582,7 @@ export class GDPRComplianceManager {
       try {
         data.usageAnalytics = await analyticsService.exportUserData();
       } catch (error) {
-        logger.warn('Failed to collect analytics data for export:', error);
+        logger.warn('Failed to collect analytics data for export:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       }
     }
 
@@ -592,7 +592,7 @@ export class GDPRComplianceManager {
         const { notificationService } = await import('./notificationService');
         data.notificationHistory = await notificationService.getNotificationHistory();
       } catch (error) {
-        logger.warn('Failed to collect notification data for export:', error);
+        logger.warn('Failed to collect notification data for export:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       }
     }
 
@@ -600,7 +600,7 @@ export class GDPRComplianceManager {
     try {
       data.preferences = await this.storageService.get('user_preferences', 'sync');
     } catch (error) {
-      logger.warn('Failed to collect preferences for export:', error);
+      logger.warn('Failed to collect preferences for export:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
 
     return data;
@@ -633,14 +633,14 @@ export class GDPRComplianceManager {
     await this.storageService.remove('feature_usage_stats', 'local');
   }
 
-  private async deleteAllUserData(userId: string): Promise<void> {
+  private async deleteAllUserData(_userId: string): Promise<void> {
     // Note: Subscription data may need to be retained for legal/billing purposes
     await this.cleanupAllConsentBasedData();
     await this.storageService.remove('user_preferences', 'sync');
     // Keep audit logs for legal compliance
   }
 
-  private async deleteDataByType(userId: string, dataType: string): Promise<void> {
+  private async deleteDataByType(_userId: string, dataType: string): Promise<void> {
     switch (dataType) {
       case 'usage_analytics':
         await analyticsService.deleteUserData();
@@ -731,17 +731,17 @@ export class GDPRComplianceManager {
     };
   }
 
-  private async cleanupExpiredAnalytics(expiryTime: number): Promise<number> {
+  private async cleanupExpiredAnalytics(_expiryTime: number): Promise<number> {
     // Implementation would clean up analytics data older than expiry time
     return 0;
   }
 
-  private async cleanupExpiredNotifications(expiryTime: number): Promise<number> {
+  private async cleanupExpiredNotifications(_expiryTime: number): Promise<number> {
     // Implementation would clean up notification data older than expiry time
     return 0;
   }
 
-  private async cleanupExpiredErrorLogs(expiryTime: number): Promise<number> {
+  private async cleanupExpiredErrorLogs(_expiryTime: number): Promise<number> {
     // Implementation would clean up error logs older than expiry time
     return 0;
   }
@@ -752,7 +752,7 @@ export class GDPRComplianceManager {
       const status = await this.checkComplianceStatus();
       if (!status.isCompliant) {
         await this.auditLog('compliance_check_failed', 'failure', undefined, status.issues.join('; '));
-        logger.warn('GDPR compliance issues detected:', status.issues);
+        logger.warn('GDPR compliance issues detected:', { issues: status.issues });
       }
     }, 7 * 24 * 60 * 60 * 1000); // Weekly
   }

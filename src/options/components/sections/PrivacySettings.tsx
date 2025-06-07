@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { UserSettings, ConsentData } from '@shared/types';
 import { storageService } from '@shared/storage/storageService';
 
-interface PrivacySettingsProps {}
+interface PrivacySettingsProps {
+  // Empty interface for future props - allows extensibility
+  [key: string]: never;
+}
 
 export const PrivacySettings: React.FC<PrivacySettingsProps> = () => {
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -230,7 +233,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = () => {
                 </div>
               </div>
               <p className="setting-description">
-                Process all content locally using Chrome's built-in AI. When disabled, external APIs may be used for enhanced analysis.
+                Process all content locally using Chrome&apos;s built-in AI. When disabled, external APIs may be used for enhanced analysis.
               </p>
             </div>
           </div>
@@ -412,7 +415,7 @@ export const PrivacySettings: React.FC<PrivacySettingsProps> = () => {
               <h3 className="modal-title">Clear Cache</h3>
               <p className="modal-description">
                 This will clear all cached credibility results. The extension will need to re-analyze
-                content you've previously visited. This action cannot be undone.
+                content you&apos;ve previously visited. This action cannot be undone.
               </p>
               <div className="modal-actions">
                 <button

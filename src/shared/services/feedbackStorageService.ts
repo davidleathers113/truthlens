@@ -10,7 +10,7 @@
  */
 
 import { logger } from './logger';
-import type { FeedbackData } from '../components/FeedbackSystem/FeedbackCollector';
+import type { FeedbackData } from '../../popup/components/FeedbackSystem/FeedbackCollector';
 import type { SpamAnalysisResult } from './feedbackAntiSpamService';
 
 export interface StoredFeedback {
@@ -190,7 +190,7 @@ class FeedbackStorageService {
   public async storeFeedback(
     feedbackData: FeedbackData,
     spamAnalysis: SpamAnalysisResult,
-    userId?: string
+    _userId?: string
   ): Promise<string> {
     try {
       if (!this.db) {
@@ -276,7 +276,7 @@ class FeedbackStorageService {
         try {
           const decryptedContent = await this.decryptData(feedback.encryptedContent);
           feedback.feedbackData.userComment = decryptedContent;
-        } catch (error) {
+        } catch {
           logger.warn('Failed to decrypt feedback content', { id });
         }
       }
@@ -584,7 +584,7 @@ class FeedbackStorageService {
         }
       };
 
-      await this.promisifyRequest(transaction);
+      await this.promisifyTransaction(transaction);
 
       // Clean old clusters
       await this.cleanupOldClusters();
@@ -616,7 +616,7 @@ class FeedbackStorageService {
       }
     };
 
-    await this.promisifyRequest(transaction);
+    await this.promisifyTransaction(transaction);
   }
 
   /**
@@ -720,7 +720,7 @@ class FeedbackStorageService {
         feedback.lastAccessed = Date.now();
         await this.promisifyRequest(store.put(feedback));
       }
-    } catch (error) {
+    } catch {
       // Non-critical error, just log it
       logger.warn('Failed to update last accessed time', { id });
     }
@@ -749,6 +749,14 @@ class FeedbackStorageService {
     return new Promise((resolve, reject) => {
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
+    });
+  }
+
+  private promisifyTransaction(transaction: IDBTransaction): Promise<void> {
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(new Error('Transaction aborted'));
     });
   }
 

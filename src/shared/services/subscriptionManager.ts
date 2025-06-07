@@ -135,7 +135,7 @@ export class SubscriptionManager {
           features: this.getDefaultFeatures('free')
         };
       }
-    } catch (error) {
+    } catch {
       // Fallback to stored data if ExtensionPay unavailable
       if (subscription.expiresAt && subscription.expiresAt > Date.now()) {
         return {

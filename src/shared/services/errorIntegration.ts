@@ -710,7 +710,7 @@ class ErrorIntegration {
     logger.debug('Debug console setup completed');
   }
 
-  private handleExtensionMessage(message: any, _sender: chrome.runtime.MessageSender, sendResponse: Function): void {
+  private handleExtensionMessage(message: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void): void {
     // Handle inter-context error communication
     if (message.type === 'ERROR_REPORT') {
       const error: TruthLensError = message.error;

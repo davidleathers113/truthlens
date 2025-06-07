@@ -1,5 +1,6 @@
 import { Readability, isProbablyReaderable, ReadabilityResult } from '@mozilla/readability';
 import { ContentAnalysis } from '@shared/types';
+import { cleanText } from '@shared/utils/textCleaner';
 
 /**
  * Extracted content metadata for credibility analysis
@@ -14,7 +15,7 @@ export interface ExtractedMetadata {
   canonicalUrl?: string;
   language?: string;
   keywords?: string[];
-  schema?: Record<string, any>;
+  schema?: Record<string, unknown>;
 }
 
 /**
@@ -234,24 +235,18 @@ export class GenericExtractor {
     const startTime = performance.now();
 
     try {
-      let cleaned = content;
-
-      // Remove excessive whitespace
-      cleaned = cleaned.replace(/\s+/g, ' ').trim();
-
-      // Normalize Unicode characters
-      cleaned = cleaned.normalize('NFKD');
-
-      // Remove control characters
-      cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+      // Use utility function for text cleaning
+      let cleaned = cleanText(content, {
+        removeControlChars: true,
+        normalizeWhitespace: true,
+        preserveEmojis: true,
+        preserveLineBreaks: false
+      });
 
       // Decode HTML entities
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = cleaned;
       cleaned = tempDiv.textContent || tempDiv.innerText || '';
-
-      // Merge adjacent text nodes (handled by readability, but additional cleanup)
-      cleaned = cleaned.replace(/(\r\n|\n|\r)/gm, ' ');
 
       this.logPerformance('content_cleaning', startTime);
       return cleaned;
@@ -414,7 +409,7 @@ export class GenericExtractor {
             isCitation,
           });
 
-        } catch (urlError) {
+        } catch {
           // Invalid URL, skip
           continue;
         }

@@ -21,6 +21,34 @@ import {
   extractTikTokVideoId,
   extractTikTokUsername
 } from './config/tiktokSelectors';
+import { parseEngagementNumber } from '@shared/utils/engagementParser';
+import { parseRelativeTime } from '@shared/utils/dateParser';
+import { parseSocialText } from '@shared/utils/socialTextParser';
+import { sanitizeUsername } from '@shared/utils/textCleaner';
+
+/**
+ * Raw TikTok JSON data structure
+ */
+interface TikTokRawVideoData {
+  id?: string;
+  desc?: string;
+  createTime?: number;
+  author?: {
+    uniqueId?: string;
+    nickname?: string;
+    avatarMedium?: string;
+  };
+  stats?: {
+    diggCount?: number;
+    commentCount?: number;
+    shareCount?: number;
+    playCount?: number;
+  };
+  music?: {
+    title?: string;
+    authorName?: string;
+  };
+}
 
 /**
  * TikTok-specific content types
@@ -279,7 +307,7 @@ export class TikTokExtractor implements IExtractor {
       // Build TikTokContent from JSON data
       const content: TikTokContent = {
         type: 'video',
-        id: videoData.id || extractTikTokVideoId(window.location.href),
+        id: videoData.id || extractTikTokVideoId(window.location.href) || undefined,
         description: videoData.desc || '',
         author: {
           username: videoData.author?.uniqueId,
@@ -409,7 +437,7 @@ export class TikTokExtractor implements IExtractor {
 
       const videoContent: TikTokContent = {
         type: 'video',
-        id: extractTikTokVideoId(window.location.href),
+        id: extractTikTokVideoId(window.location.href) || undefined,
         description,
         author,
         timestamp,
@@ -495,7 +523,7 @@ export class TikTokExtractor implements IExtractor {
             usedSelectors.push('author.username');
           }
         } else if (usernameElement.textContent) {
-          author.username = usernameElement.textContent.trim().replace('@', '');
+          author.username = sanitizeUsername(usernameElement.textContent.trim());
           usedSelectors.push('author.username');
         }
       }
@@ -637,7 +665,7 @@ export class TikTokExtractor implements IExtractor {
         engagement.views = this.parseEngagementNumber(viewsElement.textContent);
         usedSelectors.push('engagement.views');
       }
-    } catch (error) {
+    } catch {
       // Views are optional, don't add to errors
     }
 
@@ -651,7 +679,7 @@ export class TikTokExtractor implements IExtractor {
         engagement.bookmarks = this.parseEngagementNumber(bookmarksElement.textContent);
         usedSelectors.push('engagement.bookmarks');
       }
-    } catch (error) {
+    } catch {
       // Bookmarks are optional, don't add to errors
     }
 
@@ -699,55 +727,6 @@ export class TikTokExtractor implements IExtractor {
     return Object.keys(music).length > 0 ? music : undefined;
   }
 
-  /**
-   * Extract comments from video page with pagination handling
-   */
-  private async extractComments(): Promise<TikTokComments> {
-    const startTime = performance.now();
-    const errors: string[] = [];
-    const extractedComments: TikTokComment[] = [];
-
-    try {
-      // Check if we're already extracting comments to prevent duplicates
-      if (this.commentExtractionState.isExtractingComments) {
-        throw new Error('Comment extraction already in progress');
-      }
-
-      this.commentExtractionState.isExtractingComments = true;
-
-      // Find comments container
-      const commentsContainer = this.findElementWithSelectors(TikTokSelectors.comments.container);
-      if (!commentsContainer) {
-        throw new Error('Could not find comments container');
-      }
-
-      // Extract initial comments
-      const initialComments = await this.extractCommentsFromContainer(commentsContainer);
-      extractedComments.push(...initialComments);
-
-      // Handle "Load more comments" if present
-      await this.loadMoreComments(commentsContainer, extractedComments);
-
-      const totalTime = performance.now() - startTime;
-
-      return {
-        comments: extractedComments,
-        totalCount: extractedComments.length,
-        hasMore: this.hasMoreCommentsToLoad(),
-        extractionMetadata: {
-          extractedAt: Date.now(),
-          timeSpent: totalTime,
-          errors
-        }
-      };
-
-    } catch (error) {
-      errors.push(`Comment extraction failed: ${error}`);
-      throw error;
-    } finally {
-      this.commentExtractionState.isExtractingComments = false;
-    }
-  }
 
   /**
    * Extract comments from a container element
@@ -799,7 +778,10 @@ export class TikTokExtractor implements IExtractor {
 
   /**
    * Handle "Load more comments" pagination
+   * @private - Currently unused but reserved for future comment pagination features
    */
+   
+  // @ts-ignore - Unused but reserved for future features
   private async loadMoreComments(container: Element, comments: TikTokComment[]): Promise<void> {
     const maxLoadAttempts = 5;
     let loadAttempts = 0;
@@ -854,7 +836,7 @@ export class TikTokExtractor implements IExtractor {
       try {
         const element = container.querySelector(selector);
         if (element) return element;
-      } catch (error) {
+      } catch {
         // Invalid selector, continue to next one
         continue;
       }
@@ -875,7 +857,7 @@ export class TikTokExtractor implements IExtractor {
       try {
         const found = Array.from(container.querySelectorAll(selector));
         elements.push(...found);
-      } catch (error) {
+      } catch {
         // Invalid selector, continue to next one
         continue;
       }
@@ -979,81 +961,95 @@ export class TikTokExtractor implements IExtractor {
    * Parse engagement numbers (handles K, M, B suffixes)
    */
   private parseEngagementNumber(text: string): number {
-    const cleaned = text.replace(/[^\d.,KMB]/gi, '').trim();
-    if (!cleaned) return 0;
-
-    const number = parseFloat(cleaned.replace(/[KMB]/i, ''));
-    if (isNaN(number)) return 0;
-
-    const suffix = cleaned.toUpperCase().slice(-1);
-    switch (suffix) {
-      case 'K': return Math.round(number * 1000);
-      case 'M': return Math.round(number * 1000000);
-      case 'B': return Math.round(number * 1000000000);
-      default: return Math.round(number);
-    }
+    const parsed = parseEngagementNumber(text);
+    return parsed?.value || 0;
   }
 
   /**
    * Parse relative time strings (e.g., "2h ago", "1d ago")
    */
   private parseRelativeTime(timeText: string): Date | null {
-    const now = new Date();
-    const patterns = [
-      { pattern: /(\d+)s?\s*ago/i, multiply: 1000 }, // seconds
-      { pattern: /(\d+)m?\s*ago/i, multiply: 60 * 1000 }, // minutes
-      { pattern: /(\d+)h?\s*ago/i, multiply: 60 * 60 * 1000 }, // hours
-      { pattern: /(\d+)d?\s*ago/i, multiply: 24 * 60 * 60 * 1000 }, // days
-      { pattern: /(\d+)w?\s*ago/i, multiply: 7 * 24 * 60 * 60 * 1000 } // weeks
-    ];
-
-    for (const { pattern, multiply } of patterns) {
-      const match = timeText.match(pattern);
-      if (match) {
-        const value = parseInt(match[1]);
-        if (!isNaN(value)) {
-          return new Date(now.getTime() - (value * multiply));
-        }
-      }
-    }
-
-    return null;
+    const result = parseRelativeTime(timeText);
+    return result.date;
   }
 
   /**
    * Extract hashtags from text
    */
   private extractHashtagsFromText(text: string): string[] {
-    const hashtagRegex = /#[\w\u00c0-\u024f\u1e00-\u1eff]+/g;
-    const matches = text.match(hashtagRegex);
-    return matches ? matches.map(tag => tag.substring(1)) : [];
+    const parsed = parseSocialText(text);
+    return parsed.entities.hashtags;
   }
 
   /**
    * Extract mentions from text
    */
   private extractMentionsFromText(text: string): string[] {
-    const mentionRegex = /@[\w\u00c0-\u024f\u1e00-\u1eff]+/g;
-    const matches = text.match(mentionRegex);
-    return matches ? matches.map(mention => mention.substring(1)) : [];
+    const parsed = parseSocialText(text);
+    return parsed.entities.mentions;
+  }
+
+  /**
+   * Type guard to validate TikTok video data structure
+   */
+  private isTikTokRawVideoData(data: unknown): data is TikTokRawVideoData {
+    if (!data || typeof data !== 'object') {
+      return false;
+    }
+
+    const obj = data as Record<string, unknown>;
+
+    // Check if it has at least some video-like properties
+    return Boolean(
+      typeof obj.desc === 'string' ||
+      typeof obj.id === 'string' ||
+      (obj.author && typeof obj.author === 'object') ||
+      (obj.stats && typeof obj.stats === 'object')
+    );
+  }
+
+  /**
+   * Safely get nested property from object
+   */
+  private getNestedProperty(obj: Record<string, unknown>, path: string[]): unknown {
+    let current: unknown = obj;
+
+    for (const key of path) {
+      if (!current || typeof current !== 'object') {
+        return undefined;
+      }
+      const currentObj = current as Record<string, unknown>;
+      if (!Object.prototype.hasOwnProperty.call(currentObj, key)) {
+        return undefined;
+      }
+      current = currentObj[key];
+    }
+
+    return current;
   }
 
   /**
    * Extract video data from hidden JSON structure
    */
-  private extractVideoDataFromJSON(jsonData: any): any {
+  private extractVideoDataFromJSON(jsonData: unknown): TikTokRawVideoData | null {
     // Navigate through common JSON structures used by TikTok
     try {
+      if (!jsonData || typeof jsonData !== 'object') {
+        return null;
+      }
+
+      const data = jsonData as Record<string, unknown>;
+
       // Try different possible paths in the JSON structure
       const possiblePaths = [
-        jsonData?.props?.pageProps?.videoData,
-        jsonData?.props?.pageProps?.itemInfo?.itemStruct,
-        jsonData?.seo?.metaParams,
-        jsonData?.ItemModule
+        this.getNestedProperty(data, ['props', 'pageProps', 'videoData']),
+        this.getNestedProperty(data, ['props', 'pageProps', 'itemInfo', 'itemStruct']),
+        this.getNestedProperty(data, ['seo', 'metaParams']),
+        this.getNestedProperty(data, ['ItemModule'])
       ];
 
       for (const path of possiblePaths) {
-        if (path && typeof path === 'object') {
+        if (this.isTikTokRawVideoData(path)) {
           return path;
         }
       }
@@ -1069,21 +1065,27 @@ export class TikTokExtractor implements IExtractor {
   /**
    * Recursively search for video data in JSON structure
    */
-  private findVideoDataRecursively(obj: any, depth = 0): any {
+  private findVideoDataRecursively(obj: unknown, depth = 0): TikTokRawVideoData | null {
     if (depth > 5 || !obj || typeof obj !== 'object') {
       return null;
     }
 
-    // Look for video-like properties
-    if (obj.desc && obj.author && obj.stats) {
-      return obj;
+    const data = obj as Record<string, unknown>;
+
+    // Check if current object matches video data structure
+    if (this.isTikTokRawVideoData(data)) {
+      return data;
     }
 
     // Recursively search in object properties
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const result = this.findVideoDataRecursively(obj[key], depth + 1);
-        if (result) return result;
+    const keys = Object.keys(data);
+    for (const key of keys) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        const value = Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null;
+        if (value !== null) {
+          const result = this.findVideoDataRecursively(value, depth + 1);
+          if (result) return result;
+        }
       }
     }
 
@@ -1132,7 +1134,10 @@ export class TikTokExtractor implements IExtractor {
 
   /**
    * Check if there are more comments to load
+   * @private - Currently unused but reserved for future comment pagination features
    */
+   
+  // @ts-ignore - Unused but reserved for future features
   private hasMoreCommentsToLoad(): boolean {
     return this.findElementWithSelectors(TikTokSelectors.comments.loadMore) !== null;
   }
@@ -1508,7 +1513,7 @@ export class TikTokExtractor implements IExtractor {
       }
 
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -1613,7 +1618,13 @@ export class TikTokExtractor implements IExtractor {
       engagement: {},
       hashtags: [],
       mentions: [],
-      extractionMetadata: content.extractionMetadata
+      extractionMetadata: {
+        extractedAt: content.extractionMetadata.extractedAt,
+        confidence: 0.7,
+        selectors: [],
+        errors: content.extractionMetadata.errors,
+        source: 'dom' as const
+      }
     } as TikTokContent;
 
     return {
@@ -1645,7 +1656,7 @@ export class TikTokExtractor implements IExtractor {
   /**
    * Create error analysis
    */
-  private createErrorAnalysis(error: any): ContentAnalysis {
+  private createErrorAnalysis(error: unknown): ContentAnalysis {
     return {
       url: window.location.href,
       title: 'TikTok Extraction Error',
@@ -1658,7 +1669,7 @@ export class TikTokExtractor implements IExtractor {
           score: 0,
           level: 'unknown',
           confidence: 0,
-          reasoning: `TikTok extraction failed: ${error.message}`,
+          reasoning: `TikTok extraction failed: ${error instanceof Error ? error.message : String(error)}`,
           source: 'fallback',
           timestamp: Date.now(),
         },

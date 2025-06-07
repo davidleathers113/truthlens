@@ -1,4 +1,6 @@
 import { SocialPlatform } from '@shared/types';
+import { parseEngagementNumber } from '@shared/utils/engagementParser';
+import { parseSocialText } from '@shared/utils/socialTextParser';
 
 /**
  * Platform detection and analysis result
@@ -211,8 +213,8 @@ export class PlatformAnalyzer {
   /**
    * Extract engagement metrics
    */
-  private extractEngagement(element: Element, selectors: EngagementSelectors): any {
-    const engagement: any = {};
+  private extractEngagement(element: Element, selectors: EngagementSelectors): Record<string, number> | undefined {
+    const engagement: Record<string, number> = {};
 
     if (selectors.likes) {
       const likesElement = element.querySelector(selectors.likes);
@@ -264,36 +266,24 @@ export class PlatformAnalyzer {
    * Extract hashtags from text
    */
   private extractHashtags(text: string): string[] {
-    const hashtagRegex = /#[\w\u00c0-\u024f\u1e00-\u1eff]+/g;
-    const matches = text.match(hashtagRegex);
-    return matches ? matches.map(tag => tag.substring(1)) : [];
+    const parsed = parseSocialText(text);
+    return parsed.entities.hashtags;
   }
 
   /**
    * Extract mentions from text
    */
   private extractMentions(text: string): string[] {
-    const mentionRegex = /@[\w\u00c0-\u024f\u1e00-\u1eff]+/g;
-    const matches = text.match(mentionRegex);
-    return matches ? matches.map(mention => mention.substring(1)) : [];
+    const parsed = parseSocialText(text);
+    return parsed.entities.mentions;
   }
 
   /**
    * Parse engagement numbers (handles K, M suffixes)
    */
   private parseEngagementNumber(text: string): number {
-    const cleaned = text.replace(/[^\d.,KMB]/gi, '');
-    const number = parseFloat(cleaned.replace(',', ''));
-
-    if (isNaN(number)) return 0;
-
-    const suffix = cleaned.toUpperCase().slice(-1);
-    switch (suffix) {
-      case 'K': return Math.round(number * 1000);
-      case 'M': return Math.round(number * 1000000);
-      case 'B': return Math.round(number * 1000000000);
-      default: return Math.round(number);
-    }
+    const parsed = parseEngagementNumber(text);
+    return parsed?.value || 0;
   }
 
   /**

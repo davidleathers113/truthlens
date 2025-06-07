@@ -4,7 +4,7 @@
  */
 
 // Core Result type using discriminated unions
-export type Result<T, E = Error> = 
+export type Result<T, E = Error> =
   | { success: true; data: T; error?: never }
   | { success: false; data?: never; error: E };
 
@@ -70,7 +70,7 @@ export interface ValidationError {
   field: string;
   code: string;
   message: string;
-  value?: any;
+  value?: unknown;
 }
 
 // Permission results for Chrome extension APIs
@@ -86,36 +86,36 @@ export const Ok = <T>(data: T): Result<T, never> => ({ success: true, data });
 
 export const Err = <E>(error: E): Result<never, E> => ({ success: false, error });
 
-export const isOk = <T, E>(result: Result<T, E>): result is { success: true; data: T } => 
+export const isOk = <T, E>(result: Result<T, E>): result is { success: true; data: T } =>
   result.success;
 
-export const isErr = <T, E>(result: Result<T, E>): result is { success: false; error: E } => 
+export const isErr = <T, E>(result: Result<T, E>): result is { success: false; error: E } =>
   !result.success;
 
 // Safe data extraction with defaults
-export const unwrap = <T, E>(result: Result<T, E>, defaultValue: T): T => 
+export const unwrap = <T, E>(result: Result<T, E>, defaultValue: T): T =>
   isOk(result) ? result.data : defaultValue;
 
-export const unwrapOr = <T, E>(result: Result<T, E>, fallback: (error: E) => T): T => 
+export const unwrapOr = <T, E>(result: Result<T, E>, fallback: (error: E) => T): T =>
   isOk(result) ? result.data : fallback(result.error);
 
 // Transform operations
 export const map = <T, U, E>(
-  result: Result<T, E>, 
+  result: Result<T, E>,
   fn: (data: T) => U
-): Result<U, E> => 
+): Result<U, E> =>
   isOk(result) ? Ok(fn(result.data)) : result;
 
 export const mapErr = <T, E, F>(
-  result: Result<T, E>, 
+  result: Result<T, E>,
   fn: (error: E) => F
-): Result<T, F> => 
+): Result<T, F> =>
   isErr(result) ? Err(fn(result.error)) : result;
 
 export const flatMap = <T, U, E>(
-  result: Result<T, E>, 
+  result: Result<T, E>,
   fn: (data: T) => Result<U, E>
-): Result<U, E> => 
+): Result<U, E> =>
   isOk(result) ? fn(result.data) : result;
 
 // Async operations
@@ -140,14 +140,14 @@ export const combine = <T extends readonly Result<any, any>[]>(
   results: T
 ): Result<{ [K in keyof T]: T[K] extends Result<infer U, any> ? U : never }, any> => {
   const data: any[] = [];
-  
+
   for (const result of results) {
     if (isErr(result)) {
       return result;
     }
     data.push(result.data);
   }
-  
+
   return Ok(data as any);
 };
 
@@ -158,7 +158,7 @@ export const match = <T, E, R>(
     success: (data: T) => R;
     error: (error: E) => R;
   }
-): R => 
+): R =>
   isOk(result) ? patterns.success(result.data) : patterns.error(result.error);
 
 // Loading state helpers
@@ -190,28 +190,28 @@ export const withRetry = async <T, E>(
   }
 ): AsyncResult<T, E> => {
   let lastError: E;
-  
+
   for (let attempt = 0; attempt <= options.maxRetries; attempt++) {
     const result = await operation();
-    
+
     if (isOk(result)) {
       return result;
     }
-    
+
     lastError = result.error;
-    
+
     if (attempt === options.maxRetries || !options.retryWhen(result.error)) {
       return result;
     }
-    
+
     const delay = Math.min(
       options.baseDelay * Math.pow(2, attempt),
       options.maxDelay
     );
-    
+
     await new Promise(resolve => setTimeout(resolve, delay));
   }
-  
+
   return Err(lastError!);
 };
 

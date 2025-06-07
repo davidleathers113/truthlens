@@ -106,7 +106,7 @@ export class ExtensionPayService {
 
       logger.info('ExtensionPay service initialized successfully');
     } catch (error) {
-      logger.error('Failed to initialize ExtensionPay service:', error);
+      logger.error('Failed to initialize ExtensionPay service:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       throw error;
     }
   }
@@ -155,7 +155,7 @@ export class ExtensionPayService {
         tier: 'free'
       };
     } catch (error) {
-      logger.error('Failed to check payment status:', error);
+      logger.error('Failed to check payment status:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
 
       // Return free tier on error but don't update subscription manager
       return {
@@ -193,7 +193,7 @@ export class ExtensionPayService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Failed to open payment page:', error);
+      logger.error('Failed to open payment page:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
 
       // Check if user cancelled vs network/other error
       const userCancelled = errorMessage.toLowerCase().includes('user') ||
@@ -219,7 +219,7 @@ export class ExtensionPayService {
     try {
       await this.extpay!.openManagementPage();
     } catch (error) {
-      logger.error('Failed to open management page:', error);
+      logger.error('Failed to open management page:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       throw error;
     }
   }
@@ -235,7 +235,7 @@ export class ExtensionPayService {
     try {
       await this.extpay!.openLoginPage();
     } catch (error) {
-      logger.error('Failed to open login page:', error);
+      logger.error('Failed to open login page:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       throw error;
     }
   }
@@ -308,7 +308,7 @@ export class ExtensionPayService {
 
       logger.info('Subscription cancellation handled:', { tier: subscription.tier, reason });
     } catch (error) {
-      logger.error('Failed to handle subscription cancellation:', error);
+      logger.error('Failed to handle subscription cancellation:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
   }
 
@@ -326,7 +326,7 @@ export class ExtensionPayService {
 
       logger.warn('Payment failure handled:', { tier, error });
     } catch (err) {
-      logger.error('Failed to handle payment failure:', err);
+      logger.error('Failed to handle payment failure:', err instanceof Error ? { message: err.message, stack: err.stack } : { err });
     }
   }
 
@@ -338,7 +338,7 @@ export class ExtensionPayService {
 
     const handlePaymentSuccess = async (user: ExtPayUser) => {
       try {
-        logger.info('Payment successful, updating subscription:', user);
+        logger.info('Payment successful, updating subscription:', user as unknown as Record<string, unknown>);
 
         if (user.subscription) {
           const plan = this.getPlanByNickname(user.planNickname || user.subscription.plan.nickname);
@@ -360,7 +360,7 @@ export class ExtensionPayService {
           }
         }
       } catch (error) {
-        logger.error('Failed to handle payment success:', error);
+        logger.error('Failed to handle payment success:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
 
         // Dispatch failure event if payment processing fails
         if (typeof window !== 'undefined') {

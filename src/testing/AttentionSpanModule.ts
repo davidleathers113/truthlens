@@ -7,9 +7,6 @@
 import {
   AttentionMetrics,
   TaskSwitchEvent,
-  ScrollMetrics,
-  InteractionMetrics,
-  VisibilityMetrics,
   ElementVisibility,
   AttentionPoint,
   ViewportChange,
@@ -340,7 +337,7 @@ export class AttentionSpanModule {
 
     if (document.hidden) {
       this.isPageVisible = false;
-      const timeAwayStart = now;
+      // const timeAwayStart = now;
       this.recordTaskSwitchEvent('tab_switch', 0); // Duration will be calculated on return
     } else {
       this.isPageVisible = true;
@@ -657,7 +654,7 @@ export class AttentionSpanModule {
   /**
    * Track attention point for heatmapping
    */
-  private trackAttentionPoint(entry: IntersectionObserverEntry, timestamp: number): void {
+  private trackAttentionPoint(entry: IntersectionObserverEntry, _timestamp: number): void {
     const rect = entry.boundingClientRect;
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;

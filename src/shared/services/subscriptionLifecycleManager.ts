@@ -6,13 +6,11 @@
 
 import {
   UserSubscription,
-  SubscriptionStatus,
-  SubscriptionTier,
-  SubscriptionValidationResult
+  SubscriptionTier
 } from '@shared/types';
 import { StorageService, storageService } from '../storage/storageService';
 import { subscriptionManager } from './subscriptionManager';
-import { extensionPayService } from './extensionPayService';
+// import { extensionPayService } from './extensionPayService';
 import { logger } from './logger';
 
 export interface LifecycleNotification {
@@ -419,7 +417,7 @@ export class SubscriptionLifecycleManager {
 
     for (const campaign of campaigns) {
       const timeSinceTrigger = now - campaign.triggeredAt;
-      const timeSinceLastContact = campaign.lastContactAt ? now - campaign.lastContactAt : timeSinceTrigger;
+      // const timeSinceLastContact = campaign.lastContactAt ? now - campaign.lastContactAt : timeSinceTrigger;
 
       // Initial win-back (1 day after expiration)
       if (campaign.stage === 'initial' && timeSinceTrigger >= this.WIN_BACK_SCHEDULE.INITIAL) {

@@ -313,7 +313,7 @@ export class PositionManager {
     return collisions;
   }
 
-  private isRectCollision(rect1: any, rect2: DOMRect): boolean {
+  private isRectCollision(rect1: DOMRect | { left: number; top: number; right: number; bottom: number }, rect2: DOMRect | { left: number; top: number; right: number; bottom: number }): boolean {
     return !(
       rect1.right < rect2.left ||
       rect1.left > rect2.right ||

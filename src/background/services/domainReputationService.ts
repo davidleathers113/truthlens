@@ -216,10 +216,13 @@ export class DomainReputationService {
     const settled = await Promise.allSettled(lookupPromises);
 
     settled.forEach((result, index) => {
+      const url = urls[index];
+      if (!url) return; // Guard against undefined index access
+
       if (result.status === 'fulfilled') {
-        results.set(urls[index], result.value.reputation);
+        results.set(url, result.value.reputation);
       } else {
-        results.set(urls[index], this.getDefaultReputation(urls[index]));
+        results.set(url, this.getDefaultReputation(url));
       }
     });
 
@@ -404,7 +407,7 @@ export class DomainReputationService {
       return parsedUrl.hostname;
     } catch {
       // Fallback for malformed URLs
-      const match = url.match(/(?:https?:\/\/)?(?:www\.)?([^\/\?\#]+)/);
+      const match = url.match(/(?:https?:\/\/)?(?:www\.)?([^/?#]+)/);
       return match ? match[1] : url;
     }
   }
@@ -923,8 +926,8 @@ export class DomainReputationService {
       const local = parseVersion(localVersion);
 
       for (let i = 0; i < Math.max(remote.length, local.length); i++) {
-        const remotePart = remote[i] || 0;
-        const localPart = local[i] || 0;
+        const remotePart = i < remote.length ? remote[i] : 0;
+        const localPart = i < local.length ? local[i] : 0;
 
         if (remotePart > localPart) return true;
         if (remotePart < localPart) return false;

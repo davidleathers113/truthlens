@@ -20,7 +20,7 @@ export class AIService {
 
       // Check availability
       const availability = await window.ai.languageModel.availability();
-      console.log('AI availability:', availability);
+      console.debug('AI availability:', availability);
 
       if (availability === 'no') {
         return false;

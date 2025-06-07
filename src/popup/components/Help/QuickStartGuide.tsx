@@ -11,12 +11,12 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { QuickStartGuide, QuickStartStep, HelpAnalytics } from '@shared/types/help';
+import { QuickStartGuide as QuickStartGuideType, HelpAnalytics } from '@shared/types/help';
 import { logger } from '@shared/services';
 import './QuickStartGuide.css';
 
 export interface QuickStartGuideProps {
-  guide: QuickStartGuide;
+  guide: QuickStartGuideType;
   onComplete?: (guideId: string, timeSpent: number) => void;
   onStepComplete?: (guideId: string, stepId: string, timeSpent: number) => void;
   onAnalytics?: (event: HelpAnalytics) => void;

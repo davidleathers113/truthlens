@@ -216,9 +216,9 @@ export const TwitterUrlPatterns = {
   ],
 
   profileUrls: [
-    /^https?:\/\/(twitter|x)\.com\/[^\/]+$/,
-    /^https?:\/\/(twitter|x)\.com\/[^\/]+\/with_replies$/,
-    /^https?:\/\/(twitter|x)\.com\/[^\/]+\/media$/
+    /^https?:\/\/(twitter|x)\.com\/[^/]+$/,
+    /^https?:\/\/(twitter|x)\.com\/[^/]+\/with_replies$/,
+    /^https?:\/\/(twitter|x)\.com\/[^/]+\/media$/
   ],
 
   embedUrls: [
@@ -285,8 +285,10 @@ export function getAllSelectors(path: string): string[] {
   let current: any = TwitterSelectors;
 
   for (const part of pathParts) {
+    if (!current || typeof current !== 'object' || !Object.prototype.hasOwnProperty.call(current, part)) {
+      return [];
+    }
     current = current[part];
-    if (!current) return [];
   }
 
   return Array.isArray(current) ? current : [];
@@ -310,5 +312,8 @@ export function isTweetUrl(url: string): boolean {
  * Helper function to get delay based on operation type
  */
 export function getOperationDelay(operation: keyof typeof TwitterRateLimiting.extractionDelays): number {
+  if (!Object.prototype.hasOwnProperty.call(TwitterRateLimiting.extractionDelays, operation)) {
+    return 1000; // Default fallback delay
+  }
   return TwitterRateLimiting.extractionDelays[operation];
 }

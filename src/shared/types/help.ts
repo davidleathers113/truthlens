@@ -118,7 +118,7 @@ export interface TourProgress {
   completedAt?: number;
   timeSpent: number; // milliseconds
   abandonedAt?: number;
-  abandonReason?: 'manual_skip' | 'timeout' | 'error' | 'other';
+  abandonReason?: 'manual_skip' | 'timeout' | 'error' | 'other' | 'abandoned';
 }
 
 // FAQ System
@@ -217,6 +217,10 @@ export interface HelpAnalytics {
     context?: string;
     searchQuery?: string;
     resultCount?: number;
+    targetAudience?: string;
+    estimatedTime?: number;
+    stepsCompleted?: number;
+    totalSteps?: number;
   };
   timestamp: number;
   sessionId: string;

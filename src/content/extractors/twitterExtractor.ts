@@ -13,13 +13,14 @@ import { IExtractor } from './contentExtractor';
 import {
   TwitterSelectors,
   TwitterFallbackSelectors,
-  TwitterUrlPatterns,
   TwitterRateLimiting,
   TwitterValidation,
   isTwitterUrl,
   isTweetUrl,
   getOperationDelay
 } from './config/twitterSelectors';
+import { parseEngagementNumber } from '@shared/utils/engagementParser';
+import { extractUserId, extractContentId } from '@shared/utils/urlMatcher';
 
 /**
  * Twitter-specific content types
@@ -95,7 +96,6 @@ interface CacheEntry<T> {
  */
 export class TwitterExtractor implements IExtractor {
   private readonly cache = new Map<string, CacheEntry<TwitterContent | TwitterThread>>();
-  private readonly mutationObserver?: MutationObserver;
   private readonly performanceMetrics = {
     extractionCount: 0,
     averageTime: 0,
@@ -274,7 +274,6 @@ export class TwitterExtractor implements IExtractor {
    * Extract comprehensive data from a tweet element
    */
   private async extractTweetFromElement(element: Element): Promise<TwitterContent> {
-    const startTime = performance.now();
     const errors: string[] = [];
     const usedSelectors: string[] = [];
 
@@ -398,9 +397,9 @@ export class TwitterExtractor implements IExtractor {
       if (usernameElement) {
         const href = usernameElement.getAttribute('href');
         if (href) {
-          const match = href.match(/\/([^\/]+)$/);
-          if (match) {
-            author.username = match[1];
+          const userId = extractUserId(href);
+          if (userId) {
+            author.username = userId;
             usedSelectors.push('author.username');
           }
         }
@@ -519,7 +518,7 @@ export class TwitterExtractor implements IExtractor {
         engagement.views = this.parseEngagementNumber(viewsElement.textContent);
         usedSelectors.push('engagement.views');
       }
-    } catch (error) {
+    } catch {
       // Views are optional, don't add to errors
     }
 
@@ -634,252 +633,8 @@ export class TwitterExtractor implements IExtractor {
     return undefined;
   }
 
-  /**
-   * Extract full Twitter thread starting from current tweet
-   */
-  private async extractFullThread(): Promise<TwitterThread> {
-    const startTime = performance.now();
-    const errors: string[] = [];
-    const extractedTweets: TwitterContent[] = [];
 
-    try {
-      // Check if we're already extracting a thread to prevent duplicates
-      if (this.threadExtractionState.isExtractingThread) {
-        throw new Error('Thread extraction already in progress');
-      }
 
-      this.threadExtractionState.isExtractingThread = true;
-
-      // Find the main tweet element
-      const mainTweetElement = await this.findTweetElement();
-      if (!mainTweetElement) {
-        throw new Error('Could not find main tweet element for thread extraction');
-      }
-
-      // Extract the original tweet
-      const originalTweet = await this.extractTweetFromElement(mainTweetElement);
-      extractedTweets.push(originalTweet);
-
-      // Look for thread continuation indicators
-      const threadIndicators = this.findThreadIndicators();
-
-      if (threadIndicators.hasThread) {
-        // Extract thread tweets using progressive loading
-        const threadTweets = await this.extractThreadTweets(threadIndicators);
-        extractedTweets.push(...threadTweets);
-      }
-
-      // Look for replies if this is a conversation
-      const replies = await this.extractReplies();
-      extractedTweets.push(...replies);
-
-      const totalTime = performance.now() - startTime;
-
-      return {
-        tweets: extractedTweets,
-        originalTweet: extractedTweets[0],
-        totalTweets: extractedTweets.length,
-        isComplete: true, // We'll implement completeness detection
-        extractionMetadata: {
-          extractedAt: Date.now(),
-          timeSpent: totalTime,
-          errors
-        }
-      };
-
-    } catch (error) {
-      errors.push(`Thread extraction failed: ${error}`);
-      throw error;
-    } finally {
-      this.threadExtractionState.isExtractingThread = false;
-    }
-  }
-
-  /**
-   * Find thread indicators in the current page
-   */
-  private findThreadIndicators(): {
-    hasThread: boolean;
-    showMoreButton?: Element;
-    threadContainer?: Element;
-    threadCount?: number;
-  } {
-    const indicators = {
-      hasThread: false,
-      showMoreButton: undefined as Element | undefined,
-      threadContainer: undefined as Element | undefined,
-      threadCount: undefined as number | undefined
-    };
-
-    // Look for "Show this thread" button
-    const showMoreButton = this.findElementWithSelectors(TwitterSelectors.thread.showMoreButton);
-    if (showMoreButton) {
-      indicators.hasThread = true;
-      indicators.showMoreButton = showMoreButton;
-    }
-
-    // Look for thread container
-    const threadContainer = this.findElementWithSelectors(TwitterSelectors.thread.conversationThread);
-    if (threadContainer) {
-      indicators.hasThread = true;
-      indicators.threadContainer = threadContainer;
-
-      // Count tweets in thread
-      const tweetElements = this.findElementsWithSelectors(TwitterSelectors.tweet.container, threadContainer);
-      indicators.threadCount = tweetElements.length;
-    }
-
-    // Look for numeric thread indicators (1/n, 2/n, etc.)
-    const tweetText = document.body.textContent || '';
-    const threadPattern = /(\d+)\/(\d+)/g;
-    const threadMatch = threadPattern.exec(tweetText);
-    if (threadMatch) {
-      indicators.hasThread = true;
-      indicators.threadCount = parseInt(threadMatch[2]);
-    }
-
-    return indicators;
-  }
-
-  /**
-   * Extract tweets from a thread using progressive loading
-   */
-  private async extractThreadTweets(indicators: ReturnType<typeof this.findThreadIndicators>): Promise<TwitterContent[]> {
-    const threadTweets: TwitterContent[] = [];
-
-    try {
-      // If there's a "Show more" button, click it to load more content
-      if (indicators.showMoreButton) {
-        await this.clickShowMoreButton(indicators.showMoreButton);
-        await this.waitForDynamicContent();
-      }
-
-      // Find all tweet elements in the thread
-      const container = indicators.threadContainer || document;
-      const tweetElements = this.findElementsWithSelectors(TwitterSelectors.tweet.container, container);
-
-      // Extract each tweet, skipping the original one
-      for (let i = 1; i < tweetElements.length; i++) {
-        try {
-          const tweetContent = await this.extractTweetFromElement(tweetElements[i]);
-          tweetContent.threadContext = {
-            isPartOfThread: true,
-            threadPosition: i + 1,
-            threadLength: indicators.threadCount || tweetElements.length
-          };
-          threadTweets.push(tweetContent);
-
-          // Apply rate limiting between thread tweet extractions
-          await this.applyRateLimit('betweenTweets');
-        } catch (error) {
-          console.warn(`Failed to extract thread tweet ${i}:`, error);
-          // Continue with other tweets
-        }
-      }
-
-    } catch (error) {
-      console.error('Thread tweets extraction failed:', error);
-    }
-
-    return threadTweets;
-  }
-
-  /**
-   * Extract replies to the current tweet
-   */
-  private async extractReplies(): Promise<TwitterContent[]> {
-    const replies: TwitterContent[] = [];
-
-    try {
-      // Look for "Show replies" button
-      const showRepliesButton = this.findElementWithSelectors(TwitterSelectors.thread.showRepliesButton);
-      if (showRepliesButton) {
-        await this.clickShowMoreButton(showRepliesButton);
-        await this.waitForDynamicContent();
-      }
-
-      // Find reply elements
-      const replyElements = document.querySelectorAll('[data-testid="tweet"][data-testid*="reply"], article[role="article"]:not(:first-child)');
-
-      for (const replyElement of replyElements) {
-        try {
-          if (this.validateTweetElement(replyElement)) {
-            const replyContent = await this.extractTweetFromElement(replyElement);
-            replyContent.type = 'reply';
-            replies.push(replyContent);
-
-            await this.applyRateLimit('betweenTweets');
-          }
-        } catch (error) {
-          console.warn('Failed to extract reply:', error);
-        }
-      }
-
-    } catch (error) {
-      console.error('Reply extraction failed:', error);
-    }
-
-    return replies;
-  }
-
-  /**
-   * Click "Show more" button and handle potential errors
-   */
-  private async clickShowMoreButton(button: Element): Promise<void> {
-    try {
-      // Scroll button into view
-      button.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Wait a bit for scroll to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Click the button
-      if (button instanceof HTMLElement) {
-        button.click();
-      } else {
-        // Fallback: dispatch click event
-        button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      }
-
-      // Wait for content to load
-      await this.waitForDynamicContent();
-
-    } catch (error) {
-      console.warn('Failed to click show more button:', error);
-    }
-  }
-
-  /**
-   * Wait for dynamic content to load
-   */
-  private async waitForDynamicContent(timeout: number = 3000): Promise<void> {
-    return new Promise((resolve) => {
-      const startTime = Date.now();
-      let loadingDetected = false;
-
-      const checkLoading = () => {
-        // Check for loading indicators
-        const loadingElement = this.findElementWithSelectors(TwitterSelectors.loading.spinner);
-
-        if (loadingElement) {
-          loadingDetected = true;
-          // Wait for loading to complete
-          setTimeout(checkLoading, 200);
-        } else if (loadingDetected) {
-          // Loading was detected and now it's gone
-          resolve();
-        } else if (Date.now() - startTime > timeout) {
-          // Timeout reached
-          resolve();
-        } else {
-          // Keep checking
-          setTimeout(checkLoading, 200);
-        }
-      };
-
-      checkLoading();
-    });
-  }
 
   /**
    * Analyze if tweet is part of a thread
@@ -894,14 +649,12 @@ export class TwitterExtractor implements IExtractor {
       const tweetText = element.textContent || '';
 
       // Look for numbered thread pattern (1/5, 2/5, etc.)
-      const threadPattern = /(\d+)\/(\d+)/;
-      const threadMatch = tweetText.match(threadPattern);
-
+      const threadMatch = this.parseThreadPattern(tweetText);
       if (threadMatch) {
         return {
           isPartOfThread: true,
-          threadPosition: parseInt(threadMatch[1]),
-          threadLength: parseInt(threadMatch[2])
+          threadPosition: threadMatch.position,
+          threadLength: threadMatch.total
         };
       }
 
@@ -949,7 +702,7 @@ export class TwitterExtractor implements IExtractor {
       try {
         const element = container.querySelector(selector);
         if (element) return element;
-      } catch (error) {
+      } catch {
         // Invalid selector, continue to next one
         continue;
       }
@@ -970,7 +723,7 @@ export class TwitterExtractor implements IExtractor {
       try {
         const found = Array.from(container.querySelectorAll(selector));
         elements.push(...found);
-      } catch (error) {
+      } catch {
         // Invalid selector, continue to next one
         continue;
       }
@@ -985,10 +738,9 @@ export class TwitterExtractor implements IExtractor {
    */
   private findTweetByUrl(): Element | null {
     const url = window.location.href;
-    const tweetIdMatch = url.match(/\/status\/(\d+)/);
+    const tweetId = extractContentId(url);
 
-    if (tweetIdMatch) {
-      const tweetId = tweetIdMatch[1];
+    if (tweetId) {
       // Try to find tweet with specific ID in href
       const tweetLink = document.querySelector(`a[href*="/status/${tweetId}"]`);
       if (tweetLink) {
@@ -1070,19 +822,33 @@ export class TwitterExtractor implements IExtractor {
    * Parse engagement numbers (handles K, M, B suffixes)
    */
   private parseEngagementNumber(text: string): number {
-    const cleaned = text.replace(/[^\d.,KMB]/gi, '').trim();
-    if (!cleaned) return 0;
+    const parsed = parseEngagementNumber(text);
+    return parsed?.value || 0;
+  }
 
-    const number = parseFloat(cleaned.replace(/[KMB]/i, ''));
-    if (isNaN(number)) return 0;
+  /**
+   * Parse thread pattern (e.g., "1/5", "2/10") without regex
+   */
+  private parseThreadPattern(text: string): { position: number; total: number } | null {
+    if (!text) return null;
 
-    const suffix = cleaned.toUpperCase().slice(-1);
-    switch (suffix) {
-      case 'K': return Math.round(number * 1000);
-      case 'M': return Math.round(number * 1000000);
-      case 'B': return Math.round(number * 1000000000);
-      default: return Math.round(number);
+    // Look for pattern like "1/5" or "2/10"
+    const words = text.split(/\s+/);
+    for (const word of words) {
+      if (word.includes('/')) {
+        const parts = word.split('/');
+        if (parts.length === 2) {
+          const position = parseInt(parts[0]);
+          const total = parseInt(parts[1]);
+
+          if (!isNaN(position) && !isNaN(total) && position > 0 && total > 0 && position <= total) {
+            return { position, total };
+          }
+        }
+      }
     }
+
+    return null;
   }
 
   /**
@@ -1452,7 +1218,7 @@ export class TwitterExtractor implements IExtractor {
       }
 
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -1593,7 +1359,7 @@ export class TwitterExtractor implements IExtractor {
   /**
    * Create error analysis
    */
-  private createErrorAnalysis(error: any): ContentAnalysis {
+  private createErrorAnalysis(error: unknown): ContentAnalysis {
     return {
       url: window.location.href,
       title: 'Twitter Extraction Error',
@@ -1606,7 +1372,7 @@ export class TwitterExtractor implements IExtractor {
           score: 0,
           level: 'unknown',
           confidence: 0,
-          reasoning: `Twitter extraction failed: ${error.message}`,
+          reasoning: `Twitter extraction failed: ${error instanceof Error ? error.message : String(error)}`,
           source: 'fallback',
           timestamp: Date.now(),
         },

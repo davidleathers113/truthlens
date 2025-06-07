@@ -10,9 +10,9 @@
  */
 
 import { logger } from './logger';
-import { feedbackStorageService, type StoredFeedback } from './feedbackStorageService';
-import type { CredibilityScore, ContentAnalysis } from '../types';
-import type { FeedbackData } from '../components/FeedbackSystem/FeedbackCollector';
+import { feedbackStorageService } from './feedbackStorageService';
+import type { CredibilityScore } from '../types';
+import type { FeedbackData } from '../../popup/components/FeedbackSystem/FeedbackCollector';
 
 export interface RewardModelData {
   feedbackId: string;

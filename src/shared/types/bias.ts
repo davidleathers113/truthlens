@@ -50,7 +50,7 @@ export interface ExplainableAIReport {
 export interface SubpopulationAnalysis {
   populationGroups: Array<{
     groupId: string;
-    criteria: Record<string, any>;
+    criteria: Record<string, unknown>;
     sampleSize: number;
     averageScore: number;
     confidence: number;

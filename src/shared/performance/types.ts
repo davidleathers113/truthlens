@@ -68,7 +68,7 @@ export interface PerformanceMeasurement {
     deviceMemory?: number;
     connection?: string;
   };
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Memory analysis results
@@ -193,17 +193,17 @@ export interface ExtensionContext {
 
 // Stub classes for missing performance components (2025 TypeScript best practices)
 export declare class PerformanceMonitor {
-  constructor(context: ExtensionContext, config?: any);
+  constructor(context: ExtensionContext, config?: unknown);
 }
 
 export declare class PerformanceDashboard {
-  constructor(config?: any);
+  constructor(config?: unknown);
 }
 
 export declare class ServiceWorkerIntegration {
-  constructor(config?: any);
+  constructor(config?: unknown);
 }
 
 export declare class ContentScriptIntegration {
-  constructor(config?: any);
+  constructor(config?: unknown);
 }

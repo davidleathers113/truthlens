@@ -9,7 +9,7 @@ export class ContextMenuHandler {
   static initialize(): void {
     this.createContextMenus();
     chrome.contextMenus.onClicked.addListener(this.handleContextMenuClick);
-    console.log('Context menu handler initialized');
+    console.debug('Context menu handler initialized');
   }
 
   /**
@@ -78,15 +78,15 @@ export class ContextMenuHandler {
         case 'truthlens-analyze-selection':
           await this.analyzeSelection(tab.id, info.selectionText);
           break;
-          
+
         case 'truthlens-analyze-page':
           await this.analyzePage(tab.id);
           break;
-          
+
         case 'truthlens-settings':
           await this.openSettings();
           break;
-          
+
         default:
           console.warn('Unknown context menu item:', info.menuItemId);
       }
@@ -112,8 +112,8 @@ export class ContextMenuHandler {
           type: 'selection',
         },
       });
-      
-      console.log('Selection analysis requested:', selectionText.substring(0, 50) + '...');
+
+      console.debug('Selection analysis requested:', selectionText.substring(0, 50) + '...');
     } catch (error) {
       console.error('Failed to analyze selection:', error);
     }
@@ -128,8 +128,8 @@ export class ContextMenuHandler {
         type: 'ANALYZE_PAGE',
         payload: {},
       });
-      
-      console.log('Page analysis requested for tab:', tabId);
+
+      console.debug('Page analysis requested for tab:', tabId);
     } catch (error) {
       console.error('Failed to analyze page:', error);
     }

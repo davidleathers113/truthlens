@@ -354,7 +354,7 @@ class AsyncErrorHandler {
     delayMs: number,
     key: string
   ): () => Promise<T> {
-    const debounceMap = new Map<string, { timer: number; resolve: Function; reject: Function }>();
+    const debounceMap = new Map<string, { timer: number; resolve: (value: T) => void; reject: (reason?: any) => void }>();
 
     return () => {
       return new Promise<T>((resolve, reject) => {

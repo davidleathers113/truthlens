@@ -1,10 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {
-  PoliticalBiasVisualization,
-  BiasEducationData,
-  AdvancedBiasDetectionResult
-} from '@shared/types/bias';
-import './BiasVisualization.css';
+import React, { useState } from 'react';
+import type { AdvancedBiasDetectionResult } from '@background/ai/biasDetectionService';
+import '../styles/BiasVisualization.css';
 
 interface BiasVisualizationProps {
   biasResult: AdvancedBiasDetectionResult;

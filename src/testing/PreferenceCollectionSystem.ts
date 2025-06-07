@@ -467,7 +467,10 @@ export class PreferenceCollectionSystem {
         demographics: this.inferDemographics(feedbackEntry, sentimentData),
         preferences: this.inferPreferences(feedbackEntry, sentimentData),
         feedbackHistory: [],
-        sentimentAnalysis: sentimentData
+        sentimentAnalysis: sentimentData,
+        collectedAt: Date.now(),
+        source: 'feedback_analysis',
+        confidence: 0.7
       };
     }
 
@@ -563,8 +566,8 @@ export class PreferenceCollectionSystem {
    * Update preferences from survey responses
    */
   private updatePreferencesFromSurveyResponse(
-    response: SurveyResponse,
-    sentimentData: SentimentData
+    _response: SurveyResponse,
+    _sentimentData: SentimentData
   ): void {
     // Analyze response patterns to infer preferences
     // This would involve more complex pattern recognition
@@ -592,8 +595,8 @@ export class PreferenceCollectionSystem {
    * Infer user preferences from feedback
    */
   private inferPreferences(
-    feedbackEntry: FeedbackEntry,
-    sentimentData: SentimentData
+    _feedbackEntry: FeedbackEntry,
+    _sentimentData: SentimentData
   ): UserPreferences {
     return {
       contentLength: 'short', // Gen Z preference
@@ -631,7 +634,7 @@ export class PreferenceCollectionSystem {
     const totalResponses = Array.from(this.surveyResponses.values())
       .reduce((sum, responses) => sum + responses.length, 0);
 
-    const sentiments = this.emojiReactions.map(r => 0.5); // Placeholder
+    const sentiments = this.emojiReactions.map(_r => 0.5); // Placeholder
     const averageSentiment = sentiments.length > 0
       ? sentiments.reduce((sum, s) => sum + s, 0) / sentiments.length
       : 0;

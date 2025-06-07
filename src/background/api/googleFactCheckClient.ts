@@ -65,11 +65,11 @@ export interface FactCheckSummary {
  * Google Fact Check API Client with privacy-preserving features
  */
 export class GoogleFactCheckClient extends ApiClientBase {
-  private readonly config: GoogleFactCheckConfig;
+  private googleConfig: GoogleFactCheckConfig;
 
   constructor(config: GoogleFactCheckConfig) {
     super(config);
-    this.config = config;
+    this.googleConfig = config;
   }
 
   /**
@@ -80,9 +80,9 @@ export class GoogleFactCheckClient extends ApiClientBase {
       // Privacy-preserving: Query by domain only, no full URLs or content
       const query: FactCheckQuery = {
         query: domain,
-        languageCode: this.config.languageCode,
+        languageCode: this.googleConfig.languageCode,
         pageSize: 20,
-        publisherSiteFilter: this.config.reviewPublisherSiteFilter
+        publisherSiteFilter: this.googleConfig.reviewPublisherSiteFilter
       };
 
       const request: ApiRequest = {
@@ -104,7 +104,7 @@ export class GoogleFactCheckClient extends ApiClientBase {
       });
 
       // Add API key
-      searchParams.append('key', this.config.apiKey);
+      searchParams.append('key', this.googleConfig.apiKey);
 
       request.url = `${request.url}?${searchParams.toString()}`;
 
@@ -376,7 +376,7 @@ export class GoogleFactCheckClient extends ApiClientBase {
   /**
    * Handle API errors with appropriate error types
    */
-  private handleApiError(error: any): ApiError {
+  private handleApiError(error: unknown): ApiError {
     if (error instanceof ApiError) {
       return error;
     }
@@ -401,10 +401,6 @@ export class GoogleFactCheckClient extends ApiClientBase {
   /**
    * Sleep utility
    */
-  private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
   /**
    * Get API usage statistics
    */

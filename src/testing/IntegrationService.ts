@@ -41,6 +41,7 @@ export interface MessagePayload {
   target?: 'background' | 'content' | 'popup' | 'options' | 'all';
   sessionId?: string;
   retry?: number;
+  error?: string;
 }
 
 export interface SyncState {
@@ -73,8 +74,8 @@ export class IntegrationService {
   private isInitialized: boolean = false;
 
   // Chrome extension messaging
-  private messageHandlers: Map<string, Function[]> = new Map();
-  private pendingRequests: Map<string, { resolve: Function; reject: Function; timer: NodeJS.Timeout }> = new Map();
+  private messageHandlers: Map<string, ((data: any, source?: string) => void)[]> = new Map();
+  private pendingRequests: Map<string, { resolve: (value: any) => void; reject: (reason?: any) => void; timer: NodeJS.Timeout }> = new Map();
   private connectionStatus: Map<string, boolean> = new Map();
 
   // Data synchronization
@@ -253,7 +254,7 @@ export class IntegrationService {
   /**
    * Register message handler for specific action
    */
-  public registerMessageHandler(action: string, handler: Function): void {
+  public registerMessageHandler(action: string, handler: (data: any, source?: string) => void): void {
     if (!this.messageHandlers.has(action)) {
       this.messageHandlers.set(action, []);
     }
@@ -372,7 +373,7 @@ export class IntegrationService {
   private handleIncomingMessage(
     message: MessagePayload,
     sender: chrome.runtime.MessageSender,
-    sendResponse: Function
+    sendResponse: (response?: any) => void
   ): void {
     try {
       const { id, type, action, data, source } = message;
@@ -602,7 +603,7 @@ export class IntegrationService {
     await this.broadcastMessage('sync_update', currentData);
   }
 
-  private sendMessageWithRetry(payload: MessagePayload, resolve: Function, reject: Function): void {
+  private sendMessageWithRetry(payload: MessagePayload, resolve: (value: any) => void, reject: (reason?: any) => void): void {
     setTimeout(() => {
       try {
         this.dispatchMessage(payload);

@@ -10,9 +10,9 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Tooltip, TooltipContent, HelpAnalytics } from '@shared/types/help';
+import { Tooltip, HelpAnalytics } from '@shared/types/help';
 import { logger } from '@shared/services';
-import './ContextualTooltip.css';
+import '../../styles/ContextualTooltip.css';
 
 export interface ContextualTooltipProps {
   tooltip: Tooltip;

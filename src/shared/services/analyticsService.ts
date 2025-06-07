@@ -13,7 +13,7 @@ export interface AnalyticsEvent {
   timestamp: number;
   sessionId: string;
   userId?: string; // Anonymous hash-based ID
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   source: 'extension' | 'popup' | 'options' | 'content';
   version: string;
 }
@@ -22,7 +22,7 @@ export interface ConversionFunnelStep {
   step: string;
   timestamp: number;
   sessionId: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BusinessMetrics {
@@ -134,7 +134,7 @@ export class AnalyticsService {
       this.isInitialized = true;
       logger.info('Analytics service initialized with privacy-compliant tracking');
     } catch (error) {
-      logger.error('Failed to initialize analytics service:', error);
+      logger.error('Failed to initialize analytics service:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       throw error;
     }
   }
@@ -403,7 +403,7 @@ export class AnalyticsService {
 
       logger.info('User analytics data deleted for GDPR compliance');
     } catch (error) {
-      logger.error('Failed to delete user analytics data:', error);
+      logger.error('Failed to delete user analytics data:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       throw error;
     }
   }
@@ -427,7 +427,7 @@ export class AnalyticsService {
 
     const featureEvents = events.filter(e => e.event === this.CONVERSION_EVENTS.FEATURE_USED);
     const featureUsage = featureEvents.reduce((acc, event) => {
-      const feature = event.properties?.feature || 'unknown';
+      const feature = String(event.properties?.feature || 'unknown');
       acc[feature] = (acc[feature] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -520,7 +520,7 @@ export class AnalyticsService {
 
       await this.storageService.set(this.STORAGE_KEY_EVENTS, eventsToStore, 'local');
     } catch (error) {
-      logger.error('Failed to persist analytics events:', error);
+      logger.error('Failed to persist analytics events:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
   }
 
@@ -533,7 +533,7 @@ export class AnalyticsService {
         this.eventQueue = [...this.eventQueue, ...recentEvents].slice(-this.MAX_QUEUE_SIZE);
       }
     } catch (error) {
-      logger.error('Failed to load queued analytics events:', error);
+      logger.error('Failed to load queued analytics events:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
   }
 
@@ -582,7 +582,7 @@ export class AnalyticsService {
 
   private calculateFeatureUsageRates(featureEvents: AnalyticsEvent[]): Record<string, number> {
     const usage = featureEvents.reduce((acc, event) => {
-      const feature = event.properties?.feature || 'unknown';
+      const feature = String(event.properties?.feature || 'unknown');
       acc[feature] = (acc[feature] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -617,7 +617,7 @@ export class AnalyticsService {
 
       await this.storageService.set('feature_usage_stats', stats, 'local');
     } catch (error) {
-      logger.error('Failed to update feature usage stats:', error);
+      logger.error('Failed to update feature usage stats:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
   }
 }

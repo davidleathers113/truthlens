@@ -238,7 +238,7 @@ export class ConsentManager {
   private static async presentConsentRequest(request: ConsentRequest): Promise<ConsentResponse> {
     // In real implementation, this would show a UI dialog
     // For now, return a mock positive response for testing
-    console.info('Consent request presented to user:', request);
+    console.debug('Consent request presented to user:', request);
 
     // Mock user consent - in real implementation this would be user interaction
     const granted = true; // This would come from actual user input

@@ -4,7 +4,7 @@
  */
 
 // Core Error Classification (Based on 2025 patterns)
-export type ErrorCategory = 
+export type ErrorCategory =
   | 'network'          // API failures, connectivity issues
   | 'permission'       // Chrome extension permissions, API access
   | 'data'            // Storage, parsing, validation errors
@@ -16,7 +16,7 @@ export type ErrorCategory =
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-export type RecoveryStrategy = 
+export type RecoveryStrategy =
   | 'retry'           // Automatic retry with backoff
   | 'fallback'        // Use alternative approach
   | 'offline'         // Switch to offline mode
@@ -52,7 +52,7 @@ export interface TruthLensError {
     column?: number;                   // Column number
     function?: string;                 // Function name
   };
-  metadata?: Record<string, any>;      // Additional context data
+  metadata?: Record<string, unknown>;      // Additional context data
   recovery: {
     strategy: RecoveryStrategy;        // Recommended recovery
     attempted: boolean;                // Was recovery attempted
@@ -109,7 +109,7 @@ export interface ErrorMessageTemplate {
   };
   analytics: {
     eventName: string;                 // Analytics tracking
-    properties: Record<string, any>;   // Event properties
+    properties: Record<string, unknown>;   // Event properties
   };
 }
 
@@ -148,12 +148,12 @@ export interface LogEntry {
   message: string;
   context: ExtensionContextType;
   sessionId: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   error?: {
     name: string;
     message: string;
     stack?: string;
-    cause?: any;
+    cause?: unknown;
   };
   performance?: {
     duration?: number;                 // Operation duration (ms)
@@ -217,7 +217,7 @@ export interface RecoveryResult {
   fallbackUsed?: string;
   userActionRequired: boolean;
   message?: string;                    // Recovery status message
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Error Handler Configuration

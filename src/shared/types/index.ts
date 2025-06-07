@@ -87,7 +87,7 @@ export interface PrivacySettings {
 // Message Types for Extension Communication
 export interface ExtensionMessage {
   type: MessageType;
-  payload?: any;
+  payload?: unknown;
   tabId?: number;
   timestamp?: number;
 }
@@ -104,7 +104,7 @@ export type MessageType =
 // Analytics Types
 export interface AnalyticsEvent {
   event: string;
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
   timestamp: number;
   sessionId?: string;
   userId?: string;
@@ -156,7 +156,7 @@ export interface ABTestVariant {
   id: string;
   name: string;
   description: string;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   trafficAllocation: number;
 }
 
@@ -313,7 +313,7 @@ export interface SubpopulationAnalysis {
 
 export interface PopulationGroup {
   groupId: string;
-  criteria: Record<string, any>;
+  criteria: Record<string, unknown>;
   sampleSize: number;
   averageScore: number;
   confidence: number;
@@ -335,4 +335,9 @@ export interface SubpopulationIssue {
   magnitude: number;
   description: string;
   recommendedAction: string;
+}
+
+// Google Analytics types
+declare global {
+  function gtag(command: string, targetId: string, config?: Record<string, unknown>): void;
 }

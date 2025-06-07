@@ -12,7 +12,7 @@ export class TabHandler {
     chrome.tabs.onUpdated.addListener(this.handleTabUpdated);
     chrome.tabs.onRemoved.addListener(this.handleTabRemoved);
     chrome.tabs.onActivated.addListener(this.handleTabActivated);
-    console.log('Tab handler initialized');
+    console.debug('Tab handler initialized');
   }
 
   /**
@@ -63,7 +63,7 @@ export class TabHandler {
       // Check if user has auto-analyze enabled
       const result = await chrome.storage.sync.get(['settings']);
       const settings = result.settings;
-      
+
       if (!settings?.enabled || !settings?.autoAnalyze) {
         return;
       }
@@ -91,7 +91,7 @@ export class TabHandler {
   private static shouldAnalyzeUrl(url: string): boolean {
     try {
       const parsedUrl = new URL(url);
-      
+
       // Skip chrome:// and extension pages
       if (parsedUrl.protocol === 'chrome:' || parsedUrl.protocol === 'chrome-extension:') {
         return false;
@@ -104,8 +104,8 @@ export class TabHandler {
 
       // Only analyze http and https
       return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
-      
-    } catch (error) {
+
+    } catch {
       console.warn('Invalid URL:', url);
       return false;
     }
@@ -118,7 +118,7 @@ export class TabHandler {
     try {
       // Try to ping the content script
       await chrome.tabs.sendMessage(tabId, { type: 'PING' });
-    } catch (error) {
+    } catch {
       // Content script not present, inject it
       try {
         await chrome.scripting.executeScript({

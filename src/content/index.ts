@@ -25,7 +25,7 @@ class TruthLensContent {
   }
 
   async initialize(): Promise<void> {
-    console.log('TruthLens content script initializing...');
+    console.debug('TruthLens content script initializing...');
 
     // Check if extension is enabled
     const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });

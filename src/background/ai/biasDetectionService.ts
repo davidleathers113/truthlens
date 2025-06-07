@@ -4,10 +4,9 @@
  * Implements transparent, educational, and non-partisan bias identification
  */
 
-import { CredibilityScore, ContentAnalysis } from '@shared/types';
+import { ContentAnalysis } from '@shared/types';
 import { AIService } from './aiService';
 import { logger } from '@shared/services/logger';
-import { storageService } from '@shared/storage/storageService';
 
 export interface PoliticalBiasAnalysis {
   leaningScore: number; // -10 (far left) to +10 (far right), 0 = center
@@ -106,13 +105,6 @@ class BiasDetectionService {
   private static instance: BiasDetectionService;
   private aiService: AIService;
   private readonly KNOWN_SOURCES_CACHE = new Map<string, SourceBiasProfile>();
-  private readonly BIAS_THRESHOLDS = {
-    minimal: 2,
-    low: 4,
-    moderate: 6,
-    high: 8,
-    extreme: 10
-  };
 
   private constructor() {
     this.aiService = new AIService();
@@ -216,7 +208,6 @@ class BiasDetectionService {
    */
   private async analyzePoliticalLeaning(content: ContentAnalysis): Promise<PoliticalBiasAnalysis> {
     try {
-      const prompt = this.buildPoliticalAnalysisPrompt(content);
       // Use the public analyzeContent method instead of accessing private languageModel
       const mockContent = {
         url: content.url,
@@ -263,9 +254,8 @@ class BiasDetectionService {
   /**
    * Emotional and linguistic bias analysis
    */
-  private async analyzeEmotionalBias(content: ContentAnalysis): Promise<EmotionalAnalysis> {
+  private async analyzeEmotionalBias(_content: ContentAnalysis): Promise<EmotionalAnalysis> {
     try {
-      const prompt = this.buildEmotionalAnalysisPrompt(content);
       // Use fallback emotional analysis for now
       const response = JSON.stringify({
         emotionalIntensity: 30,
@@ -395,61 +385,6 @@ class BiasDetectionService {
 
   // Helper methods
 
-  private buildPoliticalAnalysisPrompt(content: ContentAnalysis): string {
-    return `Analyze the political perspective of this content using responsible AI principles. Focus on educational assessment, not judgment.
-
-Content to analyze:
-Title: ${content.title || 'N/A'}
-URL: ${content.url}
-Content: ${content.content?.substring(0, 1000) || 'N/A'}
-
-Provide a JSON response with:
-{
-  "leaningScore": number (-10 to +10, where -10 is far left, 0 is center, +10 is far right),
-  "confidence": number (0-1, confidence in assessment),
-  "indicators": [
-    {
-      "type": "language|framing|source-attribution|topic-selection|fact-presentation",
-      "description": "clear explanation",
-      "evidence": ["specific examples"],
-      "weight": number (0-1),
-      "direction": "left|right|neutral"
-    }
-  ],
-  "explanation": "educational explanation focusing on media literacy"
-}
-
-Guidelines:
-- Be objective and educational, not judgmental
-- Focus on detectable patterns in language and framing
-- Explain findings in terms that help users understand bias identification
-- Maintain political neutrality in explanations`;
-  }
-
-  private buildEmotionalAnalysisPrompt(content: ContentAnalysis): string {
-    return `Analyze the emotional content and framing techniques in this text from a media literacy perspective.
-
-Content: ${content.content?.substring(0, 1000) || content.title || 'N/A'}
-
-Provide JSON response:
-{
-  "emotionalIntensity": number (0-100),
-  "emotionalType": "neutral|fear|anger|hope|excitement|sadness",
-  "chargedLanguage": ["list of emotionally charged words/phrases"],
-  "framingTechniques": [
-    {
-      "type": "loaded-terms|selective-emphasis|false-dichotomy|emotional-appeal|strawman|bandwagon",
-      "evidence": ["specific examples"],
-      "severity": "low|medium|high",
-      "explanation": "educational explanation"
-    }
-  ],
-  "confidence": number (0-1)
-}
-
-Focus on educational analysis that helps users identify emotional manipulation techniques.`;
-  }
-
   private categorizePoliticalLean(score: number): PoliticalBiasAnalysis['category'] {
     if (score <= -6) return 'far-left';
     if (score <= -3) return 'left';
@@ -529,7 +464,7 @@ Focus on educational analysis that helps users identify emotional manipulation t
       .slice(0, 5);
   }
 
-  private async getHistoricalTrend(domain: string): Promise<BiasVisualizationData['historicalTrend']> {
+  private async getHistoricalTrend(_domain: string): Promise<BiasVisualizationData['historicalTrend']> {
     // Placeholder for historical trend analysis
     return {
       sourceHistory: [
@@ -633,7 +568,7 @@ Focus on educational analysis that helps users identify emotional manipulation t
 
   private async generateBalancedRecommendations(
     politicalAnalysis: PoliticalBiasAnalysis,
-    sourceProfile: SourceBiasProfile | null
+    _sourceProfile: SourceBiasProfile | null
   ): Promise<AdvancedBiasDetectionResult['recommendations']> {
     const alternativeSources = await this.findAlternativeSources(politicalAnalysis.leaningScore);
 
@@ -682,7 +617,7 @@ Focus on educational analysis that helps users identify emotional manipulation t
   }
 
   private async getBasicBiasAnalysis(
-    content: ContentAnalysis,
+    _content: ContentAnalysis,
     startTime: number
   ): Promise<AdvancedBiasDetectionResult> {
     // Basic analysis for non-premium users

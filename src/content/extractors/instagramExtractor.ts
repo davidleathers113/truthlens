@@ -25,6 +25,8 @@ import {
   getInstagramOperationDelay,
   checkInstagramRateLimits
 } from './config/instagramSelectors';
+import { cleanText, sanitizeUsername } from '@shared/utils/textCleaner';
+import { parseSocialText } from '@shared/utils/socialTextParser';
 
 // Type definitions for Instagram content
 interface InstagramAuthor {
@@ -297,30 +299,35 @@ export class InstagramExtractor implements IExtractor {
 
       // Extract based on content type
       switch (contentType) {
-        case 'post':
+        case 'post': {
           const posts = await this.extractPosts();
           content.push(...posts);
           break;
+        }
 
-        case 'story':
+        case 'story': {
           const stories = await this.extractStories();
           content.push(...stories);
           break;
+        }
 
-        case 'reel':
+        case 'reel': {
           const reels = await this.extractReels();
           content.push(...reels);
           break;
+        }
 
-        case 'profile':
+        case 'profile': {
           const profileContent = await this.extractProfileContent();
           content.push(...profileContent);
           break;
+        }
 
-        case 'explore':
+        case 'explore': {
           const exploreContent = await this.extractExploreContent();
           content.push(...exploreContent);
           break;
+        }
 
         default:
           return {
@@ -950,6 +957,11 @@ export class InstagramExtractor implements IExtractor {
   }
 
   private getResponsiveVariants(breakpoint: 'mobile' | 'tablet' | 'desktop'): string[] {
+    const validBreakpoints = ['mobile', 'tablet', 'desktop'] as const;
+    if (!validBreakpoints.includes(breakpoint)) {
+      throw new Error(`Invalid breakpoint: ${breakpoint}`);
+    }
+
     const responsive = InstagramSelectors.responsive[breakpoint];
     return [
       responsive.postContainer,
@@ -969,7 +981,7 @@ export class InstagramExtractor implements IExtractor {
       try {
         const found = document.querySelectorAll(selector);
         elements.push(...Array.from(found));
-      } catch (error) {
+      } catch {
         console.warn(`[InstagramExtractor] Invalid selector: ${selector}`);
       }
     }
@@ -990,7 +1002,7 @@ export class InstagramExtractor implements IExtractor {
           const text = target.textContent?.trim();
           if (text) return text;
         }
-      } catch (error) {
+      } catch {
         continue;
       }
     }
@@ -1004,21 +1016,20 @@ export class InstagramExtractor implements IExtractor {
   private sanitizeText(text: string | null | undefined): string | undefined {
     if (!text) return undefined;
 
-    return text
-      .trim()
-      .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .slice(0, 10000); // Limit length
+    return cleanText(text, {
+      removeControlChars: true,
+      normalizeWhitespace: true,
+      maxLength: 10000,
+      preserveEmojis: true,
+      preserveLineBreaks: false
+    });
   }
 
   /**
    * Sanitize username
    */
   private sanitizeUsername(username: string): string {
-    return username
-      .toLowerCase()
-      .replace(/[^a-z0-9._]/g, '')
-      .slice(0, 30);
+    return sanitizeUsername(username);
   }
 
   /**
@@ -1036,7 +1047,7 @@ export class InstagramExtractor implements IExtractor {
   /**
    * Debounce function
    */
-  private debounce<T extends (...args: any[]) => any>(
+  private debounce<T extends (...args: any[]) => void>(
     func: T,
     wait: number
   ): (...args: Parameters<T>) => void {
@@ -1177,7 +1188,10 @@ export class InstagramExtractor implements IExtractor {
         .sort((a, b) => a[1].timestamp - b[1].timestamp);
 
       for (let i = 0; i < entriesToRemove; i++) {
-        this.contentCache.delete(sortedEntries[i][0]);
+        const entry = sortedEntries[i];
+        if (entry) {
+          this.contentCache.delete(entry[0]);
+        }
       }
     }
 
@@ -1241,7 +1255,9 @@ export class InstagramExtractor implements IExtractor {
     }
   }
 
-  private getPerformanceSnapshot(): Record<string, any> {
+  // Unused method - kept for potential future use
+  /*
+  private _getPerformanceSnapshot(): Record<string, any> {
     const times = this.performanceMetrics.extractionTimes;
     const avgTime = times.length > 0
       ? times.reduce((a, b) => a + b, 0) / times.length
@@ -1258,8 +1274,9 @@ export class InstagramExtractor implements IExtractor {
       cacheSize: this.contentCache.size
     };
   }
+  */
 
-  private shouldRetry(error: any): boolean {
+  private shouldRetry(error: unknown): boolean {
     if (this.session.retryCount >= CONFIG.MAX_RETRIES) return false;
 
     // Retry on specific error types
@@ -1269,7 +1286,7 @@ export class InstagramExtractor implements IExtractor {
       'rate limit'
     ];
 
-    const errorMessage = error?.message?.toLowerCase() || '';
+    const errorMessage = (error instanceof Error ? error.message : String(error)).toLowerCase();
     return retryableErrors.some(type => errorMessage.includes(type));
   }
 
@@ -1296,14 +1313,14 @@ export class InstagramExtractor implements IExtractor {
     return Math.round(delay + jitter);
   }
 
-  private handleExtractionError(error: any): void {
+  private handleExtractionError(error: unknown): void {
     const errorType = this.categorizeError(error);
     const currentCount = this.session.errorCounts.get(errorType) || 0;
     this.session.errorCounts.set(errorType, currentCount + 1);
   }
 
-  private categorizeError(error: any): string {
-    const message = error?.message?.toLowerCase() || '';
+  private categorizeError(error: unknown): string {
+    const message = (error instanceof Error ? error.message : String(error)).toLowerCase();
 
     if (message.includes('rate limit')) return 'rateLimit';
     if (message.includes('compliance')) return 'compliance';
@@ -1316,12 +1333,12 @@ export class InstagramExtractor implements IExtractor {
   /**
    * Create error analysis when extraction fails
    */
-  private createErrorAnalysis(error: any): ContentAnalysis {
+  private createErrorAnalysis(error: unknown): ContentAnalysis {
     const credibility: CredibilityScore = {
       score: 0,
       level: 'unknown',
       confidence: 0,
-      reasoning: `Content extraction failed: ${error?.message || 'Unknown error'}`,
+      reasoning: `Content extraction failed: ${error instanceof Error ? error.message : String(error)}`,
       source: 'fallback',
       timestamp: Date.now()
     };
@@ -1349,10 +1366,13 @@ export class InstagramExtractor implements IExtractor {
     return true;
   }
 
-  private async checkUserConsent(): Promise<boolean> {
+  // Unused method - kept for potential future use
+  /*
+  private async _checkUserConsent(): Promise<boolean> {
     // Implementation would check user consent
     return true;
   }
+  */
 
   private setupPerformanceObserver(): void {
     // Implementation would setup performance monitoring
@@ -1363,7 +1383,7 @@ export class InstagramExtractor implements IExtractor {
     return text ? this.sanitizeText(text) : undefined;
   }
 
-  private extractEngagement(element: Element): InstagramEngagement {
+  private extractEngagement(_element: Element): InstagramEngagement {
     // Implementation would extract engagement metrics
     return {};
   }
@@ -1379,9 +1399,11 @@ export class InstagramExtractor implements IExtractor {
   }
 
   private parseTextEntities(text: string): { hashtags: string[]; mentions: string[] } {
-    const hashtags = (text.match(/#\w+/g) || []).map(tag => tag.slice(1));
-    const mentions = (text.match(/@\w+/g) || []).map(mention => mention.slice(1));
-    return { hashtags, mentions };
+    const parsed = parseSocialText(text);
+    return {
+      hashtags: parsed.entities.hashtags,
+      mentions: parsed.entities.mentions
+    };
   }
 
   private constructPostUrl(id: string): string {
@@ -1424,37 +1446,37 @@ export class InstagramExtractor implements IExtractor {
     }
   }
 
-  private async extractCarouselMedia(element: Element, processedUrls: Set<string>): Promise<InstagramMedia[]> {
+  private async extractCarouselMedia(_element: Element, _processedUrls: Set<string>): Promise<InstagramMedia[]> {
     // Implementation would handle carousel media extraction
     return [];
   }
 
-  private extractStoryId(element: Element): string | null {
+  private extractStoryId(_element: Element): string | null {
     // Implementation similar to extractPostId
     return this.generateContentId('story');
   }
 
-  private extractTextOverlays(element: Element): string[] {
+  private extractTextOverlays(_element: Element): string[] {
     // Implementation would extract text overlays
     return [];
   }
 
-  private extractStickers(element: Element): InstagramSticker[] {
+  private extractStickers(_element: Element): InstagramSticker[] {
     // Implementation would extract stickers
     return [];
   }
 
-  private extractStoryExpiration(element: Element): string | undefined {
+  private extractStoryExpiration(_element: Element): string | undefined {
     // Implementation would extract expiration time
     return undefined;
   }
 
-  private extractViewCount(element: Element): number | undefined {
+  private extractViewCount(_element: Element): number | undefined {
     // Implementation would extract view count
     return undefined;
   }
 
-  private checkIfLive(element: Element): boolean {
+  private checkIfLive(_element: Element): boolean {
     // Implementation would check if story is live
     return false;
   }
@@ -1463,32 +1485,32 @@ export class InstagramExtractor implements IExtractor {
     return `https://www.instagram.com/stories/${username}/${id}/`;
   }
 
-  private extractReelId(element: Element): string | null {
+  private extractReelId(_element: Element): string | null {
     // Implementation similar to extractPostId
     return this.generateContentId('reel');
   }
 
-  private extractReelVideoUrl(element: Element): string | undefined {
+  private extractReelVideoUrl(_element: Element): string | undefined {
     // Implementation would extract reel video URL
     return undefined;
   }
 
-  private extractReelThumbnail(element: Element): string | undefined {
+  private extractReelThumbnail(_element: Element): string | undefined {
     // Implementation would extract reel thumbnail
     return undefined;
   }
 
-  private extractAudioInfo(element: Element): InstagramAudio | undefined {
+  private extractAudioInfo(_element: Element): InstagramAudio | undefined {
     // Implementation would extract audio information
     return undefined;
   }
 
-  private extractEffects(element: Element): string[] {
+  private extractEffects(_element: Element): string[] {
     // Implementation would extract effects
     return [];
   }
 
-  private extractVideoDuration(element: Element): number | undefined {
+  private extractVideoDuration(_element: Element): number | undefined {
     // Implementation would extract video duration
     return undefined;
   }
@@ -1515,17 +1537,20 @@ export class InstagramExtractor implements IExtractor {
     // Implementation would setup resize observer
   }
 
-  private handleMutations(mutations: MutationRecord[]): void {
+  private handleMutations(_mutations: MutationRecord[]): void {
     // Implementation would handle DOM mutations
   }
 
-  private handleLazyLoad(target: Element): void {
+  private handleLazyLoad(_target: Element): void {
     // Implementation would handle lazy loaded content
   }
 
-  private getContentTypeFromUrl(): string {
+  // Unused method - kept for potential future use
+  /*
+  private _getContentTypeFromUrl(): string {
     return getInstagramContentType(window.location.href);
   }
+  */
 
   private aggregateText(content: InstagramContent[]): string {
     const texts: string[] = [];
@@ -1542,7 +1567,9 @@ export class InstagramExtractor implements IExtractor {
     return texts.join('\n\n');
   }
 
-  private aggregateImages(content: InstagramContent[]): string[] {
+  // Unused aggregation methods - kept for potential future use
+  /*
+  private _aggregateImages(content: InstagramContent[]): string[] {
     const images: string[] = [];
 
     for (const item of content) {
@@ -1558,7 +1585,7 @@ export class InstagramExtractor implements IExtractor {
     return [...new Set(images)];
   }
 
-  private aggregateVideos(content: InstagramContent[]): string[] {
+  private _aggregateVideos(content: InstagramContent[]): string[] {
     const videos: string[] = [];
 
     for (const item of content) {
@@ -1576,7 +1603,7 @@ export class InstagramExtractor implements IExtractor {
     return [...new Set(videos)];
   }
 
-  private aggregateLinks(content: InstagramContent[]): string[] {
+  private _aggregateLinks(content: InstagramContent[]): string[] {
     const links: string[] = [];
 
     for (const item of content) {
@@ -1589,7 +1616,7 @@ export class InstagramExtractor implements IExtractor {
     return [...new Set(links)];
   }
 
-  private aggregateHashtags(content: InstagramContent[]): string[] {
+  private _aggregateHashtags(content: InstagramContent[]): string[] {
     const hashtags: string[] = [];
 
     for (const item of content) {
@@ -1601,7 +1628,7 @@ export class InstagramExtractor implements IExtractor {
     return [...new Set(hashtags)];
   }
 
-  private aggregateMentions(content: InstagramContent[]): string[] {
+  private _aggregateMentions(content: InstagramContent[]): string[] {
     const mentions: string[] = [];
 
     for (const item of content) {
@@ -1612,52 +1639,8 @@ export class InstagramExtractor implements IExtractor {
 
     return [...new Set(mentions)];
   }
+  */
 
-  private aggregateEngagement(content: InstagramContent[]): Record<string, number> {
-    const totals: Record<string, number> = {
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      views: 0,
-      plays: 0
-    };
-
-    for (const item of content) {
-      if ('engagement' in item) {
-        Object.entries(item.engagement).forEach(([key, value]) => {
-          if (typeof value === 'number') {
-            totals[key] = (totals[key] || 0) + value;
-          }
-        });
-      }
-    }
-
-    return totals;
-  }
-
-  private sanitizeContentForStorage(content: InstagramContent): any {
-    // Remove circular references and sensitive data
-    const sanitized = { ...content };
-
-    // Remove any functions or complex objects
-    return JSON.parse(JSON.stringify(sanitized));
-  }
-
-  private querySelector(element: Element, selectors: string[]): Element | null {
-    for (const selector of selectors) {
-      try {
-        const found = element.querySelector(selector);
-        if (found) return found;
-      } catch {
-        continue;
-      }
-    }
-    return null;
-  }
-
-  private isValidElement(element: Element): boolean {
-    return element && element.nodeType === Node.ELEMENT_NODE;
-  }
 
   private viewport = { width: window.innerWidth, height: window.innerHeight };
 }

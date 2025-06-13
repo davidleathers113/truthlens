@@ -99,6 +99,20 @@ export default tseslint.config(
     }
   },
 
+  // Safe Unicode regex patterns in utilities
+  // These patterns use Unicode property escapes which are safe from ReDoS
+  // See: docs/unicode-regex-safety-analysis.md
+  {
+    files: [
+      'src/shared/utils/socialTextParser.ts',
+      'src/shared/utils/engagementParser.ts'
+    ],
+    rules: {
+      'security/detect-unsafe-regex': 'off',
+      'security/detect-non-literal-regexp': 'off'
+    }
+  },
+
   // JavaScript files (configuration files, etc.)
   {
     files: ['**/*.js'],

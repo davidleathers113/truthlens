@@ -12,7 +12,8 @@ module.exports = {
     background: path.join(srcDir, 'background', 'index.ts'),
     content: path.join(srcDir, 'content', 'index.ts'),
     popup: path.join(srcDir, 'popup', 'index.tsx'),
-    options: path.join(srcDir, 'options', 'index.tsx')
+    options: path.join(srcDir, 'options', 'index.tsx'),
+    offscreen: path.join(srcDir, 'background', 'offscreen', 'offscreen.ts')
   },
 
   output: {
@@ -70,6 +71,11 @@ module.exports = {
             dot: false,
             ignore: ['**/.DS_Store']
           },
+          noErrorOnMissing: true
+        },
+        {
+          from: path.join(publicDir, 'offscreen.html'),
+          to: path.join(distDir, 'offscreen.html'),
           noErrorOnMissing: true
         }
       ]

@@ -25,6 +25,33 @@
 - Always test cross-context messaging when modifying APIs
 - Run `npm run lint && npm run type-check && npm test` before commits
 
+## 🎯 4-Phase Implementation Approach (MUST‑FOLLOW)
+For every implementation task, follow these phases:
+
+### Phase 1: RECON (Reconnaissance)
+- **Investigate** current state and identify all problems
+- **Map** existing code, dependencies, and conflicts
+- **Document** specific issues and edge cases
+- **Understand** the full scope before making changes
+
+### Phase 2: RESEARCH
+- **Explore** multiple solution approaches
+- **Evaluate** best practices and standards
+- **Consider** trade-offs and implications
+- **Choose** the optimal solution based on evidence
+
+### Phase 3: IMPLEMENTATION
+- **Execute** the chosen solution systematically
+- **Apply** changes incrementally with verification
+- **Handle** edge cases and error conditions
+- **Clean up** any temporary files or artifacts
+
+### Phase 4: REVIEW
+- **Verify** all functionality works correctly
+- **Test** comprehensively (unit, integration, e2e)
+- **Validate** performance and security
+- **Document** changes and update relevant docs
+
 ## 💡 Claude 4 development guidance
 - **Be explicit**: Request "comprehensive" or "fully-featured" implementations
 - **Parallel tools**: Use multiple tool calls simultaneously for efficiency

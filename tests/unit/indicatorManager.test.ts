@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 // Unit tests for IndicatorManager
 // Tests visual indicator display, DOM manipulation, and animations
 
@@ -7,11 +8,20 @@ import { CredibilityScore, ContentAnalysis } from '@shared/types';
 describe('IndicatorManager', () => {
   let indicatorManager: IndicatorManager;
 
+  const mockCredibility: CredibilityScore = {
+    score: 75,
+    level: 'high',
+    confidence: 0.8,
+    reasoning: 'Test reasoning',
+    source: 'ai',
+    timestamp: Date.now(),
+  };
+
   beforeEach(() => {
     // Clean DOM
     document.head.innerHTML = '';
     document.body.innerHTML = '';
-    
+
     // Create test DOM structure
     document.body.innerHTML = `
       <main>
@@ -32,21 +42,23 @@ describe('IndicatorManager', () => {
 
   describe('initialization', () => {
     it('should inject styles on creation', () => {
-      const styleElements = document.querySelectorAll('style');
-      expect(styleElements.length).toBeGreaterThan(0);
-      
-      const styleContent = styleElements[styleElements.length - 1].textContent;
-      expect(styleContent).toContain('.truthlens-indicator');
+      const styleElement = document.getElementById('truthlens-indicator-styles-2025');
+      expect(styleElement).toBeTruthy();
+      expect(styleElement?.textContent).toContain('.truthlens-indicator');
     });
 
     it('should not inject styles multiple times', () => {
       const initialStyleCount = document.querySelectorAll('style').length;
-      
+
       // Create another instance
       new IndicatorManager();
-      
+
       const finalStyleCount = document.querySelectorAll('style').length;
       expect(finalStyleCount).toBe(initialStyleCount);
+
+      // Verify we still have only one style element with the specific ID
+      const styleElements = document.querySelectorAll('#truthlens-indicator-styles-2025');
+      expect(styleElements.length).toBe(1);
     });
   });
 
@@ -56,7 +68,22 @@ describe('IndicatorManager', () => {
       url: 'https://example.com/test',
       content: 'Test content',
       type: 'article',
-      platform: 'web',
+      analysis: {
+        domain: 'example.com',
+        credibility: {
+          score: 75,
+          level: 'high',
+          confidence: 0.8,
+          reasoning: 'Test',
+          source: 'ai',
+          timestamp: Date.now()
+        },
+        bias: {
+          level: 'center',
+          confidence: 0.7,
+          indicators: []
+        }
+      }
     };
 
     const mockCredibility: CredibilityScore = {
@@ -81,7 +108,7 @@ describe('IndicatorManager', () => {
 
       const emoji = document.querySelector('.truthlens-emoji');
       const score = document.querySelector('.truthlens-score');
-      
+
       expect(emoji?.textContent).toBe('⚠️'); // medium level emoji
       expect(score?.textContent).toBe('75/100');
     });
@@ -93,7 +120,7 @@ describe('IndicatorManager', () => {
       const level = tooltip?.querySelector('.truthlens-level');
       const reasoning = tooltip?.querySelector('.truthlens-reasoning');
       const confidence = tooltip?.querySelector('.truthlens-confidence');
-      
+
       expect(level?.textContent).toBe('Mixed Reliability');
       expect(reasoning?.textContent).toBe('Test analysis result');
       expect(confidence?.textContent).toBe('Confidence: 80%');
@@ -114,11 +141,11 @@ describe('IndicatorManager', () => {
         const indicator = document.querySelector('.truthlens-indicator');
         const emojiEl = indicator?.querySelector('.truthlens-emoji');
         const levelEl = indicator?.querySelector('.truthlens-level');
-        
+
         expect(emojiEl?.textContent).toBe(emoji);
         expect(levelEl?.textContent).toBe(text);
-        expect(indicator?.style.getPropertyValue('--indicator-color')).toBe(color);
-        
+        expect((indicator as HTMLElement)?.style.getPropertyValue('--indicator-color')).toBe(color);
+
         indicatorManager.cleanup();
       });
     });
@@ -131,6 +158,17 @@ describe('IndicatorManager', () => {
         url: 'https://example.com',
         content: 'Test',
         type: 'article',
+        analysis: {
+          domain: 'example.com',
+          credibility: {
+            score: 80,
+            level: 'high',
+            confidence: 0.9,
+            reasoning: 'Test',
+            source: 'ai',
+            timestamp: Date.now()
+          }
+        }
       };
 
       const mockCredibility: CredibilityScore = {
@@ -153,13 +191,17 @@ describe('IndicatorManager', () => {
   describe('platform-specific targeting', () => {
     it('should find Twitter-specific elements', () => {
       document.body.innerHTML = '<div data-testid="tweet">Twitter content</div>';
-      
+
       const mockContent: ContentAnalysis = {
         title: 'Tweet',
         url: 'https://twitter.com/test',
         content: 'Test tweet',
         type: 'social-post',
         platform: 'twitter',
+        analysis: {
+          domain: 'twitter.com',
+          credibility: mockCredibility
+        }
       };
 
       const target = (indicatorManager as any).findTargetElement(mockContent);
@@ -172,6 +214,10 @@ describe('IndicatorManager', () => {
         url: 'https://example.com',
         content: 'Test content',
         type: 'article',
+        analysis: {
+          domain: 'example.com',
+          credibility: mockCredibility
+        }
       };
 
       const target = (indicatorManager as any).findTargetElement(mockContent);
@@ -186,6 +232,17 @@ describe('IndicatorManager', () => {
         url: 'https://example.com',
         content: 'Test',
         type: 'article',
+        analysis: {
+          domain: 'example.com',
+          credibility: {
+            score: 80,
+            level: 'high',
+            confidence: 0.9,
+            reasoning: 'Test',
+            source: 'ai',
+            timestamp: Date.now()
+          }
+        }
       };
 
       const mockCredibility: CredibilityScore = {
@@ -219,6 +276,10 @@ describe('IndicatorManager', () => {
         url: 'https://example.com/test',
         content: 'Test',
         type: 'article',
+        analysis: {
+          domain: 'example.com',
+          credibility: mockCredibility
+        }
       };
 
       const initialCredibility: CredibilityScore = {
@@ -248,7 +309,7 @@ describe('IndicatorManager', () => {
       const indicator = document.querySelector('.truthlens-indicator');
       const score = indicator?.querySelector('.truthlens-score');
       const emoji = indicator?.querySelector('.truthlens-emoji');
-      
+
       expect(score?.textContent).toBe('90/100');
       expect(emoji?.textContent).toBe('✅');
       expect(indicator?.getAttribute('data-level')).toBe('high');
@@ -262,6 +323,17 @@ describe('IndicatorManager', () => {
         url: 'https://example.com/test',
         content: 'Test',
         type: 'article',
+        analysis: {
+          domain: 'example.com',
+          credibility: {
+            score: 80,
+            level: 'high',
+            confidence: 0.9,
+            reasoning: 'Test',
+            source: 'ai',
+            timestamp: Date.now()
+          }
+        }
       };
 
       const mockCredibility: CredibilityScore = {
@@ -286,6 +358,17 @@ describe('IndicatorManager', () => {
         url: 'https://example.com/test',
         content: 'Test',
         type: 'article',
+        analysis: {
+          domain: 'example.com',
+          credibility: {
+            score: 80,
+            level: 'high',
+            confidence: 0.9,
+            reasoning: 'Test',
+            source: 'ai',
+            timestamp: Date.now()
+          }
+        }
       };
 
       const mockCredibility: CredibilityScore = {
@@ -312,15 +395,10 @@ describe('IndicatorManager', () => {
         url: 'https://example.com/perf',
         content: 'Test',
         type: 'article',
-      };
-
-      const mockCredibility: CredibilityScore = {
-        score: 80,
-        level: 'high',
-        confidence: 0.9,
-        reasoning: 'Performance test',
-        source: 'ai',
-        timestamp: Date.now(),
+        analysis: {
+          domain: 'example.com',
+          credibility: mockCredibility
+        }
       };
 
       const startTime = performance.now();
@@ -340,15 +418,10 @@ describe('IndicatorManager', () => {
           url: `https://example.com/test${i}`,
           content: 'Test',
           type: 'article',
-        };
-
-        const mockCredibility: CredibilityScore = {
-          score: 80,
-          level: 'high',
-          confidence: 0.9,
-          reasoning: 'Test',
-          source: 'ai',
-          timestamp: Date.now(),
+          analysis: {
+            domain: 'example.com',
+            credibility: mockCredibility
+          }
         };
 
         indicatorManager.showIndicator(mockContent, mockCredibility);

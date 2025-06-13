@@ -5,7 +5,7 @@ import { FullConfig } from '@playwright/test';
 import path from 'path';
 import fs from 'fs';
 
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown(_config: FullConfig) {
   console.log('🧹 Cleaning up E2E test environment...');
 
   // Clean up any temporary test files
@@ -21,14 +21,14 @@ async function globalTeardown(config: FullConfig) {
     try {
       const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
       const { stats } = results;
-      
+
       console.log('📊 E2E Test Results Summary:');
       console.log(`   Tests: ${stats.total}`);
       console.log(`   Passed: ${stats.passed}`);
       console.log(`   Failed: ${stats.failed}`);
       console.log(`   Skipped: ${stats.skipped}`);
       console.log(`   Duration: ${stats.duration}ms`);
-      
+
       if (stats.failed > 0) {
         console.log('❌ Some E2E tests failed - check detailed results');
       } else {

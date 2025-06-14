@@ -49,3 +49,6 @@ logs/
 *.crx
 
 .early.coverage
+
+# Large generated files
+repomix-output.md

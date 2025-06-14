@@ -1,27 +1,33 @@
 // Test helper utilities for TruthLens
 // Provides common test setup and utility functions
 
+import { jest } from '@jest/globals';
+
 /**
  * Mock Chrome storage with proper Jest mock typing
  */
 export const mockChromeStorage = () => {
   const mockStorage = {
-    get: jest.fn().mockImplementation((keys?: any) => {
+    get: jest.fn().mockImplementation((keys?: any, callback?: any) => {
       if (typeof keys === 'function') {
         keys({});
         return;
       }
+      if (callback) {
+        callback({});
+        return;
+      }
       return Promise.resolve({});
     }),
-    set: jest.fn().mockImplementation((items: any, callback?: () => void) => {
+    set: jest.fn().mockImplementation((_items: any, callback?: any) => {
       if (callback) callback();
       return Promise.resolve();
     }),
-    remove: jest.fn().mockImplementation((keys: any, callback?: () => void) => {
+    remove: jest.fn().mockImplementation((_keys: any, callback?: any) => {
       if (callback) callback();
       return Promise.resolve();
     }),
-    clear: jest.fn().mockImplementation((callback?: () => void) => {
+    clear: jest.fn().mockImplementation((callback?: any) => {
       if (callback) callback();
       return Promise.resolve();
     }),
@@ -29,7 +35,7 @@ export const mockChromeStorage = () => {
 
   Object.assign(chrome.storage.sync, mockStorage);
   Object.assign(chrome.storage.local, mockStorage);
-  
+
   return mockStorage;
 };
 
@@ -38,7 +44,7 @@ export const mockChromeStorage = () => {
  */
 export const mockChromeRuntime = () => {
   const mockRuntime = {
-    sendMessage: jest.fn().mockImplementation((message: any, callback?: (response: any) => void) => {
+    sendMessage: jest.fn().mockImplementation((_message: any, callback?: any) => {
       if (callback) callback({});
       return Promise.resolve({});
     }),
@@ -50,7 +56,7 @@ export const mockChromeRuntime = () => {
   };
 
   Object.assign(chrome.runtime, mockRuntime);
-  
+
   return mockRuntime;
 };
 
@@ -82,8 +88,9 @@ export const mockIntersectionObserver = () => {
     disconnect: jest.fn(),
   };
 
+  // @ts-expect-error - Mocking IntersectionObserver for tests
   global.IntersectionObserver = jest.fn().mockImplementation(() => mockObserver);
-  
+
   return mockObserver;
 };
 
@@ -94,7 +101,7 @@ export const setupTestEnvironment = () => {
   const chromeStorage = mockChromeStorage();
   const chromeRuntime = mockChromeRuntime();
   const intersectionObserver = mockIntersectionObserver();
-  
+
   return {
     chromeStorage,
     chromeRuntime,
@@ -118,8 +125,8 @@ export const measurePerformance = async <T>(
   const result = await fn();
   const end = performance.now();
   const duration = end - start;
-  
+
   console.log(`Performance: ${name} took ${duration.toFixed(2)}ms`);
-  
+
   return { result, duration };
 };

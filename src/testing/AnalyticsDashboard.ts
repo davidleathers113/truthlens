@@ -5,18 +5,7 @@
  */
 
 import {
-  AnalyticsDashboardData,
   OverviewMetrics,
-  CohortData,
-  TrendData,
-  Recommendation,
-  RealTimeMetrics,
-  AttentionMetrics,
-  MobileMetrics,
-  PreferenceData,
-  ABTestResult,
-  ConversionEvent,
-  TestingConfig
 } from './types';
 
 export interface DashboardConfig {
@@ -120,7 +109,7 @@ export class AnalyticsDashboard {
   private components: Map<string, VisualizationComponent> = new Map();
   private realTimeData: Map<string, any[]> = new Map();
   private aiInsightCache: Map<string, AIInsight[]> = new Map();
-  private updateCallbacks: Map<string, Function[]> = new Map();
+  private updateCallbacks: Map<string, ((data: any) => void)[]> = new Map();
   private refreshTimer: NodeJS.Timeout | null = null;
 
   constructor(config: DashboardConfig) {
@@ -659,7 +648,7 @@ export class AnalyticsDashboard {
   /**
    * Subscribe to component updates for real-time reactivity
    */
-  public subscribeToUpdates(componentId: string, callback: Function): void {
+  public subscribeToUpdates(componentId: string, callback: (data: any) => void): void {
     const callbacks = this.updateCallbacks.get(componentId) || [];
     callbacks.push(callback);
     this.updateCallbacks.set(componentId, callbacks);
@@ -668,7 +657,7 @@ export class AnalyticsDashboard {
   /**
    * Unsubscribe from component updates
    */
-  public unsubscribeFromUpdates(componentId: string, callback: Function): void {
+  public unsubscribeFromUpdates(componentId: string, callback: (data: any) => void): void {
     const callbacks = this.updateCallbacks.get(componentId) || [];
     const index = callbacks.indexOf(callback);
     if (index > -1) {
@@ -696,7 +685,7 @@ export class AnalyticsDashboard {
     return btoa(query.toLowerCase().replace(/\s+/g, ''));
   }
 
-  private async fetchRealTimeData(componentId: string): Promise<any[]> {
+  private async fetchRealTimeData(_componentId: string): Promise<any[]> {
     // Mock implementation - would connect to real data sources
     return [];
   }
@@ -713,7 +702,7 @@ export class AnalyticsDashboard {
     };
   }
 
-  private async analyzeMetricsForInsights(metrics: OverviewMetrics): Promise<AIInsight[]> {
+  private async analyzeMetricsForInsights(_metrics: OverviewMetrics): Promise<AIInsight[]> {
     // Mock implementation - would use AI for pattern analysis
     return [];
   }
@@ -728,7 +717,7 @@ export class AnalyticsDashboard {
     return [];
   }
 
-  private notifyUpdateCallbacks(componentId: string, data: any[]): void {
+  private notifyUpdateCallbacks(_componentId: string, _data: any[]): void {
     const callbacks = this.updateCallbacks.get(componentId) || [];
     callbacks.forEach(callback => {
       try {
@@ -739,22 +728,22 @@ export class AnalyticsDashboard {
     });
   }
 
-  private anonymizeExportData(format: string): any {
+  private anonymizeExportData(_format: string): any {
     // Privacy-compliant data anonymization
     return {};
   }
 
-  private convertToCSV(data: any): string {
+  private convertToCSV(_data: any): string {
     // CSV conversion implementation
     return '';
   }
 
-  private generatePDFReport(data: any): any {
+  private generatePDFReport(_data: any): any {
     // PDF generation implementation
     return {};
   }
 
-  private registerForAIUpdates(componentId: string): void {
+  private registerForAIUpdates(_componentId: string): void {
     // Register component for AI-powered updates
   }
 }

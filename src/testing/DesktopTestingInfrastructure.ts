@@ -4,19 +4,8 @@
  * Implements 2025 best practices for desktop interaction analysis and efficiency metrics
  */
 
-import {
-  MobileMetrics,
-  DeviceInfo,
-  TouchPattern,
-  GestureEvent,
-  OrientationChange,
-  NetworkCondition,
-  BatteryMetrics,
-  DeviceType,
-  AttentionMetrics,
-  ScrollMetrics,
-  InteractionMetrics
-} from './types';
+// DeviceType import removed as unused
+// import { DeviceType } from './types';
 
 export interface DesktopTestingConfig {
   enableMouseInteractionAnalysis: boolean;
@@ -94,7 +83,7 @@ export class DesktopTestingInfrastructure {
   private performanceObserver: PerformanceObserver | null = null;
 
   // Streaming and analytics
-  private dataStreamCallbacks: Function[] = [];
+  private dataStreamCallbacks: ((data: any) => void)[] = [];
   private efficiencyMetrics: Map<string, number> = new Map();
 
   constructor(config: Partial<DesktopTestingConfig> = {}) {
@@ -168,35 +157,35 @@ export class DesktopTestingInfrastructure {
    */
   private setupMouseTracking(): void {
     // High-precision mouse movement tracking
-    this.addEventListenerTracked(document, 'mousemove', (event: MouseEvent) => {
-      this.trackMouseMovement(event);
+    this.addEventListenerTracked(document, 'mousemove', (event) => {
+      this.trackMouseMovement(event as MouseEvent);
     });
 
     // Mouse click tracking with efficiency metrics
-    this.addEventListenerTracked(document, 'mousedown', (event: MouseEvent) => {
-      this.trackMouseInteraction('click', event, true);
+    this.addEventListenerTracked(document, 'mousedown', (event) => {
+      this.trackMouseInteraction('click', event as MouseEvent, true);
     });
 
-    this.addEventListenerTracked(document, 'mouseup', (event: MouseEvent) => {
-      this.trackMouseInteraction('click', event, false);
+    this.addEventListenerTracked(document, 'mouseup', (event) => {
+      this.trackMouseInteraction('click', event as MouseEvent, false);
     });
 
     // Hover pattern tracking
-    this.addEventListenerTracked(document, 'mouseenter', (event: MouseEvent) => {
-      this.trackMouseInteraction('hover', event, true);
+    this.addEventListenerTracked(document, 'mouseenter', (event) => {
+      this.trackMouseInteraction('hover', event as MouseEvent, true);
     }, true);
 
-    this.addEventListenerTracked(document, 'mouseleave', (event: MouseEvent) => {
-      this.trackMouseInteraction('hover', event, false);
+    this.addEventListenerTracked(document, 'mouseleave', (event) => {
+      this.trackMouseInteraction('hover', event as MouseEvent, false);
     }, true);
 
     // Drag interaction tracking
-    this.addEventListenerTracked(document, 'dragstart', (event: DragEvent) => {
-      this.trackDragInteraction(event, 'start');
+    this.addEventListenerTracked(document, 'dragstart', (event) => {
+      this.trackDragInteraction(event as DragEvent, 'start');
     });
 
-    this.addEventListenerTracked(document, 'dragend', (event: DragEvent) => {
-      this.trackDragInteraction(event, 'end');
+    this.addEventListenerTracked(document, 'dragend', (event) => {
+      this.trackDragInteraction(event as DragEvent, 'end');
     });
 
     // Start continuous mouse position sampling
@@ -217,14 +206,15 @@ export class DesktopTestingInfrastructure {
       duration: number;
     }> = [];
 
-    this.addEventListenerTracked(document, 'click', (event: MouseEvent) => {
-      const target = event.target as Element;
-      const isSuccessful = this.isClickSuccessful(event, target);
-      const clickDuration = this.calculateClickDuration(event);
+    this.addEventListenerTracked(document, 'click', (event) => {
+      const mouseEvent = event as MouseEvent;
+      const target = mouseEvent.target as Element;
+      const isSuccessful = this.isClickSuccessful(mouseEvent, target);
+      const clickDuration = this.calculateClickDuration(mouseEvent);
 
       clickData.push({
         timestamp: Date.now(),
-        coordinates: { x: event.clientX, y: event.clientY },
+        coordinates: { x: mouseEvent.clientX, y: mouseEvent.clientY },
         target: this.getElementSelector(target),
         successful: isSuccessful,
         duration: clickDuration
@@ -240,13 +230,13 @@ export class DesktopTestingInfrastructure {
     });
 
     // Double-click tracking
-    this.addEventListenerTracked(document, 'dblclick', (event: MouseEvent) => {
-      this.trackDoubleClick(event);
+    this.addEventListenerTracked(document, 'dblclick', (event) => {
+      this.trackDoubleClick(event as MouseEvent);
     });
 
     // Right-click tracking
-    this.addEventListenerTracked(document, 'contextmenu', (event: MouseEvent) => {
-      this.trackRightClick(event);
+    this.addEventListenerTracked(document, 'contextmenu', (event) => {
+      this.trackRightClick(event as MouseEvent);
     });
   }
 
@@ -337,7 +327,7 @@ export class DesktopTestingInfrastructure {
   private trackMouseInteraction(
     type: 'click' | 'hover',
     event: MouseEvent,
-    isStart: boolean
+    _isStart: boolean
   ): void {
     const now = Date.now();
     const coordinates = { x: event.clientX, y: event.clientY };
@@ -378,7 +368,7 @@ export class DesktopTestingInfrastructure {
   /**
    * Track drag interactions
    */
-  private trackDragInteraction(event: DragEvent, phase: 'start' | 'end'): void {
+  private trackDragInteraction(event: DragEvent, _phase: 'start' | 'end'): void {
     const coordinates = { x: event.clientX, y: event.clientY };
     const target = event.target as Element;
 
@@ -419,7 +409,7 @@ export class DesktopTestingInfrastructure {
           rule.conditionText.includes('max-width')
         );
         if (hasMediaQueries) return true;
-      } catch (e) {
+      } catch {
         // Stylesheet may be from different origin
       }
     }
@@ -436,7 +426,8 @@ export class DesktopTestingInfrastructure {
    * Test responsive adaptation across viewports
    */
   private testResponsiveAdaptation(): void {
-    const originalViewport = {
+    // Store original viewport for reference
+    void {
       width: window.innerWidth,
       height: window.innerHeight
     };
@@ -637,7 +628,7 @@ export class DesktopTestingInfrastructure {
   /**
    * Subscribe to real-time data stream
    */
-  public subscribeToDataStream(callback: Function): void {
+  public subscribeToDataStream(callback: (data: any) => void): void {
     this.dataStreamCallbacks.push(callback);
   }
 
@@ -659,7 +650,7 @@ export class DesktopTestingInfrastructure {
 
   // Helper methods
   private generateSessionId(): string {
-    return `desktop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `desktop_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private addEventListenerTracked(
@@ -694,27 +685,27 @@ export class DesktopTestingInfrastructure {
            element.getAttribute('role') === 'button';
   }
 
-  private getClickTime(event: MouseEvent): number {
+  private getClickTime(_event: MouseEvent): number {
     // Simplified - would need to track mousedown/mouseup timing
     return 100; // Placeholder
   }
 
-  private calculateHoverEfficiency(event: MouseEvent): number {
+  private calculateHoverEfficiency(_event: MouseEvent): number {
     // Placeholder implementation
     return 0.8;
   }
 
-  private detectGenZHoverPattern(event: MouseEvent): boolean {
+  private detectGenZHoverPattern(_event: MouseEvent): boolean {
     // Placeholder implementation
     return false;
   }
 
-  private calculateDragEfficiency(event: DragEvent): number {
+  private calculateDragEfficiency(_event: DragEvent): number {
     // Placeholder implementation
     return 0.7;
   }
 
-  private detectGenZDragPattern(event: DragEvent): boolean {
+  private detectGenZDragPattern(_event: DragEvent): boolean {
     // Placeholder implementation
     return false;
   }
@@ -727,19 +718,19 @@ export class DesktopTestingInfrastructure {
     return this.isInteractiveElement(target);
   }
 
-  private calculateClickDuration(event: MouseEvent): number {
+  private calculateClickDuration(_event: MouseEvent): number {
     return 100; // Placeholder
   }
 
-  private updateClickPatternAnalysis(clickData: any[]): void {
+  private updateClickPatternAnalysis(_clickData: any[]): void {
     // Update click pattern analysis
   }
 
-  private trackDoubleClick(event: MouseEvent): void {
+  private trackDoubleClick(_event: MouseEvent): void {
     // Track double-click patterns
   }
 
-  private trackRightClick(event: MouseEvent): void {
+  private trackRightClick(_event: MouseEvent): void {
     // Track right-click usage
   }
 
@@ -751,11 +742,11 @@ export class DesktopTestingInfrastructure {
     // Handle orientation changes in simulation
   }
 
-  private testViewportAdaptation(viewport: { width: number; height: number }): void {
+  private testViewportAdaptation(_viewport: { width: number; height: number }): void {
     // Test specific viewport adaptation
   }
 
-  private processPerformanceEntry(entry: PerformanceEntry): void {
+  private processPerformanceEntry(_entry: PerformanceEntry): void {
     // Process performance entries
   }
 

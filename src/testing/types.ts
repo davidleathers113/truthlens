@@ -233,7 +233,7 @@ export interface TestVariant {
   name: string;
   description: string;
   weight: number; // 0-1, allocation percentage
-  config: Record<string, any>; // Variant-specific configuration
+  config: Record<string, unknown>; // Variant-specific configuration
   isControl: boolean;
 }
 
@@ -259,7 +259,7 @@ export interface ConversionEvent {
   type: string;
   timestamp: number;
   value?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Analytics and dashboard types
@@ -347,6 +347,16 @@ export interface IntegrationSettings {
   backgroundScriptIntegration: boolean;
 }
 
+// Removed duplicate TestingError interface - using the one defined later in the file
+
+export interface PreferenceData {
+  userId: string;
+  preferences: Record<string, unknown>;
+  collectedAt: number;
+  source: string;
+  confidence: number;
+}
+
 export interface ConsentData {
   userId: string;
   timestamp: number;
@@ -363,13 +373,13 @@ export interface TestingError {
   module: TestingModule;
   error: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export interface TestingEvent {
   type: string;
   timestamp: number;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   userId?: string;
   sessionId: string;
 }
@@ -390,10 +400,10 @@ export type AbandonmentReason =
 
 // Export utility types
 export interface GenZTestingFramework {
-  attentionModule: any; // Will be defined when implementing the class
-  mobileModule: any;
-  preferencesModule: any;
-  abTestingModule: any;
-  analyticsModule: any;
-  configurationModule: any;
+  attentionModule: unknown; // Will be defined when implementing the class
+  mobileModule: unknown;
+  preferencesModule: unknown;
+  abTestingModule: unknown;
+  analyticsModule: unknown;
+  configurationModule: unknown;
 }

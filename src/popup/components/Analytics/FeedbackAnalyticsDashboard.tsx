@@ -10,7 +10,8 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { feedbackService, type FeedbackAnalytics } from '@shared/services';
+import { feedbackService } from '@shared/services';
+import type { FeedbackAnalytics } from '@shared/services/feedbackService';
 import { credibilityFeedbackIntegrator, type AlgorithmPerformanceMetrics } from '@shared/services/credibilityFeedbackIntegrator';
 import { logger } from '@shared/services';
 import '../styles/FeedbackAnalytics.css';
@@ -54,7 +55,6 @@ export const FeedbackAnalyticsDashboard: React.FC<FeedbackAnalyticsDashboardProp
 
   // Refs for real-time updates
   const updateInterval = useRef<NodeJS.Timeout | null>(null);
-  const chartRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Dashboard view configuration (max 9 views per 2025 best practices)
   const dashboardViews: DashboardView[] = [
@@ -239,15 +239,6 @@ export const FeedbackAnalyticsDashboard: React.FC<FeedbackAnalyticsDashboardProp
     }
   };
 
-  const getAlertsByType = (type: AlertData['type']): AlertData[] => {
-    return alerts.filter(alert => alert.type === type);
-  };
-
-  const getTrendDirection = (current: number, previous: number): string => {
-    if (current > previous * 1.05) return '📈';
-    if (current < previous * 0.95) return '📉';
-    return '➡️';
-  };
 
   const getPerformanceColor = (value: number, threshold: number): string => {
     if (value >= threshold * 1.1) return '#10b981'; // Green

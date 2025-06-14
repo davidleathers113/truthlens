@@ -12,18 +12,18 @@ export const PremiumView: React.FC<PremiumViewProps> = ({ onNavigate }) => {
   const [subscription] = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string>('');
-  const [plans, setPlans] = useState(extensionPayService.getAvailablePlans());
+  const [plans] = useState(extensionPayService.getAvailablePlans());
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     // Initialize ExtensionPay service
     extensionPayService.initialize().catch(error => {
-      logger.error('Failed to initialize ExtensionPay:', error);
+      logger.error('Failed to initialize ExtensionPay:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       setPaymentStatus('Payment system unavailable. Please try again later.');
     });
 
     // Listen for payment success events
-    const handlePaymentSuccess = (event: CustomEvent) => {
+    const handlePaymentSuccess = (_event: CustomEvent) => {
       setShowConfirmation(true);
       setPaymentStatus('Payment successful! Welcome to Premium!');
       setTimeout(() => {
@@ -37,6 +37,8 @@ export const PremiumView: React.FC<PremiumViewProps> = ({ onNavigate }) => {
         window.removeEventListener('truthlens:payment:success', handlePaymentSuccess as EventListener);
       };
     }
+
+    return undefined;
   }, [onNavigate]);
 
   const handleSubscribe = async (planNickname: string) => {
@@ -54,7 +56,7 @@ export const PremiumView: React.FC<PremiumViewProps> = ({ onNavigate }) => {
         setPaymentStatus(`Payment failed: ${result.error}`);
       }
     } catch (error) {
-      logger.error('Payment error:', error);
+      logger.error('Payment error:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       setPaymentStatus('Payment system error. Please try again later.');
     } finally {
       setIsLoading(false);
@@ -65,7 +67,7 @@ export const PremiumView: React.FC<PremiumViewProps> = ({ onNavigate }) => {
     try {
       await extensionPayService.openManagementPage();
     } catch (error) {
-      logger.error('Failed to open management page:', error);
+      logger.error('Failed to open management page:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       setPaymentStatus('Could not open subscription management. Please try again.');
     }
   };

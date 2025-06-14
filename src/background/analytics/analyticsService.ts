@@ -1,11 +1,11 @@
 // Privacy-First Analytics Service
 // Handles telemetry collection with GDPR compliance and local aggregation
 
-import { 
-  AnalyticsEvent, 
+import {
+  AnalyticsEvent,
   UserEngagementMetrics,
   AnalyticsConfig,
-  ConsentData 
+  ConsentData
 } from '@shared/types';
 import { StorageService } from '@shared/storage/storageService';
 
@@ -21,7 +21,7 @@ export class AnalyticsService {
     this.storage = new StorageService();
     this.sessionId = this.generateSessionId();
     this.userId = this.generateUserId();
-    
+
     // Default privacy-first configuration
     this.config = {
       enabled: false, // Requires explicit opt-in
@@ -42,7 +42,7 @@ export class AnalyticsService {
 
   async initialize(): Promise<void> {
     const settings = await this.storage.getSettings();
-    
+
     if (settings.privacy.analyticsEnabled) {
       this.config.enabled = true;
       this.startAggregationTimer();
@@ -58,7 +58,7 @@ export class AnalyticsService {
   /**
    * Track an analytics event with privacy protection
    */
-  async trackEvent(eventName: string, properties?: Record<string, any>): Promise<void> {
+  async trackEvent(eventName: string, properties?: Record<string, unknown>): Promise<void> {
     if (!this.config.enabled) return;
 
     const consent = await this.getConsentData();
@@ -96,11 +96,13 @@ export class AnalyticsService {
   /**
    * Track business-critical events
    */
-  async trackBusinessEvent(eventType: 'conversion' | 'retention' | 'churn' | 'activation', data: any): Promise<void> {
+  async trackBusinessEvent(eventType: 'conversion' | 'retention' | 'churn' | 'activation', data: unknown): Promise<void> {
     if (!this.config.enabled) return;
 
+    const businessData = data && typeof data === 'object' ? data as Record<string, unknown> : {};
+
     await this.trackEvent(`business_${eventType}`, {
-      ...data,
+      ...businessData,
       userTier: (await this.storage.getSubscription()).tier,
       timestamp: Date.now()
     });
@@ -113,7 +115,7 @@ export class AnalyticsService {
     if (this.eventQueue.length === 0) return;
 
     const aggregatedData = this.aggregateEvents(this.eventQueue);
-    
+
     if (this.config.localProcessingOnly) {
       // Store locally for dashboard view
       await this.storeLocalAnalytics(aggregatedData);
@@ -128,7 +130,7 @@ export class AnalyticsService {
   /**
    * Aggregate events with differential privacy
    */
-  private aggregateEvents(events: AnalyticsEvent[]): any {
+  private aggregateEvents(events: AnalyticsEvent[]): unknown {
     const aggregated = {
       totalEvents: events.length,
       uniqueEvents: new Set(events.map(e => e.event)).size,
@@ -145,14 +147,20 @@ export class AnalyticsService {
 
     // Count events with noise for differential privacy
     events.forEach(event => {
-      aggregated.eventCounts[event.event] = (aggregated.eventCounts[event.event] || 0) + 1;
+      const currentCount = Object.prototype.hasOwnProperty.call(aggregated.eventCounts, event.event)
+        ? aggregated.eventCounts[event.event]
+        : 0;
+      aggregated.eventCounts[event.event] = currentCount + 1;
     });
 
     // Add random noise for differential privacy (Laplace mechanism)
     if (this.config.privacyLevel === 'minimal') {
       Object.keys(aggregated.eventCounts).forEach(key => {
         const noise = this.generateLaplaceNoise(0.1); // Small epsilon for strong privacy
-        aggregated.eventCounts[key] = Math.max(0, aggregated.eventCounts[key] + noise);
+        const currentValue = Object.prototype.hasOwnProperty.call(aggregated.eventCounts, key)
+          ? aggregated.eventCounts[key]
+          : 0;
+        aggregated.eventCounts[key] = Math.max(0, currentValue + noise);
       });
     }
 
@@ -170,7 +178,7 @@ export class AnalyticsService {
   /**
    * Store analytics data locally
    */
-  private async storeLocalAnalytics(data: any): Promise<void> {
+  private async storeLocalAnalytics(data: unknown): Promise<void> {
     const key = `analytics_${Date.now()}`;
     await chrome.storage.local.set({ [key]: data });
 
@@ -184,7 +192,7 @@ export class AnalyticsService {
   private async cleanOldAnalytics(): Promise<void> {
     const items = await chrome.storage.local.get();
     const cutoffTime = Date.now() - (this.config.retentionPeriod * 24 * 60 * 60 * 1000);
-    
+
     const keysToRemove = Object.keys(items).filter(key => {
       if (key.startsWith('analytics_')) {
         const timestamp = parseInt(key.split('_')[1]);
@@ -209,19 +217,21 @@ export class AnalyticsService {
   /**
    * Sanitize event properties to remove PII
    */
-  private sanitizeProperties(properties?: Record<string, any>): Record<string, any> | undefined {
+  private sanitizeProperties(properties?: Record<string, unknown>): Record<string, unknown> | undefined {
     if (!properties) return undefined;
 
     const sanitized = { ...properties };
-    
+
     // Remove potential PII fields
     const piiFields = ['email', 'name', 'address', 'phone', 'ip', 'userAgent'];
     piiFields.forEach(field => {
-      delete sanitized[field];
+      if (Object.prototype.hasOwnProperty.call(sanitized, field)) {
+        delete sanitized[field];
+      }
     });
 
     // Truncate URLs to domain only for privacy
-    if (sanitized.url) {
+    if (sanitized.url && typeof sanitized.url === 'string') {
       try {
         const url = new URL(sanitized.url);
         sanitized.domain = url.hostname;
@@ -257,7 +267,7 @@ export class AnalyticsService {
   private async getUserCohort(): Promise<string> {
     const subscription = await this.storage.getSubscription();
     const settings = await this.storage.getSettings();
-    
+
     if (subscription.tier === 'premium') return 'premium';
     if (settings.privacy.localProcessingOnly) return 'privacy_focused';
     return 'standard';
@@ -269,10 +279,10 @@ export class AnalyticsService {
   private async isGenZUser(): Promise<boolean> {
     // Use behavior patterns rather than personal data
     const settings = await this.storage.getSettings();
-    
+
     // Gen Z indicators: dark theme preference, frequent notifications, mobile-first behavior
-    return settings.theme === 'dark' && 
-           settings.notifications.enabled && 
+    return settings.theme === 'dark' &&
+           settings.notifications.enabled &&
            settings.factCheckingLevel === 'standard';
   }
 
@@ -303,7 +313,7 @@ export class AnalyticsService {
     for (const [key, value] of Object.entries(items)) {
       if (key.startsWith('analytics_')) {
         const timestamp = parseInt(key.split('_')[1]);
-        
+
         if (!timeRange || (timestamp >= timeRange.start && timestamp <= timeRange.end)) {
           analyticsData.push(value);
         }
@@ -320,7 +330,7 @@ export class AnalyticsService {
     if (this.aggregationTimer) {
       clearInterval(this.aggregationTimer);
     }
-    
+
     // Process any remaining events
     this.processEventQueue();
   }

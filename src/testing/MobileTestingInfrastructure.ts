@@ -8,10 +8,8 @@ import {
   MobileMetrics,
   DeviceInfo,
   TouchPattern,
-  GestureEvent,
   OrientationChange,
   NetworkCondition,
-  BatteryMetrics,
   DeviceType
 } from './types';
 import { GestureRecognition, GestureRecognitionResult } from './GestureRecognition';
@@ -386,7 +384,7 @@ export class MobileTestingInfrastructure {
   /**
    * Track multi-touch patterns for Gen Z analysis
    */
-  private trackMultiTouchPattern(event: TouchEvent, timestamp: number): void {
+  private trackMultiTouchPattern(event: TouchEvent, _timestamp: number): void {
     const touchCount = event.touches.length;
 
     // Gen Z users are more likely to use multi-touch efficiently
@@ -469,7 +467,7 @@ export class MobileTestingInfrastructure {
   /**
    * Handle device orientation events
    */
-  private handleDeviceOrientation(event: DeviceOrientationEvent): void {
+  private handleDeviceOrientation(_event: DeviceOrientationEvent): void {
     // Track device orientation for advanced gesture detection
     // This can help identify device-based gestures like tilting
   }
@@ -477,7 +475,7 @@ export class MobileTestingInfrastructure {
   /**
    * Handle device motion events
    */
-  private handleDeviceMotion(event: DeviceMotionEvent): void {
+  private handleDeviceMotion(_event: DeviceMotionEvent): void {
     // Track device motion for gesture recognition
     // Useful for detecting shake gestures, device handling patterns
   }
@@ -666,7 +664,7 @@ export class MobileTestingInfrastructure {
       return true;
     }
 
-    if (pattern.type === 'swipe' && pattern.velocity > 1) {
+    if (pattern.type === 'swipe' && pattern.velocity && pattern.velocity > 1) {
       return true;
     }
 
@@ -707,7 +705,7 @@ export class MobileTestingInfrastructure {
    * Generate unique session ID
    */
   private generateSessionId(): string {
-    return `mobile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `mobile_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**

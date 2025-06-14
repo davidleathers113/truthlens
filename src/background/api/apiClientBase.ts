@@ -24,7 +24,7 @@ export interface ApiRequest {
   url: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   headers?: Record<string, string>;
-  body?: any;
+  body?: unknown;
   timeout?: number;
   skipCache?: boolean;
   privacy?: {
@@ -34,7 +34,7 @@ export interface ApiRequest {
   };
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   status: number;
   headers: Record<string, string>;
@@ -42,7 +42,7 @@ export interface ApiResponse<T = any> {
   timestamp: number;
 }
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
   ttl: number;
@@ -94,7 +94,7 @@ export abstract class ApiClientBase {
   private cache = new Map<string, CacheEntry>();
   private circuitBreaker: CircuitBreakerState;
   private rateLimitState: RateLimitState;
-  private activeRequests = new Map<string, Promise<any>>();
+  private activeRequests = new Map<string, Promise<ApiResponse<unknown>>>();
 
   constructor(config: ApiClientConfig) {
     this.config = config;
@@ -141,7 +141,7 @@ export abstract class ApiClientBase {
     // Prevent duplicate requests (request deduplication)
     const activeRequest = this.activeRequests.get(cacheKey);
     if (activeRequest) {
-      return activeRequest;
+      return activeRequest as Promise<ApiResponse<T>>;
     }
 
     // Execute request with retry logic
@@ -173,6 +173,8 @@ export abstract class ApiClientBase {
    * Execute request with retry logic and exponential backoff
    */
   private async executeWithRetry<T>(request: ApiRequest, cacheKey: string): Promise<ApiResponse<T>> {
+    // cacheKey is used for request tracking in production
+    void cacheKey;
     let lastError: Error;
 
     for (let attempt = 0; attempt <= this.config.maxRetries; attempt++) {
@@ -255,15 +257,15 @@ export abstract class ApiClientBase {
   /**
    * Extract domain-only information from request data
    */
-  private extractDomainOnly(data: any): any {
+  private extractDomainOnly(data: unknown): unknown {
     if (typeof data !== 'object' || data === null) {
       return data;
     }
 
-    const result = { ...data };
+    const result = { ...data } as Record<string, unknown>;
 
     // Extract domain from URL fields
-    if (result.url && typeof result.url === 'string') {
+    if ('url' in result && typeof result.url === 'string') {
       try {
         const url = new URL(result.url);
         result.url = url.hostname;
@@ -273,14 +275,14 @@ export abstract class ApiClientBase {
     }
 
     // Remove full content, keep only metadata
-    if (result.content) {
+    if ('content' in result) {
       delete result.content;
     }
 
     // Remove user-identifying information
-    delete result.userId;
-    delete result.sessionId;
-    delete result.userAgent;
+    if ('userId' in result) delete result.userId;
+    if ('sessionId' in result) delete result.sessionId;
+    if ('userAgent' in result) delete result.userAgent;
 
     return result;
   }
@@ -288,18 +290,18 @@ export abstract class ApiClientBase {
   /**
    * Minimize request data to essential fields only
    */
-  private minimizeRequestData(data: any): any {
+  private minimizeRequestData(data: unknown): unknown {
     if (typeof data !== 'object' || data === null) {
       return data;
     }
 
     // Keep only essential fields for fact-checking
     const essentialFields = ['url', 'domain', 'title', 'language', 'text'];
-    const result: any = {};
+    const result: Record<string, unknown> = {};
 
     essentialFields.forEach(field => {
-      if (data[field] !== undefined) {
-        result[field] = data[field];
+      if ((data as Record<string, unknown>)[field] !== undefined) {
+        result[field] = (data as Record<string, unknown>)[field];
       }
     });
 
@@ -309,23 +311,23 @@ export abstract class ApiClientBase {
   /**
    * Anonymize request data by removing or hashing identifiers
    */
-  private anonymizeRequestData(data: any): any {
+  private anonymizeRequestData(data: unknown): unknown {
     if (typeof data !== 'object' || data === null) {
       return data;
     }
 
-    const result = { ...data };
+    const result = { ...data } as Record<string, unknown>;
 
     // Remove or hash identifying information
-    if (result.ip) {
+    if ('ip' in result) {
       delete result.ip;
     }
 
-    if (result.userAgent) {
+    if ('userAgent' in result) {
       delete result.userAgent;
     }
 
-    if (result.referrer) {
+    if ('referrer' in result) {
       delete result.referrer;
     }
 
@@ -487,7 +489,7 @@ export abstract class ApiClientBase {
   /**
    * Sleep utility for delays
    */
-  private sleep(ms: number): Promise<void> {
+  protected sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 

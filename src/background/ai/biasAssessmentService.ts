@@ -10,7 +10,10 @@ import {
   BiasAlertResult,
   ExplainableAIReport,
   SubpopulationAnalysis,
-  CredibilityScore
+  CredibilityScore,
+  PopulationGroup,
+  DisparityMetric,
+  SubpopulationIssue
 } from '../../shared/types';
 
 export interface BiasAssessmentResult {
@@ -94,7 +97,7 @@ export interface DataSample {
     language?: string;
     deviceType?: string;
   };
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 class BiasAssessmentService {
@@ -493,8 +496,11 @@ class BiasAssessmentService {
     const distribution: Record<string, number> = {};
 
     samples.forEach(sample => {
-      const value = String(sample[field] || 'unknown');
-      distribution[value] = (distribution[value] || 0) + 1;
+      // Safe property access with validation
+      const hasProperty = Object.prototype.hasOwnProperty.call(sample, field);
+      const value = hasProperty ? String((sample as unknown as Record<string, unknown>)[field] || 'unknown') : 'unknown';
+      const currentCount = distribution[value] || 0;
+      distribution[value] = currentCount + 1;
     });
 
     return distribution;
@@ -556,7 +562,9 @@ class BiasAssessmentService {
       const demographics = sample.userDemographics;
       const key = demographics ? `${demographics.region || 'unknown'}_${demographics.language || 'unknown'}` : 'unknown';
 
-      if (!groups[key]) groups[key] = [];
+      if (!(key in groups)) {
+        groups[key] = [];
+      }
       groups[key].push(sample);
     });
 
@@ -568,7 +576,9 @@ class BiasAssessmentService {
 
     samples.forEach(sample => {
       const contentType = sample.contentType || 'unknown';
-      if (!groups[contentType]) groups[contentType] = [];
+      if (!(contentType in groups)) {
+        groups[contentType] = [];
+      }
       groups[contentType].push(sample);
     });
 
@@ -580,7 +590,9 @@ class BiasAssessmentService {
 
     samples.forEach(sample => {
       const domain = sample.domain;
-      if (!groups[domain]) groups[domain] = [];
+      if (!(domain in groups)) {
+        groups[domain] = [];
+      }
       groups[domain].push(sample);
     });
 
@@ -593,7 +605,9 @@ class BiasAssessmentService {
 
     samples.forEach(sample => {
       const dayKey = Math.floor(sample.timestamp / dayMs).toString();
-      if (!groups[dayKey]) groups[dayKey] = [];
+      if (!(dayKey in groups)) {
+        groups[dayKey] = [];
+      }
       groups[dayKey].push(sample);
     });
 
@@ -605,7 +619,9 @@ class BiasAssessmentService {
 
     samples.forEach(sample => {
       const region = sample.userDemographics?.region || 'unknown';
-      if (!groups[region]) groups[region] = [];
+      if (!(region in groups)) {
+        groups[region] = [];
+      }
       groups[region].push(sample);
     });
 
@@ -636,6 +652,9 @@ class BiasAssessmentService {
 
     const averages: number[] = timeKeys.map(key => {
       const samples = timeGroups[key];
+      if (!samples) {
+        return 0;
+      }
       return samples.reduce((sum, sample) => sum + sample.credibilityScore, 0) / samples.length;
     });
 
@@ -897,12 +916,14 @@ class BiasAssessmentService {
       const key = `bias_assessment_${summary.timestamp}`;
       const assessmentData = await chrome.storage.local.get(key);
 
-      if (!assessmentData[key]) {
+      if (!Object.prototype.hasOwnProperty.call(assessmentData, key)) {
         return null;
       }
 
       // Decrypt the full assessment data
-      const decryptedResult = await securityService.decryptData(assessmentData[key], 'userData');
+      const data = (key in assessmentData) ? assessmentData[key] : null;
+      if (!data) return null;
+      const decryptedResult = await securityService.decryptData(data, 'userData');
 
       if (decryptedResult.success) {
         return decryptedResult.data as BiasAssessmentResult;
@@ -935,11 +956,13 @@ class BiasAssessmentService {
 
       for (const key of assessmentKeys) {
         try {
-          const decryptedResult = await securityService.decryptData(items[key], 'userData');
+          const data = (key in items) ? items[key] : null;
+          if (!data) continue;
+          const decryptedResult = await securityService.decryptData(data, 'userData');
           if (decryptedResult.success) {
             assessments.push(decryptedResult.data as BiasAssessmentResult);
           }
-        } catch (error) {
+        } catch {
           logger.warn('Failed to decrypt assessment result', { key });
         }
       }
@@ -1264,7 +1287,7 @@ class BiasAssessmentService {
     return (scoreDrift + confidenceDrift) / 2;
   }
 
-  private generateBiasExplanation(type: string, metric: any): string {
+  private generateBiasExplanation(type: string, metric: BiasMetric): string {
     const explanations: Record<string, string> = {
       demographicBias: `Demographic bias analysis shows ${metric.score}% fairness across different user groups`,
       contentTypeBias: `Content type analysis reveals ${metric.score}% consistency across different media types`,
@@ -1272,7 +1295,7 @@ class BiasAssessmentService {
       temporalBias: `Temporal analysis shows ${metric.score}% stability in AI performance over time`,
       geographicBias: `Geographic analysis demonstrates ${metric.score}% fairness across different regions`
     };
-    return explanations[type] || `Bias analysis for ${type}: ${metric.score}% score`;
+    return (type in explanations) ? explanations[type] : `Bias analysis for ${type}: ${metric.score}% score`;
   }
 
   private generateOverallExplanation(assessment: BiasAssessmentResult): string {
@@ -1286,13 +1309,13 @@ class BiasAssessmentService {
            `Assessment includes comprehensive analysis of demographic, content, source, temporal, and geographic bias factors.`;
   }
 
-  private identifyPopulationGroups(samples: DataSample[]): any[] {
+  private identifyPopulationGroups(samples: DataSample[]): PopulationGroup[] {
     // Group samples by available demographic criteria
     const groups: Record<string, DataSample[]> = {};
 
     samples.forEach(sample => {
       const groupKey = this.generateGroupKey(sample);
-      if (!groups[groupKey]) groups[groupKey] = [];
+      if (!(groupKey in groups)) groups[groupKey] = [];
       groups[groupKey].push(sample);
     });
 
@@ -1311,12 +1334,12 @@ class BiasAssessmentService {
     return `${demographics?.region || 'unknown'}_${demographics?.language || 'unknown'}_${sample.contentType}`;
   }
 
-  private parseGroupKey(key: string): Record<string, any> {
+  private parseGroupKey(key: string): Record<string, unknown> {
     const [region, language, contentType] = key.split('_');
     return { region, language, contentType };
   }
 
-  private calculateDisparityMetrics(groups: any[]): any[] {
+  private calculateDisparityMetrics(groups: PopulationGroup[]): DisparityMetric[] {
     const metrics = [];
 
     if (groups.length > 1) {
@@ -1330,7 +1353,7 @@ class BiasAssessmentService {
         value: disparity,
         threshold: 0.15,
         groups: groups.map(g => g.groupId),
-        severity: disparity > 0.3 ? 'critical' : disparity > 0.15 ? 'high' : 'low' as const,
+        severity: disparity > 0.3 ? 'critical' as const : disparity > 0.15 ? 'high' as const : 'low' as const,
         description: `Score disparity of ${(disparity * 100).toFixed(1)}% detected across subpopulations`
       });
     }
@@ -1338,7 +1361,7 @@ class BiasAssessmentService {
     return metrics;
   }
 
-  private calculateOverallFairness(metrics: any[]): number {
+  private calculateOverallFairness(metrics: DisparityMetric[]): number {
     if (metrics.length === 0) return 100;
 
     const fairnessScore = metrics.reduce((sum, metric) => {
@@ -1349,7 +1372,7 @@ class BiasAssessmentService {
     return Math.max(0, fairnessScore);
   }
 
-  private generateFairnessRecommendations(metrics: any[]): string[] {
+  private generateFairnessRecommendations(metrics: DisparityMetric[]): string[] {
     const recommendations = [];
 
     for (const metric of metrics) {
@@ -1362,7 +1385,7 @@ class BiasAssessmentService {
     return [...new Set(recommendations)];
   }
 
-  private detectSubpopulationIssues(metrics: any[], groups: any[]): any[] {
+  private detectSubpopulationIssues(metrics: DisparityMetric[], groups: PopulationGroup[]): SubpopulationIssue[] {
     const issues = [];
 
     for (const metric of metrics) {

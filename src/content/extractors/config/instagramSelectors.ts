@@ -4,7 +4,11 @@
  * Resilient selector configuration for Instagram content extraction
  * Based on 2025 best practices using data-testid attributes, CSS selectors,
  * and adaptive patterns to handle Instagram's responsive layouts.
+ *
+ * Note: URL patterns moved to platformUrls.ts for better maintainability
  */
+
+import { detectPlatform, getContentType } from './platformUrls';
 
 /**
  * Primary selectors based on data-testid attributes (most reliable in 2025)
@@ -248,39 +252,55 @@ export const InstagramSelectors = {
 } as const;
 
 /**
- * URL patterns for Instagram content identification
+ * Instagram URL utilities using modern URL API
+ * Replaces fragile regex patterns with structured URL parsing
  */
-export const InstagramUrlPatterns = {
-  domains: [
-    /^https?:\/\/(www\.)?instagram\.com/,
-    /^https?:\/\/m\.instagram\.com/,
-    /^https?:\/\/[a-z]{2}\.instagram\.com/ // Localized domains
-  ],
+export const InstagramUrlUtils = {
+  /**
+   * Check if URL is Instagram platform
+   */
+  isInstagramUrl: (url: string): boolean => {
+    return detectPlatform(url) === 'instagram';
+  },
 
-  postUrls: [
-    /\/p\/[A-Za-z0-9_-]+/,
-    /\/tv\/[A-Za-z0-9_-]+/ // IGTV posts
-  ],
+  /**
+   * Get Instagram content type from URL
+   */
+  getInstagramContentType: (url: string): string | null => {
+    return getContentType(url, 'instagram');
+  },
 
-  reelUrls: [
-    /\/reel\/[A-Za-z0-9_-]+/,
-    /\/reels\/[A-Za-z0-9_-]+/
-  ],
+  /**
+   * Check if URL is Instagram post
+   */
+  isPostUrl: (url: string): boolean => {
+    const contentType = getContentType(url, 'instagram');
+    return contentType === 'post';
+  },
 
-  storyUrls: [
-    /\/stories\/[^\/]+\/\d+/,
-    /story_media_id=\d+/
-  ],
+  /**
+   * Check if URL is Instagram reel
+   */
+  isReelUrl: (url: string): boolean => {
+    const contentType = getContentType(url, 'instagram');
+    return contentType === 'video' || url.includes('/reel/');
+  },
 
-  profileUrls: [
-    /\/@?[^\/]+\/?$/,
-    /\/[^\/]+\/?$/
-  ],
+  /**
+   * Check if URL is Instagram story
+   */
+  isStoryUrl: (url: string): boolean => {
+    const contentType = getContentType(url, 'instagram');
+    return contentType === 'story';
+  },
 
-  exploreUrls: [
-    /\/explore\//,
-    /\/explore\/tags\//
-  ]
+  /**
+   * Check if URL is Instagram profile
+   */
+  isProfileUrl: (url: string): boolean => {
+    const contentType = getContentType(url, 'instagram');
+    return contentType === 'profile';
+  }
 } as const;
 
 /**
@@ -363,8 +383,10 @@ export function getAllInstagramSelectors(path: string): string[] {
   let current: any = InstagramSelectors;
 
   for (const part of pathParts) {
+    if (!current || typeof current !== 'object' || !Object.prototype.hasOwnProperty.call(current, part)) {
+      return [];
+    }
     current = current[part];
-    if (!current) return [];
   }
 
   return Array.isArray(current) ? current : [];
@@ -393,6 +415,9 @@ export function getInstagramContentType(url: string): 'post' | 'reel' | 'story' 
  * Helper function to get delay based on operation type
  */
 export function getInstagramOperationDelay(operation: keyof typeof InstagramRateLimiting.extractionDelays): number {
+  if (!Object.prototype.hasOwnProperty.call(InstagramRateLimiting.extractionDelays, operation)) {
+    return 1000; // Default fallback delay
+  }
   return InstagramRateLimiting.extractionDelays[operation];
 }
 
@@ -419,8 +444,11 @@ export function checkInstagramRateLimits(
     reels: InstagramRateLimiting.requestLimits.maxReelsPerSession
   };
 
-  if (requestCount >= limits[contentType]) {
-    return { allowed: false, reason: `Maximum ${contentType} limit reached` };
+  const validContentTypes = ['posts', 'stories', 'reels'] as const;
+  if (validContentTypes.includes(contentType as any) && Object.prototype.hasOwnProperty.call(limits, contentType)) {
+    if (requestCount >= limits[contentType as keyof typeof limits]) {
+      return { allowed: false, reason: `Maximum ${contentType} limit reached` };
+    }
   }
 
   return { allowed: true };

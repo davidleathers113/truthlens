@@ -3,103 +3,7 @@
 
 import { ContentAnalysis, CredibilityScore, UserSettings, UserSubscription } from '@shared/types';
 
-/**
- * Generate mock content analysis data
- */
-export const mockContentAnalysis = {
-  article: (overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
-    title: 'Breaking: Major Scientific Discovery Announced',
-    url: 'https://example.com/science-discovery',
-    content: 'Scientists at leading university have announced a breakthrough in renewable energy technology that could revolutionize the industry...',
-    type: 'article',
-    platform: 'web',
-    author: 'Dr. Jane Smith',
-    publishedAt: Date.now() - 3600000, // 1 hour ago
-    analysis: {
-      sourceRating: 4,
-      sentimentScore: 0.2,
-      biasIndicators: [],
-      factualityMarkers: ['citation', 'expert-quote'],
-      languageComplexity: 'medium',
-    },
-    ...overrides,
-  }),
-
-  socialPost: (platform: 'twitter' | 'facebook' | 'instagram' | 'tiktok' = 'twitter', overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
-    title: 'Viral Social Media Post',
-    url: `https://${platform}.com/user/post/123456`,
-    content: 'Just witnessed something incredible! You won\'t believe what happened next... 🔥 #trending #unbelievable',
-    type: 'social-post',
-    platform,
-    author: '@trendy_user',
-    publishedAt: Date.now() - 1800000, // 30 minutes ago
-    analysis: {
-      sourceRating: 2,
-      sentimentScore: 0.8,
-      biasIndicators: ['emotional-language', 'clickbait'],
-      factualityMarkers: [],
-      languageComplexity: 'simple',
-    },
-    engagementMetrics: {
-      likes: 15420,
-      shares: 2341,
-      comments: 567,
-    },
-    ...overrides,
-  }),
-
-  newsArticle: (domain: string = 'reuters.com', overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
-    title: 'International Summit Reaches Climate Agreement',
-    url: `https://${domain}/article/climate-summit-agreement`,
-    content: 'World leaders have reached a historic agreement on climate action following three days of intensive negotiations...',
-    type: 'article',
-    platform: 'web',
-    author: 'International Correspondent',
-    publishedAt: Date.now() - 7200000, // 2 hours ago
-    metadata: {
-      wordCount: 1250,
-      readingTime: 5,
-      category: 'politics',
-    },
-    ...overrides,
-  }),
-
-  misinformation: (overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
-    title: 'SHOCKING TRUTH They Don\'t Want You to Know!!!',
-    url: 'https://fake-news-site.com/shocking-truth',
-    content: 'The mainstream media is hiding this incredible secret that will change everything you thought you knew about...',
-    type: 'article',
-    platform: 'web',
-    author: 'Anonymous Truth Teller',
-    publishedAt: Date.now() - 86400000, // 1 day ago
-    metadata: {
-      hasClickbaitTitle: true,
-      hasAllCapsText: true,
-      hasEmotionalLanguage: true,
-    },
-    ...overrides,
-  }),
-
-  youtubVideo: (overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
-    title: 'Educational Video: How AI is Changing the World',
-    url: 'https://youtube.com/watch?v=abc123',
-    content: 'In this video, we explore the latest developments in artificial intelligence and their impact on society...',
-    type: 'video',
-    platform: 'youtube',
-    author: 'Tech Education Channel',
-    publishedAt: Date.now() - 43200000, // 12 hours ago
-    metadata: {
-      duration: 1240, // 20:40
-      viewCount: 45678,
-      category: 'education',
-    },
-    ...overrides,
-  }),
-};
-
-/**
- * Generate mock credibility scores
- */
+// Export mockCredibilityScore for use in analysis field
 export const mockCredibilityScore = {
   high: (overrides?: Partial<CredibilityScore>): CredibilityScore => ({
     score: 92,
@@ -108,14 +12,6 @@ export const mockCredibilityScore = {
     reasoning: 'Content from verified, reputable source with factual accuracy indicators and transparent sourcing.',
     source: 'ai',
     timestamp: Date.now(),
-    biasIndicators: [],
-    factChecks: [
-      {
-        claim: 'Climate agreement reached',
-        verdict: 'verified',
-        source: 'fact-check-org',
-      },
-    ],
     ...overrides,
   }),
 
@@ -126,8 +22,6 @@ export const mockCredibilityScore = {
     reasoning: 'Mixed signals: some reliable indicators but also potential bias markers. Requires additional verification.',
     source: 'ai',
     timestamp: Date.now(),
-    biasIndicators: ['opinion-heavy'],
-    factChecks: [],
     ...overrides,
   }),
 
@@ -138,14 +32,6 @@ export const mockCredibilityScore = {
     reasoning: 'Multiple red flags: sensationalized language, lack of credible sources, and known misinformation patterns.',
     source: 'ai',
     timestamp: Date.now(),
-    biasIndicators: ['clickbait', 'emotional-manipulation', 'unsubstantiated-claims'],
-    factChecks: [
-      {
-        claim: 'Shocking secret revealed',
-        verdict: 'false',
-        source: 'snopes',
-      },
-    ],
     ...overrides,
   }),
 
@@ -156,41 +42,114 @@ export const mockCredibilityScore = {
     reasoning: 'Insufficient information available for reliable credibility assessment.',
     source: 'fallback',
     timestamp: Date.now(),
-    biasIndicators: [],
-    factChecks: [],
     ...overrides,
   }),
 
-  fallback: (domain?: string, overrides?: Partial<CredibilityScore>): CredibilityScore => {
-    const trustedDomains = ['reuters.com', 'apnews.com', 'bbc.com', 'npr.org'];
-    const untrustedPatterns = ['fake', 'hoax', 'conspiracy'];
-    
-    let score = 50;
-    let level: 'high' | 'medium' | 'low' | 'unknown' = 'unknown';
-    
-    if (domain) {
-      if (trustedDomains.some(trusted => domain.includes(trusted))) {
-        score = 85;
-        level = 'high';
-      } else if (untrustedPatterns.some(pattern => domain.includes(pattern))) {
-        score = 20;
-        level = 'low';
-      }
-    }
-    
-    return {
-      score,
-      level,
-      confidence: 0.6,
-      reasoning: 'Basic domain-based heuristic analysis (AI unavailable)',
-      source: 'fallback',
-      timestamp: Date.now(),
-      biasIndicators: [],
-      factChecks: [],
-      ...overrides,
-    };
-  },
+  fallback: (overrides?: Partial<CredibilityScore>): CredibilityScore => ({
+    score: 75,
+    level: 'high',
+    confidence: 0.6,
+    reasoning: 'Domain pattern analysis suggests reliable source based on known reputation.',
+    source: 'domain-reputation',
+    timestamp: Date.now(),
+    ...overrides,
+  }),
 };
+
+/**
+ * Generate mock content analysis data
+ */
+export const mockContentAnalysis = {
+  article: (overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
+    title: 'Breaking: Major Scientific Discovery Announced',
+    url: 'https://example.com/science-discovery',
+    content: 'Scientists at leading university have announced a breakthrough in renewable energy technology that could revolutionize the industry...',
+    type: 'article',
+    analysis: {
+      domain: 'example.com',
+      credibility: mockCredibilityScore.high(),
+      bias: {
+        level: 'center',
+        confidence: 0.8,
+        indicators: []
+      }
+    },
+    ...overrides,
+  }),
+
+  socialPost: (platform: 'twitter' | 'facebook' | 'instagram' | 'tiktok' = 'twitter', overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
+    title: 'Viral Social Media Post',
+    url: `https://${platform}.com/user/post/123456`,
+    content: 'Just witnessed something incredible! You won\'t believe what happened next... 🔥 #trending #unbelievable',
+    type: 'social-post',
+    platform,
+    analysis: {
+      domain: platform + '.com',
+      credibility: mockCredibilityScore.medium(),
+      bias: {
+        level: 'center',
+        confidence: 0.5,
+        indicators: ['emotional-language']
+      }
+    },
+    ...overrides,
+  }),
+
+  newsArticle: (domain: string = 'reuters.com', overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
+    title: 'International Summit Reaches Climate Agreement',
+    url: `https://${domain}/article/climate-summit-agreement`,
+    content: 'World leaders have reached a historic agreement on climate action following three days of intensive negotiations...',
+    type: 'article',
+    analysis: {
+      domain: domain,
+      credibility: mockCredibilityScore.high(),
+      bias: {
+        level: 'center',
+        confidence: 0.9,
+        indicators: []
+      },
+      factualReporting: 'very-high'
+    },
+    ...overrides,
+  }),
+
+  misinformation: (overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
+    title: 'SHOCKING TRUTH They Don\'t Want You to Know!!!',
+    url: 'https://fake-news-site.com/shocking-truth',
+    content: 'The mainstream media is hiding this incredible secret that will change everything you thought you knew about...',
+    type: 'article',
+    analysis: {
+      domain: 'fake-news-site.com',
+      credibility: mockCredibilityScore.low(),
+      bias: {
+        level: 'extreme',
+        confidence: 0.95,
+        indicators: ['clickbait', 'emotional-manipulation', 'unsubstantiated-claims']
+      },
+      factualReporting: 'very-low'
+    },
+    ...overrides,
+  }),
+
+  youtubVideo: (overrides?: Partial<ContentAnalysis>): ContentAnalysis => ({
+    title: 'Educational Video: How AI is Changing the World',
+    url: 'https://youtube.com/watch?v=abc123',
+    content: 'In this video, we explore the latest developments in artificial intelligence and their impact on society...',
+    type: 'video',
+    platform: 'youtube',
+    analysis: {
+      domain: 'youtube.com',
+      credibility: mockCredibilityScore.high(),
+      bias: {
+        level: 'center',
+        confidence: 0.7,
+        indicators: []
+      }
+    },
+    ...overrides,
+  }),
+};
+
 
 /**
  * Generate mock user settings
@@ -221,7 +180,7 @@ export const mockUserSettings = {
     enabled: true,
     showVisualIndicators: true,
     indicatorPosition: 'top-left',
-    factCheckingLevel: 'advanced',
+    factCheckingLevel: 'thorough',
     autoAnalyze: true,
     trustedDomains: ['reuters.com', 'apnews.com', 'nature.com'],
     blockedDomains: ['fake-news.com', 'conspiracy-theory.net'],
@@ -266,35 +225,22 @@ export const mockUserSettings = {
 export const mockUserSubscription = {
   free: (): UserSubscription => ({
     tier: 'free',
+    status: 'active',
     features: ['basic'],
-    dailyAnalysisLimit: 50,
-    rateLimit: {
-      requestsPerMinute: 10,
-      requestsPerHour: 100,
-    },
   }),
 
   premium: (): UserSubscription => ({
     tier: 'premium',
+    status: 'active',
     features: ['basic', 'advanced', 'priority'],
     expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
-    dailyAnalysisLimit: 1000,
-    rateLimit: {
-      requestsPerMinute: 60,
-      requestsPerHour: 2000,
-    },
   }),
 
   enterprise: (): UserSubscription => ({
     tier: 'enterprise',
+    status: 'active',
     features: ['basic', 'advanced', 'priority', 'api-access', 'bulk-analysis'],
     expiresAt: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
-    dailyAnalysisLimit: 10000,
-    rateLimit: {
-      requestsPerMinute: 300,
-      requestsPerHour: 10000,
-    },
-    organizationId: 'org_123456',
   }),
 };
 

@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { FeatureTour, TourStep, TourProgress, HelpAnalytics } from '@shared/types/help';
+import { FeatureTour, TourProgress, HelpAnalytics } from '@shared/types/help';
 import { logger } from '@shared/services';
 import './FeatureDiscoveryTour.css';
 
@@ -87,6 +87,8 @@ export const FeatureDiscoveryTour: React.FC<FeatureDiscoveryTourProps> = ({
 
       return () => clearTimeout(timer);
     }
+
+    return undefined;
   }, [currentStep, currentStepData, isVisible]);
 
   // Window resize handler

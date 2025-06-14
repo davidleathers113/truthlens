@@ -9,7 +9,7 @@
  * - Progress tracking with completion percentage
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PopupView } from '../Layout/PopupRouter';
 import { storageService } from '@shared/storage/storageService';
 import { UserSettings } from '@shared/types';
@@ -29,7 +29,7 @@ interface SetupStep {
 
 interface SetupSettings {
   theme: 'auto' | 'light' | 'dark';
-  factCheckingLevel: 'basic' | 'standard' | 'comprehensive';
+  factCheckingLevel: 'basic' | 'standard' | 'thorough';
   privacy: {
     analyticsEnabled: boolean;
     localProcessingOnly: boolean;
@@ -43,10 +43,13 @@ interface SetupSettings {
 }
 
 export const QuickSetupWizard: React.FC<QuickSetupWizardProps> = ({
-  onNavigate,
+  onNavigate: _onNavigate,
   onComplete,
   onBack
 }) => {
+  // @ts-ignore - onNavigate parameter reserved for future use
+  _onNavigate;
+
   const [currentStep, setCurrentStep] = useState(0);
   const [settings, setSettings] = useState<SetupSettings>({
     theme: 'auto',
@@ -104,7 +107,7 @@ export const QuickSetupWizard: React.FC<QuickSetupWizardProps> = ({
     setSettings(prev => ({
       ...prev,
       [parentKey]: {
-        ...prev[parentKey],
+        ...(prev[parentKey] && typeof prev[parentKey] === 'object' ? prev[parentKey] : {}),
         [childKey]: value,
       },
     }));
@@ -216,7 +219,7 @@ export const QuickSetupWizard: React.FC<QuickSetupWizardProps> = ({
                     features: ['Multiple source verification', 'Context analysis', 'Bias detection']
                   },
                   {
-                    value: 'comprehensive',
+                    value: 'thorough',
                     label: 'Deep Dive',
                     emoji: '🧠',
                     desc: 'Maximum accuracy',
@@ -226,7 +229,7 @@ export const QuickSetupWizard: React.FC<QuickSetupWizardProps> = ({
                   <button
                     key={level.value}
                     className={`analysis-option ${settings.factCheckingLevel === level.value ? 'selected' : ''}`}
-                    onClick={() => updateSetting('factCheckingLevel', level.value as any)}
+                    onClick={() => updateSetting('factCheckingLevel', level.value as SetupSettings['factCheckingLevel'])}
                     aria-label={`Select ${level.label} analysis level`}
                   >
                     <div className="option-header">
@@ -396,7 +399,7 @@ export const QuickSetupWizard: React.FC<QuickSetupWizardProps> = ({
         <p className="progress-text">Step 3 of 3</p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         /* QuickSetupWizard Styles - 2025 Touch-Optimized Design */
         .setup-wizard {
           display: flex;

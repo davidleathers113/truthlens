@@ -245,16 +245,16 @@ export const TikTokUrlPatterns = {
   ],
 
   videoUrls: [
-    /\/@[^\/]+\/video\/\d+/,
+    /\/@[^/]+\/video\/\d+/,
     /\/v\/\d+/,
     /\/video\/\d+/,
     /\/t\/[A-Za-z0-9]+/ // Share URLs
   ],
 
   profileUrls: [
-    /\/@[^\/]+$/,
-    /\/user\/[^\/]+$/,
-    /\/@[^\/]+\?/
+    /\/@[^/]+$/,
+    /\/user\/[^/]+$/,
+    /\/@[^/]+\?/
   ],
 
   embedUrls: [
@@ -343,8 +343,10 @@ export function getAllTikTokSelectors(path: string): string[] {
   let current: any = TikTokSelectors;
 
   for (const part of pathParts) {
+    if (!current || typeof current !== 'object' || !Object.prototype.hasOwnProperty.call(current, part)) {
+      return [];
+    }
     current = current[part];
-    if (!current) return [];
   }
 
   return Array.isArray(current) ? current : [];
@@ -375,6 +377,9 @@ export function isTikTokProfileUrl(url: string): boolean {
  * Helper function to get delay based on operation type
  */
 export function getTikTokOperationDelay(operation: keyof typeof TikTokRateLimiting.extractionDelays): number {
+  if (!Object.prototype.hasOwnProperty.call(TikTokRateLimiting.extractionDelays, operation)) {
+    return 1000; // Default fallback delay
+  }
   return TikTokRateLimiting.extractionDelays[operation];
 }
 
@@ -405,9 +410,15 @@ export function extractTikTokVideoId(url: string): string | null {
 }
 
 /**
- * Helper function to extract username from TikTok URL
+ * Helper function to extract username from TikTok URL using URL API
  */
 export function extractTikTokUsername(url: string): string | null {
-  const match = url.match(/\/@([^\/\?]+)/);
-  return match ? match[1] : null;
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const match = pathname.match(/\/@([^/?]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
 }

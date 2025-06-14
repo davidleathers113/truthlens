@@ -8,9 +8,6 @@ import {
   TestingConfig,
   ConsentData,
   TestingModule,
-  PrivacySettings,
-  IntegrationSettings,
-  TestingError
 } from './types';
 
 export interface ConfigurationManagerConfig {
@@ -540,7 +537,10 @@ export class ConfigurationManager {
         privacySettings: {
           requireExplicitConsent: false,
           dataRetentionDays: 7,
-          anonymizeData: false
+          anonymizeData: false,
+          allowDataExport: true,
+          respectDoNotTrack: false,
+          minimizeDataCollection: false
         }
       },
       staging: {
@@ -548,7 +548,10 @@ export class ConfigurationManager {
         privacySettings: {
           requireExplicitConsent: true,
           dataRetentionDays: 14,
-          anonymizeData: true
+          anonymizeData: true,
+          allowDataExport: true,
+          respectDoNotTrack: true,
+          minimizeDataCollection: false
         }
       },
       production: {
@@ -557,7 +560,9 @@ export class ConfigurationManager {
           requireExplicitConsent: true,
           dataRetentionDays: 30,
           anonymizeData: true,
-          minimizeDataCollection: true
+          minimizeDataCollection: true,
+          allowDataExport: true,
+          respectDoNotTrack: true
         }
       }
     };
@@ -737,7 +742,7 @@ export class ConfigurationManager {
     // Implementation for safeguards setup
   }
 
-  private validateConfiguration(config: TestingConfig): ConfigurationValidation {
+  private validateConfiguration(_config: TestingConfig): ConfigurationValidation {
     // Implementation for configuration validation
     return {
       isValid: true,
@@ -760,12 +765,12 @@ export class ConfigurationManager {
     });
   }
 
-  private validateConsentCompleteness(options: Record<string, boolean>): boolean {
+  private validateConsentCompleteness(_options: Record<string, boolean>): boolean {
     // Check if all required consents are provided
     return true; // Simplified implementation
   }
 
-  private async verifyUserEligibility(userId: string): Promise<boolean> {
+  private async verifyUserEligibility(_userId: string): Promise<boolean> {
     // Age verification and eligibility checks
     return true; // Simplified implementation
   }
@@ -780,11 +785,11 @@ export class ConfigurationManager {
     return modules;
   }
 
-  private async saveConsentData(userId: string, consent: ConsentData): Promise<void> {
+  private async saveConsentData(_userId: string, _consent: ConsentData): Promise<void> {
     // Implementation for saving consent data
   }
 
-  private async cleanupUserData(userId: string, modules?: TestingModule[]): Promise<void> {
+  private async cleanupUserData(_userId: string, _modules?: TestingModule[]): Promise<void> {
     // Implementation for cleaning up user data
   }
 

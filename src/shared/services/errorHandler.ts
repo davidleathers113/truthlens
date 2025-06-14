@@ -25,7 +25,7 @@ class ErrorHandler {
   private sessionId: string;
   private errorCount: Map<string, number> = new Map();
   private recoveryStrategies: Map<ErrorCategory, (error: TruthLensError) => Promise<RecoveryResult>>;
-  private eventListeners: Map<keyof ErrorHandlerEvents, Set<Function>> = new Map();
+  private eventListeners: Map<string, Set<(data: unknown) => void>> = new Map();
   private circuitBreakers: Map<string, { failures: number; lastFailure: number; isOpen: boolean }> = new Map();
 
   constructor(context: ExtensionContextType, config?: Partial<ErrorHandlerConfig>) {
@@ -125,7 +125,7 @@ class ErrorHandler {
             userActionRequired: false,
             message: 'Connection restored'
           };
-        } catch (_retryError) {
+        } catch {
           this.updateCircuitBreaker(networkError.network.endpoint, false);
           return {
             successful: false,
@@ -309,8 +309,8 @@ class ErrorHandler {
             },
             reportingConsent
           });
-        } catch (_error) {
-          console.error('[ErrorHandler] Failed to get reporting consent:', _error);
+        } catch (error) {
+          console.error('[ErrorHandler] Failed to get reporting consent:', error);
         }
       });
 
@@ -347,8 +347,8 @@ class ErrorHandler {
             },
             reportingConsent
           });
-        } catch (_error) {
-          console.error('[ErrorHandler] Failed to get reporting consent for unhandled rejection:', _error);
+        } catch (error) {
+          console.error('[ErrorHandler] Failed to get reporting consent for unhandled rejection:', error);
         }
       });
     }
@@ -494,7 +494,7 @@ class ErrorHandler {
       severity?: ErrorSeverity;
       code?: string;
       technicalMessage?: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
       affectedFeatures?: string[];
       cause?: Error;
     }
@@ -586,16 +586,16 @@ class ErrorHandler {
 
   // Event system for error handler
   public on<K extends keyof ErrorHandlerEvents>(event: K, listener: (data: ErrorHandlerEvents[K]) => void): void {
-    if (!this.eventListeners.has(event)) {
-      this.eventListeners.set(event, new Set());
+    if (!this.eventListeners.has(event as string)) {
+      this.eventListeners.set(event as string, new Set());
     }
-    this.eventListeners.get(event)!.add(listener);
+    this.eventListeners.get(event as string)!.add(listener as (data: unknown) => void);
   }
 
   public off<K extends keyof ErrorHandlerEvents>(event: K, listener: (data: ErrorHandlerEvents[K]) => void): void {
-    const listeners = this.eventListeners.get(event);
+    const listeners = this.eventListeners.get(event as string);
     if (listeners) {
-      listeners.delete(listener);
+      listeners.delete(listener as (data: unknown) => void);
     }
   }
 

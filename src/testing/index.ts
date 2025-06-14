@@ -14,15 +14,13 @@ import { ConfigurationManager } from './ConfigurationManager';
 import { SentimentAnalyzer } from './SentimentAnalyzer';
 
 import {
-  TestingConfig,
   TestingModule,
+  TestingError,
   AttentionMetrics,
-  MobileMetrics,
   PreferenceData,
   ABTestResult,
   AnalyticsDashboardData,
-  TestingError,
-  ConsentData
+  TestingConfig,
 } from './types';
 
 export interface GenZTestingFrameworkConfig {
@@ -93,7 +91,7 @@ export class GenZTestingFramework {
   // State management
   private errors: TestingError[] = [];
   private results: Partial<TestingResults> = {};
-  private hooks: Map<string, Function[]> = new Map();
+  private hooks: Map<string, ((data: any) => void)[]> = new Map();
   private performance: Map<string, number> = new Map();
 
   constructor(config: Partial<GenZTestingFrameworkConfig> = {}) {
@@ -348,7 +346,7 @@ export class GenZTestingFramework {
   /**
    * Register hook for framework events
    */
-  public onEvent(event: string, callback: Function): void {
+  public onEvent(event: string, callback: (data: any) => void): void {
     if (!this.hooks.has(event)) {
       this.hooks.set(event, []);
     }
@@ -429,6 +427,11 @@ export class GenZTestingFramework {
     if (this.config.enabledModules.includes('ab_testing')) {
       this.abTestingModule = new ABTestingFramework({
         enableGroupSequentialTesting: true,
+        minSampleSize: 500,
+        maxSampleSize: 10000,
+        significanceLevel: 0.05,
+        power: 0.8,
+        sequentialCheckpoints: [0.25, 0.5, 0.75, 1.0],
         mobileOptimization: this.config.genZOptimizations,
         privacyCompliant: this.config.privacyFirst
       });
@@ -437,10 +440,14 @@ export class GenZTestingFramework {
     // Initialize analytics dashboard
     if (this.config.enabledModules.includes('analytics')) {
       this.analyticsModule = new AnalyticsDashboard({
+        refreshInterval: 5000,
         enableRealTime: this.config.realTimeAnalytics,
         enableAI: this.config.genZOptimizations,
         mobileOptimized: this.config.genZOptimizations,
-        privacyMode: this.config.privacyFirst
+        enableConversationalAnalytics: true,
+        enableImmersiveVisualization: true,
+        privacyMode: this.config.privacyFirst,
+        maxDataPoints: 10000
       });
     }
 
@@ -512,7 +519,7 @@ export class GenZTestingFramework {
 
       // Collect preferences
       if (this.preferencesModule && this.config.userId) {
-        this.results.preferences = this.preferencesModule.getUserPreferences(this.config.userId);
+        this.results.preferences = this.preferencesModule.getUserPreferences(this.config.userId) || undefined;
       }
 
       // Collect A/B test results

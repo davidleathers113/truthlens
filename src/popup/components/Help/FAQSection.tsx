@@ -13,7 +13,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { FAQCategory, FAQItem, HelpAnalytics } from '@shared/types/help';
 import { logger } from '@shared/services';
-import './FAQSection.css';
+import '../../styles/FAQSection.css';
 
 export interface FAQSectionProps {
   categories: FAQCategory[];
@@ -41,8 +41,10 @@ export const FAQSection: React.FC<FAQSectionProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
+
+  // @ts-ignore - Reserved for future category filtering feature
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);

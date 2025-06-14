@@ -4,7 +4,7 @@
  * Following 2025 GDPR-compliant best practices for Chrome extension notifications
  */
 
-import { SubscriptionTier, SubscriptionStatus } from '@shared/types';
+import { SubscriptionTier } from '@shared/types';
 import { StorageService } from '../storage/storageService';
 import { logger } from './logger';
 import { subscriptionManager } from './subscriptionManager';
@@ -70,6 +70,7 @@ export class NotificationService {
   // Notification frequency limits (GDPR-compliant)
   private readonly MAX_DAILY_NOTIFICATIONS = 5;
   private readonly MIN_INTERVAL_BETWEEN_NOTIFICATIONS = 2 * 60 * 60 * 1000; // 2 hours
+  // @ts-ignore - Reserved for future promotional notification features
   private readonly PROMOTIONAL_MAX_PER_WEEK = 1;
 
   // Predefined notification templates following 2025 UX best practices
@@ -200,7 +201,7 @@ export class NotificationService {
 
       logger.info('Notification service initialized with GDPR compliance');
     } catch (error) {
-      logger.error('Failed to initialize notification service:', error);
+      logger.error('Failed to initialize notification service:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       throw error;
     }
   }
@@ -310,7 +311,7 @@ export class NotificationService {
 
       return { shown: true };
     } catch (error) {
-      logger.error('Failed to show notification:', error);
+      logger.error('Failed to show notification:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       return { shown: false, reason: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -564,7 +565,7 @@ export class NotificationService {
     }
   }
 
-  private async checkDailyQuota(type: NotificationTemplate['type']): Promise<boolean> {
+  private async checkDailyQuota(_type: NotificationTemplate['type']): Promise<boolean> {
     const quota = await this.getDailyQuota();
     const preferences = await this.getNotificationPreferences();
 
@@ -615,7 +616,7 @@ export class NotificationService {
   private async recordNotificationHistory(
     notificationId: string,
     templateId: string,
-    type: NotificationTemplate['type']
+    _type: NotificationTemplate['type']
   ): Promise<void> {
     const subscription = await subscriptionManager.getCurrentSubscription();
     const history = await this.storageService.get<NotificationHistory[]>(this.STORAGE_KEY_HISTORY, 'local') || [];

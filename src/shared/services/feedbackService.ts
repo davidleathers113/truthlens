@@ -13,8 +13,8 @@
 import { logger } from './logger';
 import { feedbackAntiSpamService, type SpamAnalysisResult } from './feedbackAntiSpamService';
 import { feedbackStorageService, type StoredFeedback } from './feedbackStorageService';
-import type { FeedbackData } from '../components/FeedbackSystem/FeedbackCollector';
-import type { CredibilityScore, ContentAnalysis } from '../types';
+import type { FeedbackData } from '../../popup/components/FeedbackSystem/FeedbackCollector';
+import type { CredibilityScore } from '../types';
 
 export interface FeedbackSubmissionResult {
   success: boolean;
@@ -95,7 +95,7 @@ class FeedbackService {
     feedbackData: FeedbackData,
     credibilityScore: CredibilityScore,
     userId?: string,
-    userMetadata?: any
+    userMetadata?: Record<string, unknown>
   ): Promise<FeedbackSubmissionResult> {
     try {
       const sessionId = userId || this.generateSessionId();
@@ -113,7 +113,7 @@ class FeedbackService {
           type: feedbackData.type,
           url: feedbackData.url,
           timestamp: feedbackData.timestamp,
-          userMetadata
+          userMetadata: userMetadata && typeof userMetadata === 'object' ? userMetadata as { sessionId: string; userAgent: string; timezone: string; language: string } : undefined
         },
         sessionId
       );
@@ -335,7 +335,7 @@ class FeedbackService {
   /**
    * Get feedback analytics for dashboard
    */
-  public async getFeedbackAnalytics(dateRange?: { start: number; end: number }): Promise<FeedbackAnalytics> {
+  public async getFeedbackAnalytics(_dateRange?: { start: number; end: number }): Promise<FeedbackAnalytics> {
     try {
       // This is a simplified implementation - in production, you'd want more sophisticated analytics
       const metrics = await feedbackStorageService.getStorageMetrics();

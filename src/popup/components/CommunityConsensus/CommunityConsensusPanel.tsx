@@ -11,7 +11,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CredibilityScore } from '@shared/types';
-import { feedbackService, type CommunityConsensus } from '@shared/services';
+import { feedbackService } from '@shared/services';
+import type { CommunityConsensus } from '@shared/services/feedbackService';
 import { useSubscriptionManager } from '../../hooks/useSubscriptionManager';
 import '../styles/CommunityConsensus.css';
 
@@ -33,13 +34,13 @@ interface TrendingReport {
 }
 
 export const CommunityConsensusPanel: React.FC<CommunityConsensusPanelProps> = ({
-  credibilityScore,
   url,
   onUpgradeClick,
   className = ''
 }) => {
   // State management
-  const { subscription, isLoading: subscriptionLoading } = useSubscriptionManager();
+  const { subscription } = useSubscriptionManager();
+  const subscriptionLoading = subscription.isLoading;
   const [consensus, setConsensus] = useState<CommunityConsensus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +70,9 @@ export const CommunityConsensusPanel: React.FC<CommunityConsensusPanelProps> = (
         }
       };
     }
+
+    // No cleanup needed if not premium or no URL
+    return undefined;
   }, [isPremium, url]);
 
   const fetchConsensusData = async () => {
@@ -93,7 +97,7 @@ export const CommunityConsensusPanel: React.FC<CommunityConsensusPanelProps> = (
     }
   };
 
-  const fetchTrendingReports = async (url: string): Promise<TrendingReport[]> => {
+  const fetchTrendingReports = async (_url: string): Promise<TrendingReport[]> => {
     // Mock trending reports - in production, this would come from the backend
     return [
       {

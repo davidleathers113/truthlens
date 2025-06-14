@@ -32,9 +32,12 @@ interface PermissionItem {
 
 export const PermissionFlow: React.FC<PermissionFlowProps> = ({
   onNavigate,
-  onComplete,
+  onComplete: _onComplete,
   onBack
 }) => {
+  // @ts-ignore - onComplete parameter reserved for future use
+  _onComplete;
+
   const [permissions, setPermissions] = useState<PermissionItem[]>([
     {
       id: 'activeTab',
@@ -350,7 +353,7 @@ export const PermissionFlow: React.FC<PermissionFlowProps> = ({
         <p className="progress-text">Step 2 of 3</p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         /* PermissionFlow Styles - 2025 Privacy-First Design */
         .permission-flow {
           display: flex;

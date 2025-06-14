@@ -39,7 +39,7 @@ export const LifecycleNotifications: React.FC<LifecycleNotificationsProps> = ({
       const pendingNotifications = await subscriptionLifecycleManager.getPendingNotifications();
       setNotifications(pendingNotifications);
     } catch (error) {
-      logger.error('Failed to load lifecycle notifications:', error);
+      logger.error('Failed to load lifecycle notifications:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +64,7 @@ export const LifecycleNotifications: React.FC<LifecycleNotificationsProps> = ({
 
       logger.info(`Lifecycle notification action taken: ${notification.type}`);
     } catch (error) {
-      logger.error('Failed to handle notification action:', error);
+      logger.error('Failed to handle notification action:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
   };
 
@@ -79,7 +79,7 @@ export const LifecycleNotifications: React.FC<LifecycleNotificationsProps> = ({
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
     } catch (error) {
-      logger.error('Failed to dismiss notification:', error);
+      logger.error('Failed to dismiss notification:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
   };
 
@@ -211,8 +211,6 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ expiresAt }) => {
       }
 
       // Calculate progress percentage (assuming 24-hour window)
-      const startTime = expiresAt - totalTime;
-      const elapsed = now - startTime;
       const percentage = Math.max(0, Math.min(100, (timeLeft / totalTime) * 100));
       setProgressPercentage(percentage);
     };
@@ -248,7 +246,7 @@ export const useLifecycleNotifications = () => {
         const notifications = await subscriptionLifecycleManager.getPendingNotifications();
         setNotificationCount(notifications.length);
       } catch (error) {
-        logger.error('Failed to check notification count:', error);
+        logger.error('Failed to check notification count:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       }
     };
 
@@ -262,7 +260,7 @@ export const useLifecycleNotifications = () => {
     try {
       await subscriptionLifecycleManager.triggerLifecycleCheck();
     } catch (error) {
-      logger.error('Failed to trigger manual lifecycle check:', error);
+      logger.error('Failed to trigger manual lifecycle check:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
     }
   };
 

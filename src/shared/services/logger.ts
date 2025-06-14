@@ -6,6 +6,14 @@
 import { LogConfig, LogEntry, ExtensionContextType } from '../types/error';
 import { storageService } from '../storage/storageService';
 
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 class Logger {
   private config: LogConfig;
   private sessionId: string;
@@ -97,10 +105,10 @@ class Logger {
     return true; // Always log warn, error, fatal
   }
 
-  private sanitizeData(data: any): any {
+  private sanitizeData(data: unknown): unknown {
     if (!data || typeof data !== 'object') return data;
 
-    const sanitized = { ...data };
+    const sanitized = { ...data } as Record<string, any>;
 
     // Remove blocked fields
     this.config.privacy.blockedFields.forEach(field => {
@@ -149,7 +157,7 @@ class Logger {
   private async createLogEntry(
     level: string,
     message: string,
-    data?: Record<string, any>,
+    data?: Record<string, unknown>,
     error?: Error,
     performance?: { duration?: number; memory?: number; startTime?: number; endTime?: number }
   ): Promise<LogEntry> {
@@ -169,7 +177,7 @@ class Logger {
     };
 
     if (data) {
-      entry.data = this.sanitizeData(data);
+      entry.data = this.sanitizeData(data) as Record<string, unknown>;
     }
 
     if (error) {
@@ -316,7 +324,7 @@ class Logger {
 
   // Public API Methods
 
-  public debug(message: string, data?: Record<string, any>): void {
+  public debug(message: string, data?: Record<string, unknown>): void {
     if (!this.shouldLog('debug') || !this.shouldSample('debug')) return;
 
     this.createLogEntry('debug', message, data).then(entry => {
@@ -324,7 +332,7 @@ class Logger {
     });
   }
 
-  public info(message: string, data?: Record<string, any>): void {
+  public info(message: string, data?: Record<string, unknown>): void {
     if (!this.shouldLog('info') || !this.shouldSample('info')) return;
 
     this.createLogEntry('info', message, data).then(entry => {
@@ -332,7 +340,7 @@ class Logger {
     });
   }
 
-  public warn(message: string, data?: Record<string, any>, error?: Error): void {
+  public warn(message: string, data?: Record<string, unknown>, error?: Error): void {
     if (!this.shouldLog('warn')) return;
 
     this.createLogEntry('warn', message, data, error).then(entry => {
@@ -340,7 +348,7 @@ class Logger {
     });
   }
 
-  public error(message: string, data?: Record<string, any>, error?: Error): void {
+  public error(message: string, data?: Record<string, unknown>, error?: Error): void {
     if (!this.shouldLog('error')) return;
 
     this.createLogEntry('error', message, data, error).then(entry => {
@@ -348,7 +356,7 @@ class Logger {
     });
   }
 
-  public fatal(message: string, data?: Record<string, any>, error?: Error): void {
+  public fatal(message: string, data?: Record<string, unknown>, error?: Error): void {
     if (!this.shouldLog('fatal')) return;
 
     this.createLogEntry('fatal', message, data, error).then(entry => {
@@ -359,13 +367,13 @@ class Logger {
   // Performance logging helpers
   public time(label: string): { end: () => void } {
     const startTime = performance.now();
-    const startMemory = 'memory' in performance ? (performance as any).memory?.usedJSHeapSize : undefined;
+    const startMemory = 'memory' in performance ? (performance as PerformanceWithMemory).memory?.usedJSHeapSize : undefined;
 
     return {
       end: () => {
         const endTime = performance.now();
         const duration = endTime - startTime;
-        const endMemory = 'memory' in performance ? (performance as any).memory?.usedJSHeapSize : undefined;
+        const endMemory = 'memory' in performance ? (performance as PerformanceWithMemory).memory?.usedJSHeapSize : undefined;
 
         this.info(`Performance: ${label}`, {
           performance: {

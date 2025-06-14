@@ -25,7 +25,7 @@ export class MemoryAnalyzer {
   private config: LeakDetectionConfig;
   private monitoringActive = false;
   private intervalId: number | null = null;
-  private weakRefs: Set<WeakRef<any>> = new Set();
+  private weakRefs: Set<WeakRef<object>> = new Set();
   private objectCounters: Map<string, number> = new Map();
 
   constructor(config: Partial<LeakDetectionConfig> = {}) {

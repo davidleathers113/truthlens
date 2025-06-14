@@ -5,13 +5,13 @@ import { chromium, FullConfig } from '@playwright/test';
 import path from 'path';
 import { execSync } from 'child_process';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup(_config: FullConfig) {
   console.log('🚀 Setting up TruthLens E2E test environment...');
 
   // Build the extension for testing
   console.log('📦 Building extension...');
   try {
-    execSync('npm run build', { 
+    execSync('npm run build', {
       stdio: 'inherit',
       cwd: path.resolve(__dirname, '../..'),
     });
@@ -24,7 +24,7 @@ async function globalSetup(config: FullConfig) {
   // Verify extension files exist
   const extensionPath = path.resolve(__dirname, '../../dist');
   const manifestPath = path.join(extensionPath, 'manifest.json');
-  
+
   try {
     require('fs').accessSync(manifestPath);
     console.log('✅ Extension manifest found');
@@ -45,7 +45,7 @@ async function globalSetup(config: FullConfig) {
   });
 
   const context = await browser.newContext();
-  
+
   // Wait for extension to load
   let extensionId: string | null = null;
   try {
@@ -56,7 +56,7 @@ async function globalSetup(config: FullConfig) {
       const serviceWorker = await context.waitForEvent('serviceworker', { timeout: 10000 });
       extensionId = serviceWorker.url().split('/')[2];
     }
-    
+
     console.log('✅ Extension loaded with ID:', extensionId);
   } catch (error) {
     console.error('❌ Failed to load extension:', error);

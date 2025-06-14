@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { AdvancedBiasDetectionResult, ContentAnalysis } from '@shared/types';
+import { ContentAnalysis } from '@shared/types';
+import type { AdvancedBiasDetectionResult } from '@background/ai/biasDetectionService';
 import { BiasVisualization } from './BiasVisualization';
 import { useSubscriptionManager } from '../hooks/useSubscriptionManager';
 import { biasDetectionService } from '@shared/services';
-import './BiasDetectionPanel.css';
+import '../styles/BiasDetectionPanel.css';
 
 interface BiasDetectionPanelProps {
   contentAnalysis?: ContentAnalysis;
@@ -14,7 +15,8 @@ export const BiasDetectionPanel: React.FC<BiasDetectionPanelProps> = ({
   contentAnalysis,
   onUpgradeClick
 }) => {
-  const { subscription, isLoading: subscriptionLoading } = useSubscriptionManager();
+  const { subscription } = useSubscriptionManager();
+  const subscriptionLoading = subscription.isLoading;
   const [biasResult, setBiasResult] = useState<AdvancedBiasDetectionResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);

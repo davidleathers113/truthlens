@@ -355,7 +355,7 @@ export class WebVitalsMonitor {
       }
     });
 
-    return scores.length > 0 ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length : 0;
+    return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
   }
 
   public isSupported(): boolean {

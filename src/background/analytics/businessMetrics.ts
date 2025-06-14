@@ -196,7 +196,7 @@ export class BusinessMetricsTracker {
   /**
    * Calculate Gen Z engagement rate
    */
-  private calculateGenZEngagement(events: any[]): number {
+  private calculateGenZEngagement(events: Array<{ eventCounts?: Record<string, number> }>): number {
     let totalActions = 0;
     let engagedActions = 0;
 
@@ -213,14 +213,17 @@ export class BusinessMetricsTracker {
   /**
    * Identify Gen Z preferred features
    */
-  private getGenZPreferredFeatures(events: any[]): string[] {
+  private getGenZPreferredFeatures(events: Array<{ eventCounts?: Record<string, number>; properties?: Record<string, unknown> }>): string[] {
     const featureUsage: Record<string, number> = {};
 
     events.forEach(event => {
       // In a real implementation, we'd track specific features
       // This is a simplified example
-      if (event.properties?.feature) {
-        featureUsage[event.properties.feature] = (featureUsage[event.properties.feature] || 0) + 1;
+      if (event.properties && typeof event.properties === 'object' && 'feature' in event.properties) {
+        const feature = event.properties.feature;
+        if (typeof feature === 'string') {
+          featureUsage[feature] = (featureUsage[feature] || 0) + 1;
+        }
       }
     });
 
@@ -233,10 +236,11 @@ export class BusinessMetricsTracker {
   /**
    * Analyze Gen Z session patterns
    */
-  private analyzeGenZSessionPatterns(events: any[]): string {
+  private analyzeGenZSessionPatterns(events: Array<{ timestamp?: number; properties?: Record<string, unknown> }>): string {
     const sessionDurations = events
-      .filter(event => event.properties?.sessionDuration)
-      .map(event => event.properties.sessionDuration);
+      .filter(event => event.properties && typeof event.properties === 'object' && 'sessionDuration' in event.properties)
+      .map(event => event.properties!.sessionDuration)
+      .filter((duration): duration is number => typeof duration === 'number');
 
     if (sessionDurations.length === 0) return 'unknown';
 

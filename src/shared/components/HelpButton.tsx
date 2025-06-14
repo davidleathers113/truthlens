@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { HelpHub } from './HelpHub';
+import HelpHub from './HelpHub';
 
 interface UserContext {
   location: string;
@@ -278,7 +278,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({
         />
       )}
 
-      <style jsx>{`
+      <style>{`
         /* Base Help Button Styles - 2025 Standards */
         .help-button {
           display: inline-flex;

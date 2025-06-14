@@ -212,7 +212,29 @@ export const HelpView: React.FC<HelpViewProps> = ({ onNavigate }) => {
         <HelpHub
           isOpen={true}
           onClose={handleHelpClose}
-          context={helpContext}
+          context={{
+            // UserContext
+            location: helpContext.currentPage,
+            action: 'viewing_help',
+            userType: helpContext.userType,
+            sessionTime: helpContext.sessionTime,
+            lastActivity: helpContext.lastActivity,
+            completedTours: helpContext.completedTours,
+            frustrationLevel: helpContext.frustrationLevel,
+            preferredHelpType: helpContext.preferredHelpType,
+            // EnvironmentContext
+            deviceType: helpContext.deviceType,
+            connectionSpeed: 'fast' as const,
+            timeOfDay: 'afternoon' as const,
+            isFirstVisit: false,
+            accessibilityNeeds: [],
+            // SystemContext
+            currentPage: helpContext.currentPage,
+            loadTime: 0,
+            errors: [],
+            featureUsage: {},
+            helpInteractions: helpContext.helpInteractions
+          }}
           onContextUpdate={handleContextUpdate}
           embedded={true}
           showCloseButton={false}
@@ -221,7 +243,7 @@ export const HelpView: React.FC<HelpViewProps> = ({ onNavigate }) => {
 
       <Footer />
 
-      <style jsx>{`
+      <style>{`
         /* HelpView Styles - 2025 Design Standards */
         .help-view {
           display: flex;

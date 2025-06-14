@@ -15,7 +15,6 @@ import {
   AttentionMetrics,
   MobileMetrics,
   PreferenceData,
-  TestingConfig,
   ConsentData
 } from './types';
 
@@ -87,10 +86,12 @@ export class ABTestingFramework {
   private sequentialResults: Map<string, SequentialTestResult[]> = new Map();
   private conversionFunnels: Map<string, ConversionFunnel[]> = new Map();
   private config: ABTestingConfig;
+  // @ts-ignore - Reserved for future consent management features
   private consentManager: ConsentData | null = null;
 
   constructor(config: ABTestingConfig) {
-    this.config = {
+    // Default values
+    const defaults: ABTestingConfig = {
       enableGroupSequentialTesting: true,
       minSampleSize: 500, // Mobile-optimized minimum
       maxSampleSize: 10000,
@@ -98,9 +99,10 @@ export class ABTestingFramework {
       power: 0.8,
       sequentialCheckpoints: [0.25, 0.5, 0.75, 1.0],
       mobileOptimization: true,
-      privacyCompliant: true,
-      ...config
+      privacyCompliant: true
     };
+
+    this.config = { ...defaults, ...config }; // Merge defaults with user config
   }
 
   /**
@@ -461,7 +463,7 @@ export class ABTestingFramework {
   /**
    * Detect if user exhibits Gen Z behavior patterns
    */
-  private detectGenZUser(context: any): boolean {
+  private detectGenZUser(context: { attentionMetrics?: AttentionMetrics; mobileMetrics?: MobileMetrics; deviceType?: DeviceType; preferences?: PreferenceData }): boolean {
     // Check attention patterns (8-second rule)
     if (context.attentionMetrics) {
       const hasShortAttention = context.attentionMetrics.initialAttentionWindow <= 8000;
@@ -473,7 +475,7 @@ export class ABTestingFramework {
     // Check mobile-first behavior
     if (context.mobileMetrics && context.deviceType === 'mobile') {
       const hasGenZGestures = context.mobileMetrics.gestureRecognition.some(
-        (g: any) => g.gesture === 'three_finger_tap' || g.efficiency > 0.8
+        (g) => g.gesture === 'three_finger_tap' || g.efficiency > 0.8
       );
 
       if (hasGenZGestures) return true;
@@ -564,19 +566,19 @@ export class ABTestingFramework {
     }
   }
 
-  private matchesAudienceFilter(context: any, filter: AudienceFilter): boolean {
-    if (filter.deviceTypes.length > 0 && !filter.deviceTypes.includes(context.deviceType)) {
+  private matchesAudienceFilter(context: { deviceType?: DeviceType }, filter: AudienceFilter): boolean {
+    if (filter.deviceTypes.length > 0 && context.deviceType && !filter.deviceTypes.includes(context.deviceType)) {
       return false;
     }
 
     return true;
   }
 
-  private updateConversionFunnel(testId: string, variantId: string, event: ConversionEvent): void {
+  private updateConversionFunnel(_testId: string, _variantId: string, _event: ConversionEvent): void {
     // Implementation for conversion funnel tracking
   }
 
-  private determineWinner(summaries: any[]): string | null {
+  private determineWinner(summaries: Array<{ isControl: boolean; variantId: string; conversionRate: number }>): string | null {
     if (summaries.length < 2) return null;
 
     const control = summaries.find(s => s.isControl);
@@ -598,7 +600,7 @@ export class ABTestingFramework {
     return latestResult ? latestResult.confidence : 0;
   }
 
-  private generateRecommendations(testId: string, summaries: any[]): string[] {
+  private generateRecommendations(_testId: string, summaries: Array<{ isControl: boolean; variantId: string; conversionRate: number; sampleSize: number }>): string[] {
     const recommendations: string[] = [];
 
     const control = summaries.find(s => s.isControl);
@@ -633,7 +635,7 @@ interface TestSummary {
   totalSampleSize: number;
   startTime: number;
   endTime?: number;
-  variantSummaries: any[];
+  variantSummaries: Array<{ isControl: boolean; variantId: string; conversionRate: number; sampleSize: number }>;
   winner: string | null;
   confidence: number;
   statisticalSignificance: boolean;

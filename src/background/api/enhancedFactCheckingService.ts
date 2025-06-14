@@ -50,7 +50,6 @@ export interface EnhancedCredibilityResult {
  * Enhanced fact-checking service with external API integration
  */
 export class EnhancedFactCheckingService {
-  private static readonly CACHE_DURATION = 86400000; // 24 hours
   private static readonly CONSENT_VERSION = '1.0';
   private static readonly EXTERNAL_API_WEIGHT = 0.2; // 20% weight as per requirements
 
@@ -73,9 +72,9 @@ export class EnhancedFactCheckingService {
     // Initialize Google Fact Check client if API key provided
     if (config.googleApiKey && config.enableExternalApis) {
       this.googleClient = createGoogleFactCheckClient(config.googleApiKey);
-      console.info('Enhanced fact-checking service initialized with external APIs');
+      console.debug('Enhanced fact-checking service initialized with external APIs');
     } else {
-      console.info('Enhanced fact-checking service initialized in local-only mode');
+      console.debug('Enhanced fact-checking service initialized in local-only mode');
     }
   }
 
@@ -125,7 +124,11 @@ export class EnhancedFactCheckingService {
       return {
         score: finalScore,
         externalApiResults,
-        consent,
+        consent: {
+          required: this.config.requireConsent,
+          granted: consent.externalApiEnabled,
+          canUseExternalApis: consent.canUseExternalApis
+        },
         performance: {
           localAnalysisMs,
           externalApiMs,
@@ -338,7 +341,12 @@ export class EnhancedFactCheckingService {
    */
   private static combineResults(
     localScore: CredibilityScore,
-    externalResults?: any
+    externalResults?: {
+      google?: FactCheckSummary;
+      sources: string[];
+      confidence: number;
+      lastChecked: string;
+    }
   ): CredibilityScore {
     if (!externalResults || !externalResults.google) {
       return localScore;
@@ -378,7 +386,7 @@ export class EnhancedFactCheckingService {
       level,
       confidence: combinedConfidence,
       reasoning: combinedReasoning,
-      source: 'combined',
+      source: 'api' as const,
       timestamp: Date.now(),
     };
   }
@@ -398,7 +406,7 @@ export class EnhancedFactCheckingService {
 
     try {
       await chrome.storage.local.set({ factcheck_consent: consent });
-      console.info(`User consent for external APIs: ${enabled ? 'granted' : 'revoked'}`);
+      console.debug(`User consent for external APIs: ${enabled ? 'granted' : 'revoked'}`);
     } catch (error) {
       console.error('Error saving user consent:', error);
     }
@@ -419,7 +427,12 @@ export class EnhancedFactCheckingService {
   /**
    * Get cached external API result
    */
-  private static async getCachedExternalResult(cacheKey: string): Promise<any | null> {
+  private static async getCachedExternalResult(cacheKey: string): Promise<{
+    google?: FactCheckSummary;
+    sources: string[];
+    confidence: number;
+    lastChecked: string;
+  } | null> {
     try {
       const result = await chrome.storage.local.get([cacheKey]);
       const cached = result[cacheKey];
@@ -438,7 +451,15 @@ export class EnhancedFactCheckingService {
   /**
    * Cache external API result
    */
-  private static async cacheExternalResult(cacheKey: string, data: any): Promise<void> {
+  private static async cacheExternalResult(
+    cacheKey: string,
+    data: {
+      google?: FactCheckSummary;
+      sources: string[];
+      confidence: number;
+      lastChecked: string;
+    }
+  ): Promise<void> {
     try {
       const cacheEntry = {
         data,
@@ -480,7 +501,7 @@ export class EnhancedFactCheckingService {
 
       if (keysToRemove.length > 0) {
         await chrome.storage.local.remove(keysToRemove);
-        console.info(`Cleared ${keysToRemove.length} external cache entries`);
+        console.debug(`Cleared ${keysToRemove.length} external cache entries`);
       }
     } catch (error) {
       console.error('Error clearing external cache:', error);

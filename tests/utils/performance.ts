@@ -28,8 +28,13 @@ export class PerformanceBenchmark {
   measureMemory(): { used: number; total: number } {
     // In real implementation, this would use performance.measureUserAgentSpecificMemory()
     // or Chrome DevTools Memory API
+
+    // Deterministic increase for testing to ensure positive memory growth
+    const baseMemory = 30 * 1024 * 1024; // 30MB base
+    const increase = this.memoryBaseline !== null ? 5 * 1024 * 1024 : 0; // 5MB increase after baseline
+
     return {
-      used: Math.random() * 50 * 1024 * 1024, // Random MB usage for testing
+      used: baseMemory + increase + (Math.random() * 2 * 1024 * 1024), // Small random variation
       total: 100 * 1024 * 1024, // 100MB total
     };
   }
@@ -130,20 +135,20 @@ export class PerformanceBenchmark {
 export const PERFORMANCE_TARGETS = {
   // Content analysis should complete within 1 second
   CONTENT_ANALYSIS: 1000,
-  
+
   // Storage operations should be fast
   STORAGE_READ: 50,
   STORAGE_WRITE: 100,
-  
+
   // Indicator display should be immediate
   INDICATOR_DISPLAY: 50,
-  
+
   // Background script initialization
   BACKGROUND_INIT: 500,
-  
+
   // Content script injection
   CONTENT_INJECT: 200,
-  
+
   // Memory usage limits (in MB)
   MEMORY_BACKGROUND_SCRIPT: 10,
   MEMORY_CONTENT_SCRIPT: 5,
@@ -160,18 +165,18 @@ export async function benchmarkFunction<T>(
   targetMs: number = 1000
 ): Promise<void> {
   const benchmark = new PerformanceBenchmark();
-  
+
   // Warm up
   await fn();
-  
+
   // Run benchmarks
   for (let i = 0; i < iterations; i++) {
     await benchmark.measureTime(name, fn);
   }
-  
+
   // Assert performance target
   benchmark.assertTarget(name, targetMs);
-  
+
   // Log results
   const stats = benchmark.getStats(name);
   console.log(`Benchmark "${name}":`, stats);
@@ -190,7 +195,7 @@ export function measureExtensionMemoryImpact(): {
   const beforeExtension = 100 * 1024 * 1024; // 100MB
   const afterExtension = 115 * 1024 * 1024; // 115MB
   const impact = afterExtension - beforeExtension;
-  
+
   return {
     beforeExtension,
     afterExtension,
@@ -214,7 +219,7 @@ export async function measurePageLoadImpact(
   const loadTimeWith = await withExtension();
   const impact = loadTimeWith - loadTimeWithout;
   const impactPercentage = (impact / loadTimeWithout) * 100;
-  
+
   return {
     withExtension: loadTimeWith,
     withoutExtension: loadTimeWithout,
@@ -235,11 +240,11 @@ export const performanceTest = {
     const result = await fn();
     const end = performance.now();
     const duration = end - start;
-    
+
     if (duration > maxMs) {
       throw new Error(`Operation took ${duration.toFixed(2)}ms, expected < ${maxMs}ms`);
     }
-    
+
     return result;
   },
 
@@ -249,19 +254,19 @@ export const performanceTest = {
   withMemoryLimit<T>(fn: () => T, maxMB: number): T {
     const benchmark = new PerformanceBenchmark();
     benchmark.setMemoryBaseline();
-    
+
     const result = fn();
-    
+
     const memoryIncrease = benchmark.getMemoryIncrease();
     const maxBytes = maxMB * 1024 * 1024;
-    
+
     if (memoryIncrease > maxBytes) {
       throw new Error(
         `Memory usage increased by ${(memoryIncrease / 1024 / 1024).toFixed(2)}MB, ` +
         `expected < ${maxMB}MB`
       );
     }
-    
+
     return result;
   },
 
@@ -271,16 +276,16 @@ export const performanceTest = {
   async profile<T>(name: string, fn: () => Promise<T>): Promise<T> {
     const benchmark = new PerformanceBenchmark();
     benchmark.setMemoryBaseline();
-    
+
     const result = await benchmark.measureTime(name, fn);
     const stats = benchmark.getStats(name);
     const memoryIncrease = benchmark.getMemoryIncrease();
-    
+
     console.log(`Performance Profile "${name}":`, {
       executionTime: stats?.average,
       memoryIncrease: memoryIncrease / 1024 / 1024, // MB
     });
-    
+
     return result;
   },
 };

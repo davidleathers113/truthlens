@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { UserSettings } from '@shared/types';
 import { storageService } from '@shared/storage/storageService';
 
-interface GeneralSettingsProps {}
+interface GeneralSettingsProps {
+  // Empty interface for future props - allows extensibility
+  [key: string]: never;
+}
 
 export const GeneralSettings: React.FC<GeneralSettingsProps> = () => {
   const [settings, setSettings] = useState<UserSettings | null>(null);

@@ -1,6 +1,9 @@
 import React from 'react';
 
-interface AdvancedSettingsProps {}
+interface AdvancedSettingsProps {
+  // Empty interface for future props - allows extensibility
+  [key: string]: never;
+}
 
 export const AdvancedSettings: React.FC<AdvancedSettingsProps> = () => {
   return (

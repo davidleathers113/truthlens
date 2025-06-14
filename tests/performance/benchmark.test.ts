@@ -1,6 +1,7 @@
 // Performance benchmark tests for TruthLens
 // Tests performance targets and memory usage
 
+import { jest } from '@jest/globals';
 import { PerformanceBenchmark, PERFORMANCE_TARGETS, benchmarkFunction } from '../utils/performance';
 import { AIService } from '@background/ai/aiService';
 import { StorageService } from '@shared/storage/storageService';
@@ -8,20 +9,61 @@ import { IndicatorManager } from '@content/indicators/indicatorManager';
 import { mockContentAnalysis, mockCredibilityScore } from '../utils/mockData';
 
 describe('Performance Benchmarks', () => {
+  beforeEach(() => {
+    // Ensure window.ai is properly mocked for benchmark tests
+    if (!window.ai?.languageModel?.create) {
+      const mockCreate = jest.fn<() => Promise<any>>().mockResolvedValue({
+        prompt: jest.fn<(prompt: string) => Promise<string>>().mockResolvedValue('{"score": 80, "level": "high", "reasoning": "Test"}'),
+        destroy: jest.fn<() => void>(),
+      });
+
+      window.ai = {
+        languageModel: {
+          create: mockCreate,
+          availability: jest.fn<() => Promise<string>>().mockResolvedValue('readily'),
+        },
+        assistant: {
+          availability: jest.fn<() => Promise<string>>().mockResolvedValue('no'),
+          create: jest.fn(),
+        },
+        summarizer: {
+          availability: jest.fn<() => Promise<string>>().mockResolvedValue('no'),
+          create: jest.fn(),
+        },
+        writer: {
+          availability: jest.fn<() => Promise<string>>().mockResolvedValue('no'),
+          create: jest.fn(),
+        },
+        rewriter: {
+          availability: jest.fn<() => Promise<string>>().mockResolvedValue('no'),
+          create: jest.fn(),
+        },
+        translator: {
+          availability: jest.fn<() => Promise<string>>().mockResolvedValue('no'),
+          create: jest.fn(),
+        },
+        languageDetector: {
+          availability: jest.fn<() => Promise<string>>().mockResolvedValue('no'),
+          create: jest.fn(),
+        },
+      } as ChromeAI;
+    }
+  });
+
   describe('AI Service Performance', () => {
     it('should complete content analysis within performance target', async () => {
       const aiService = new AIService();
       await aiService.initialize();
-      
+
       const testContent = mockContentAnalysis.article();
-      
+
       await benchmarkFunction(
         'AI Content Analysis',
         () => aiService.analyzeContent(testContent),
         5, // iterations
         PERFORMANCE_TARGETS.CONTENT_ANALYSIS
       );
-      
+
       aiService.destroy();
     });
   });
@@ -29,14 +71,14 @@ describe('Performance Benchmarks', () => {
   describe('Storage Performance', () => {
     it('should complete storage operations within targets', async () => {
       const storageService = new StorageService();
-      
+
       await benchmarkFunction(
         'Storage Read',
         () => storageService.getSettings(),
         10,
         PERFORMANCE_TARGETS.STORAGE_READ
       );
-      
+
       await benchmarkFunction(
         'Storage Write',
         () => storageService.updateSettings({ theme: 'dark' }),
@@ -59,7 +101,7 @@ describe('Performance Benchmarks', () => {
       const indicatorManager = new IndicatorManager();
       const testContent = mockContentAnalysis.article();
       const testCredibility = mockCredibilityScore.high();
-      
+
       await benchmarkFunction(
         'Indicator Display',
         async () => {
@@ -69,7 +111,7 @@ describe('Performance Benchmarks', () => {
         10,
         PERFORMANCE_TARGETS.INDICATOR_DISPLAY
       );
-      
+
       indicatorManager.cleanup();
     });
   });
@@ -78,21 +120,19 @@ describe('Performance Benchmarks', () => {
     it('should measure extension memory impact', () => {
       const benchmark = new PerformanceBenchmark();
       benchmark.setMemoryBaseline();
-      
+
       // Simulate extension operations
       const aiService = new AIService();
-      const storageService = new StorageService();
       const indicatorManager = new IndicatorManager();
-      
+
       const memoryIncrease = benchmark.getMemoryIncrease();
-      const maxMemoryMB = PERFORMANCE_TARGETS.MEMORY_BACKGROUND_SCRIPT;
-      
+
       console.log(`Memory increase: ${(memoryIncrease / 1024 / 1024).toFixed(2)}MB`);
-      
+
       // In real testing, this would check actual memory
       // For mock testing, we verify the measurement works
       expect(memoryIncrease).toBeGreaterThanOrEqual(0);
-      
+
       // Cleanup
       aiService.destroy();
       indicatorManager.cleanup();
@@ -103,21 +143,21 @@ describe('Performance Benchmarks', () => {
     it('should handle multiple simultaneous analyses efficiently', async () => {
       const aiService = new AIService();
       await aiService.initialize();
-      
-      const testContents = Array.from({ length: 5 }, (_, i) => 
-        mockContentAnalysis.article({ 
+
+      const testContents = Array.from({ length: 5 }, (_, i) =>
+        mockContentAnalysis.article({
           title: `Concurrent Test ${i}`,
-          url: `https://example.com/test${i}` 
+          url: `https://example.com/test${i}`
         })
       );
 
       const benchmark = new PerformanceBenchmark();
-      
+
       await benchmark.measureTime('Concurrent Analysis', async () => {
         const results = await Promise.all(
           testContents.map(content => aiService.analyzeContent(content))
         );
-        
+
         expect(results).toHaveLength(5);
         results.forEach(result => {
           expect(result.score).toBeGreaterThanOrEqual(0);
@@ -128,9 +168,9 @@ describe('Performance Benchmarks', () => {
       const stats = benchmark.getStats('Concurrent Analysis');
       expect(stats?.average).toBeDefined();
       expect(stats!.average).toBeLessThan(3000); // 3 second max for 5 concurrent analyses
-      
+
       console.log('Concurrent analysis stats:', stats);
-      
+
       aiService.destroy();
     });
   });

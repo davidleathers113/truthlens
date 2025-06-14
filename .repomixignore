@@ -1,0 +1,112 @@
+# Build outputs and generated files
+dist/
+build/
+*.min.js
+*.min.css
+*.map
+*.crx
+*.pem
+*.zip
+
+# Dependencies and package managers
+node_modules/
+bower_components/
+jspm_packages/
+.pnp.*
+.yarn/*
+
+# Testing artifacts
+coverage/
+*.lcov
+.nyc_output/
+tests/e2e/screenshots/
+tests/e2e/videos/
+tests/e2e/downloads/
+test-results/
+
+# Logs and temporary files
+*.log
+logs/
+*.tmp
+*.temp
+*.cache
+*.bak
+.DS_Store
+Thumbs.db
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+
+# Chrome extension specific
+extension-unpacked/
+chrome-profile/
+store-assets/screenshots/raw/
+
+# IDE and editor files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# Lock files (usually not needed for AI analysis)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Documentation artifacts
+docs/_site/
+docs/.jekyll-cache/
+
+# Large binary files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.pdf
+*.zip
+*.tar.gz
+*.rar
+
+# AI Assistant & Task Management
+.claude/
+CLAUDE.md
+tasks/
+*.claude
+
+# Development & Planning Documents
+pre-prd.md
+truth-lens-plan.md
+prd.txt
+regex-replacement-implementation-proposal.md
+replacements-for-regex.md
+docs/*phase*.md
+docs/*-report.md
+docs/*-analysis.md
+docs/ci-cd-pipeline.md
+docs/fact-checking-api-2025-best-practices.md
+
+# CI/CD & Development Scripts
+scripts/bundle-size-check.js
+scripts/configure-rollout.js
+scripts/csp-audit.*
+scripts/generate-release-notes.js
+scripts/memory-test.js
+scripts/notify-deployment.js
+scripts/pipeline-health-check.js
+scripts/prd.txt
+
+# Store & Marketing Assets
+store-assets/
+
+# Specific project files to exclude
+tasks.json.bak
+repomix-output.*

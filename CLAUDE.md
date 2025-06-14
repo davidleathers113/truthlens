@@ -1,50 +1,84 @@
 # CLAUDE.md
+# Chrome extension guidance for Claude Code — concise & actionable.
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## 🛠 Quick commands
+- **Build** …… `npm run build`   • production bundle
+- **Dev** ……… `npm run dev`     • watch + hot reload
+- **Lint** ……… `npm run lint`    • ESLint Flat Config + security checks
+- **Type** ……… `npm run type-check` • TypeScript validation
+- **Test** ……… `npm test` (unit) | `npm test:e2e` (Playwright) | `npm test -- -t "name"` (single)
+- **Package** … `npm run package` • Chrome Web Store ZIP
+- **Format** … `npm run format`  • Prettier code formatting
 
-## Common Commands
-- Build: `npm run build`
-- Development: `npm run dev` (watch mode with hot reload)
-- Test all: `npm test`
-- Test with coverage: `npm test:coverage`
-- Test single: `npm test -- -t "test name"`
-- E2E tests: `npm run test:e2e`
-- Lint: `npm run lint`
-- Type check: `npm run type-check`
-- Format: `npm run format`
-- Package extension: `npm run package` (creates ZIP for Chrome Web Store)
+## 🎨 Code style (MUST‑FOLLOW)
+1. **Formatting** Prettier ⋅ 2‑space indent ⋅ 100 col wrap
+2. **Imports** External → Internal ⋅ Use path aliases (`@shared`, `@popup`, etc.)
+3. **Types** No implicit any ⋅ favor `interface` > `type` aliases
+4. **Naming** camelCase vars/fns ⋅ PascalCase components/classes
+5. **Errors** Wrap async/await in try/catch ⋅ surface with Result<>
+6. **Comments** Explain *why*, not *what* ⋅ omit obvious boilerplate
+7. **Modules** Always use ES module syntax instead of CommonJS
 
-## Architecture Overview
+## 🔄 Workflow
+> **lint → typecheck → test → commit**
+- Chrome extension = multi-context (background/content/popup/options)
+- Always test cross-context messaging when modifying APIs
+- Run `npm run lint && npm run type-check && npm test` before commits
 
-TruthLens is a Chrome Manifest V3 extension with a multi-context architecture:
+## 🎯 4-Phase Implementation Approach (MUST‑FOLLOW)
+For every implementation task, follow these phases:
 
-### Core Structure
-- **Background Script** (`src/background/`): Service worker handling AI processing, API calls, and cross-tab messaging
-- **Content Scripts** (`src/content/`): Inject into web pages to analyze content and display credibility indicators
-- **Popup Interface** (`src/popup/`): React-based extension popup for user interaction
-- **Options Page** (`src/options/`): React-based settings and configuration interface
-- **Shared Code** (`src/shared/`): Common types, utilities, storage service, and constants
+### Phase 1: RECON (Reconnaissance)
+- **Investigate** current state and identify all problems
+- **Map** existing code, dependencies, and conflicts
+- **Document** specific issues and edge cases
+- **Understand** the full scope before making changes
 
-### Key Architectural Patterns
-- **Chrome Built-in AI Integration**: Uses Gemini Nano for local privacy-first content analysis
-- **Platform-Specific Analyzers**: Content extractors in `src/content/analyzers/` handle different social media platforms
-- **Type-Safe Storage**: Chrome storage API wrapped in `src/shared/storage/storageService.ts`
-- **Path Aliases**: All imports use `@background`, `@content`, `@popup`, `@options`, `@shared`, `@assets` aliases
+### Phase 2: RESEARCH
+- **Explore** multiple solution approaches
+- **Evaluate** best practices and standards
+- **Consider** trade-offs and implications
+- **Choose** the optimal solution based on evidence
 
-### Build System
-- **Webpack 5** with separate dev/prod configs
-- **Multiple Entry Points**: background, content, popup, options scripts built separately
-- **Asset Handling**: Icons, SCSS compilation, TypeScript transpilation
-- **Hot Reload**: Development mode with watch for rapid iteration
+### Phase 3: IMPLEMENTATION
+- **Execute** the chosen solution systematically
+- **Apply** changes incrementally with verification
+- **Handle** edge cases and error conditions
+- **Clean up** any temporary files or artifacts
 
-### Testing Strategy
-- **Jest + jsdom** for unit/integration tests with 80% coverage thresholds
-- **Playwright** for E2E extension testing
-- **Path mapping** in tests mirrors webpack aliases
-- Test files in `/tests/unit/`, `/tests/integration/`, `/tests/e2e/`
+### Phase 4: REVIEW
+- **Verify** all functionality works correctly
+- **Test** comprehensively (unit, integration, e2e)
+- **Validate** performance and security
+- **Document** changes and update relevant docs
 
-### Chrome Extension Specifics
-- **Manifest V3** compliance with service worker background script
-- **Cross-context messaging** between background, content, and popup
-- **Permission handling** for tabs, storage, and AI APIs
-- **Content Security Policy** restrictions for secure code execution
+## 💡 Claude 4 development guidance
+- **Be explicit**: Request "comprehensive" or "fully-featured" implementations
+- **Parallel tools**: Use multiple tool calls simultaneously for efficiency
+- **General solutions**: Implement correct algorithms for all inputs, not just test cases
+- **Cleanup**: Remove temporary files/scripts created during development
+- **Frontend focus**: Request "interactive features, hover states, transitions" explicitly
+
+## 🌳 Git conventions
+- Branch `feat/<desc>` | `fix/<issue>` | `chore/<topic>`
+- Commits Conventional format (`feat: add bias detection panel`)
+
+## 🏗 Architecture notes
+- **Manifest V3** service worker (background) + React UI (popup/options)
+- **Chrome Built-in AI** Gemini Nano for local content analysis
+- **Platform extractors** `src/content/extractors/` for social media sites
+- **Storage service** `src/shared/storage/` wraps Chrome APIs with types
+- **Webpack 5** separate bundles per context with hot reload
+- **Coverage req** 80% threshold on branches/functions/lines/statements
+
+## ⚙️ Environment
+- Node 18+ • Chrome 138+ for AI APIs • 22GB for Gemini Nano
+- Required env vars: `MBFC_API_KEY`, `GOOGLE_FACT_CHECK_API_KEY`
+
+## 🔧 ESLint Flat Config Notes
+- **Modern config**: Uses `eslint.config.js` (ESLint v8.21+ Flat Config format)
+- **Security focused**: Includes security plugin with Chrome extension specific rules
+- **Type safety**: TypeScript ESLint with proper function signatures (no unsafe `Function` type)
+- **Context aware**: Different rules for background/content scripts vs tests
+- **Prettier integrated**: Automatic formatting with `eslint-config-prettier`
+- **Legacy removed**: Deprecated `.eslintrc.*` files have been migrated and removed

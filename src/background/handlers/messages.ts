@@ -10,7 +10,7 @@ export class MessageHandler {
    */
   static initialize(): void {
     chrome.runtime.onMessage.addListener(this.handleMessage);
-    console.log('Message handler initialized');
+    console.debug('Message handler initialized');
   }
 
   /**
@@ -28,29 +28,29 @@ export class MessageHandler {
         case 'ANALYZE_PAGE':
           this.handleAnalyzePage(message, sender, sendResponse);
           break;
-          
+
         case 'ANALYZE_CONTENT':
           this.handleAnalyzeContent(message, sender, sendResponse);
           break;
-          
+
         case 'GET_CREDIBILITY':
           this.handleGetCredibility(message, sender, sendResponse);
           break;
-          
+
         case 'UPDATE_SETTINGS':
           this.handleUpdateSettings(message, sender, sendResponse);
           break;
-          
+
         case 'CLEAR_CACHE':
           this.handleClearCache(message, sender, sendResponse);
           break;
-          
+
         default:
           console.warn('Unknown message type:', message.type);
           sendResponse({ error: 'Unknown message type' });
           return false;
       }
-      
+
       return true; // Keep message channel open for async response
     } catch (error: unknown) {
       console.error('Error handling message:', error);
@@ -70,8 +70,8 @@ export class MessageHandler {
   ): Promise<void> {
     try {
       // This would integrate with AI service
-      console.log('Analyzing page:', sender.tab?.url);
-      
+      console.debug('Analyzing page:', sender.tab?.url);
+
       sendResponse({
         success: true,
         message: 'Page analysis started',
@@ -91,9 +91,9 @@ export class MessageHandler {
     sendResponse: (response?: any) => void
   ): Promise<void> {
     try {
-      const content = message.payload;
-      console.log('Analyzing content:', content?.title);
-      
+      const content = message.payload as Record<string, unknown> | undefined;
+      console.debug('Analyzing content:', content?.title);
+
       // This would integrate with AI service for credibility analysis
       const mockCredibility = {
         score: 75,
@@ -123,9 +123,10 @@ export class MessageHandler {
     sendResponse: (response?: any) => void
   ): Promise<void> {
     try {
-      const url = message.payload?.url || sender.tab?.url;
-      console.log('Getting credibility for:', url);
-      
+      const payload = message.payload as Record<string, unknown> | undefined;
+      const url = payload?.url || sender.tab?.url;
+      console.debug('Getting credibility for:', url);
+
       sendResponse({
         success: true,
         credibility: null, // Would fetch from cache or API
@@ -147,7 +148,7 @@ export class MessageHandler {
     try {
       const settings = message.payload;
       await chrome.storage.sync.set({ settings });
-      
+
       // Notify all tabs about settings update
       const tabs = await chrome.tabs.query({});
       for (const tab of tabs) {
@@ -160,7 +161,7 @@ export class MessageHandler {
           });
         }
       }
-      
+
       sendResponse({ success: true });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -178,8 +179,8 @@ export class MessageHandler {
   ): Promise<void> {
     try {
       await chrome.storage.local.clear();
-      console.log('Cache cleared');
-      
+      console.debug('Cache cleared');
+
       sendResponse({ success: true });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

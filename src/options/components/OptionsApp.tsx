@@ -8,7 +8,10 @@ import { AdvancedSettings } from './sections/AdvancedSettings';
 
 export type SettingsSection = 'general' | 'privacy' | 'appearance' | 'advanced';
 
-interface OptionsAppProps {}
+interface OptionsAppProps {
+  // Empty interface for future props - allows extensibility
+  [key: string]: never;
+}
 
 export const OptionsApp: React.FC<OptionsAppProps> = () => {
   const [currentSection, setCurrentSection] = useState<SettingsSection>('general');

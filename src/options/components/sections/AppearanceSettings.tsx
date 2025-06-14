@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { UserSettings } from '@shared/types';
 import { storageService } from '@shared/storage/storageService';
 
-interface AppearanceSettingsProps {}
+interface AppearanceSettingsProps {
+  // Empty interface for future props - allows extensibility
+  [key: string]: never;
+}
 
 interface AppearanceState {
   currentTheme: 'light' | 'dark' | 'auto';

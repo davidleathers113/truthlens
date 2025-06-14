@@ -10,7 +10,7 @@ export class ABTestingFramework {
   private consent: ConsentManager;
   private activeExperiments: Map<string, ABTestExperiment> = new Map();
   private userAssignments: Map<string, ABTestAssignment[]> = new Map();
-  private experimentResults: Map<string, any> = new Map();
+  private experimentResults: Map<string, Record<string, any>> = new Map();
 
   constructor(analytics: AnalyticsService, consent: ConsentManager) {
     this.analytics = analytics;

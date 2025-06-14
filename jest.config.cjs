@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  roots: ['<rootDir>/src', '<rootDir>/tests'],
+  roots: ['<rootDir>/src', '<rootDir>/tests', '<rootDir>/scripts'],
   testMatch: [
     '**/__tests__/**/*.+(ts|tsx|js)',
     '**/?(*.)+(spec|test).+(ts|tsx|js)'
@@ -11,8 +11,17 @@ module.exports = {
     '/tests/e2e/'  // Exclude E2E tests from Jest
   ],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest'
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      useESM: true,
+      tsconfig: {
+        jsx: 'react-jsx'
+      }
+    }]
   },
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\\.mjs$))'
+  ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -23,6 +32,7 @@ module.exports = {
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
     '^@assets/(.*)$': '<rootDir>/src/assets/$1'
   },
+  setupFiles: ['<rootDir>/tests/setup-mocks.ts'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -38,11 +48,15 @@ module.exports = {
       statements: 80
     }
   },
-  globals: {
-    'ts-jest': {
-      tsconfig: {
-        jsx: 'react-jsx'
-      }
-    }
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@background/(.*)$': '<rootDir>/src/background/$1',
+    '^@content/(.*)$': '<rootDir>/src/content/$1',
+    '^@popup/(.*)$': '<rootDir>/src/popup/$1',
+    '^@options/(.*)$': '<rootDir>/src/options/$1',
+    '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@assets/(.*)$': '<rootDir>/src/assets/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1'
   }
 };

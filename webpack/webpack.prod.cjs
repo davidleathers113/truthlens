@@ -1,12 +1,13 @@
 const { merge } = require('webpack-merge');
-const common = require('./webpack.common.js');
+const common = require('./webpack.common.cjs');
 const TerserPlugin = require('terser-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const CSPAuditPlugin = require('./plugins/CSPAuditPlugin.cjs');
 
-module.exports = merge(common, {
+module.exports = (env) => merge(common, {
   mode: 'production',
   devtool: 'source-map',
-  
+
   optimization: {
     minimize: true,
     minimizer: [
@@ -39,8 +40,17 @@ module.exports = merge(common, {
       }
     }
   },
-  
+
   plugins: [
+    // CSP Compliance Audit
+    new CSPAuditPlugin({
+      enabled: !env?.nocsp, // Can be disabled with --env nocsp
+      failOnError: true,
+      reportPath: 'csp-audit-report.json',
+      distPath: 'dist'
+    }),
+
+    // Bundle analyzer (optional)
     ...(process.argv.includes('--analyze') ? [
       new BundleAnalyzerPlugin({
         analyzerMode: 'static',

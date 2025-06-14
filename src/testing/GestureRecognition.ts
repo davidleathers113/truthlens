@@ -6,7 +6,6 @@
 
 import {
   GestureEvent,
-  TouchPattern,
   DeviceType
 } from './types';
 

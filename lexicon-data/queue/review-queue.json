@@ -1,0 +1,119 @@
+{
+  "pending": [],
+  "reviewed": [
+    {
+      "id": "2b2ecf14",
+      "term": "bussin",
+      "type": "slang",
+      "definition": "Really good, usually describing food",
+      "examples": [
+        "This pizza is bussin!",
+        "That new restaurant is straight bussin"
+      ],
+      "firstSeen": "2025-06-08T12:37:52.019Z",
+      "lastUpdated": "2025-06-08T12:37:52.019Z",
+      "status": "approved",
+      "confidence": 0.7,
+      "sources": [
+        "Urban Dictionary"
+      ],
+      "locale": "en",
+      "nsfw": false,
+      "contexts": [],
+      "approvedBy": "automated-review"
+    },
+    {
+      "id": "0e4084b4",
+      "term": "no cap",
+      "type": "slang",
+      "definition": "No lie, for real",
+      "examples": [
+        "That movie was amazing, no cap",
+        "No cap, I saw it myself"
+      ],
+      "firstSeen": "2025-06-08T12:37:52.019Z",
+      "lastUpdated": "2025-06-08T12:37:52.019Z",
+      "status": "rejected",
+      "confidence": 0.7,
+      "sources": [
+        "Urban Dictionary"
+      ],
+      "locale": "en",
+      "nsfw": false,
+      "contexts": [],
+      "rejectionReason": "Does not meet quality standards"
+    },
+    {
+      "id": "36f910d7",
+      "term": "💀",
+      "type": "emoji",
+      "definition": "dying of laughter",
+      "examples": [
+        "That's hilarious 💀",
+        "You're 💀 (lying)"
+      ],
+      "sentiment": 1.5,
+      "firstSeen": "2025-06-08T12:38:10.025Z",
+      "lastUpdated": "2025-06-08T12:38:10.025Z",
+      "status": "approved",
+      "confidence": 0.8,
+      "sources": [
+        "Emoji Tracker"
+      ],
+      "locale": "en",
+      "nsfw": false,
+      "contexts": [],
+      "approvedBy": "automated-review"
+    },
+    {
+      "id": "3dc8d6ec",
+      "term": "🧢",
+      "type": "emoji",
+      "definition": "cap/lie",
+      "examples": [
+        "That's hilarious 🧢",
+        "You're 🧢 (lying)"
+      ],
+      "sentiment": -0.5,
+      "firstSeen": "2025-06-08T12:38:10.025Z",
+      "lastUpdated": "2025-06-08T12:38:10.025Z",
+      "status": "rejected",
+      "confidence": 0.8,
+      "sources": [
+        "Emoji Tracker"
+      ],
+      "locale": "en",
+      "nsfw": false,
+      "contexts": [],
+      "rejectionReason": "Does not meet quality standards"
+    },
+    {
+      "id": "c0cc703f",
+      "term": "✨",
+      "type": "emoji",
+      "definition": "sparkle/emphasis",
+      "examples": [
+        "That's hilarious ✨",
+        "You're ✨ (lying)"
+      ],
+      "sentiment": 0.8,
+      "firstSeen": "2025-06-08T12:38:10.025Z",
+      "lastUpdated": "2025-06-08T12:38:10.025Z",
+      "status": "rejected",
+      "confidence": 0.8,
+      "sources": [
+        "Emoji Tracker"
+      ],
+      "locale": "en",
+      "nsfw": false,
+      "contexts": [],
+      "rejectionReason": "Does not meet quality standards"
+    }
+  ],
+  "stats": {
+    "totalReviewed": 0,
+    "approved": 0,
+    "rejected": 0,
+    "avgReviewTime": 0
+  }
+}

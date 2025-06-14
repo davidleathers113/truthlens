@@ -105,7 +105,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, onComp
         <p className="progress-text">Step 1 of 3</p>
       </div>
 
-      <style jsx>{`
+      <style>{`
         /* WelcomeScreen Styles - 2025 Gen Z Design */
         .welcome-screen {
           display: flex;
